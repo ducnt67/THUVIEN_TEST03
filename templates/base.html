@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hệ thống Quản lý Thư viện DUE{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="dashboard-container">
+    <aside class="sidebar">
+        <div>
+            <div class="sidebar-header">
+                <div class="logo sidebar-logo">
+                    <img src="{% static 'images/Logo_DUE.jpg' %}" alt="Logo DUE">
+                </div>
+                <h2>Thư viện DUE</h2>
+            </div>
+
+            <ul class="nav-links">
+                <li class="{% block nav_dashboard %}{% endblock %}">
+                    <a href="{% url 'dashboard' %}">
+                        <i class='bx bxs-grid-alt'></i>
+                        <span>Tổng quan</span>
+                    </a>
+                </li>
+
+                <li class="{% block nav_borrow %}{% endblock %}">
+                    <a href="{% url 'borrow_list' %}">
+                        <i class='bx bx-book-reader'></i>
+                        <span>Mượn sách</span>
+                    </a>
+                </li>
+
+                <li class="{% block nav_return %}{% endblock %}">
+                    <a href="{% url 'return_list' %}">
+                        <i class='bx bx-history'></i>
+                        <span>Trả sách</span>
+                    </a>
+                </li>
+
+                <li class="{% block nav_books %}{% endblock %}">
+                    <a href="{% url 'book_list' %}">
+                        <i class='bx bx-book'></i>
+                        <span>Quản lý sách</span>
+                    </a>
+                </li>
+
+                <li class="{% block nav_users %}{% endblock %}">
+                    <a href="{% url 'reader_list' %}">
+                        <i class='bx bx-group'></i>
+                        <span>Người dùng</span>
+                    </a>
+                </li>
+
+                <li class="{% block nav_reports %}{% endblock %}">
+                    <a href="{% url 'report_statistics' %}">
+                        <i class='bx bx-line-chart'></i>
+                        <span>Báo cáo</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="logout-wrapper">
+            <a href="#" class="logout-btn">
+                <i class='bx bx-log-out'></i>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <h1>{% block page_title %}Tổng quan{% endblock %}</h1>
+                <p>{% block page_subtitle %}Đại học Kinh tế - Đại học Đà Nẵng{% endblock %}</p>
+            </div>
+
+            <div class="header-right">
+                <div class="user-info">
+                    <div class="user-details">
+                        <span class="user-name">
+                            {% if request.user.is_authenticated %}
+                                {{ request.user.username }}
+                            {% else %}
+                                Nguyễn Văn An
+                            {% endif %}
+                        </span>
+                        <span class="user-role">{% block user_role %}Thủ thư{% endblock %}</span>
+                    </div>
+                    <div class="user-avatar">
+                        {% if request.user.is_authenticated %}
+                        {{ request.user.username|slice:":1"|upper }}
+                        {% else %}
+                        N
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+            <div class="message-wrapper">
+                {% for message in messages %}
+                    <div class="message-box">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+        {% block popup %}{% endblock %}
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

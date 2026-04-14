@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quản lý trả sách - Thư viện DUE{% endblock %}
+{% block page_title %}Quản lý trả sách{% endblock %}
+{% block nav_return %}active{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/circulation.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="page-return">
+    <div class="search-section search-uniform card">
+        <p class="section-label">Tìm kiếm</p>
+        <div class="search-bar">
+            <div class="input-with-icon">
+                <label for="searchInput" class="sr-only">Từ khóa tìm kiếm</label>
+                <i class='bx bx-search'></i>
+                <input id="searchInput" type="text" placeholder="Nhập thông tin để tìm kiếm" oninput="performSearch()" onkeyup="if(event.key === 'Enter') performSearch()">
+            </div>
+            <button class="btn btn-primary btn-orange" type="button" onclick="performSearch()">
+                <i class='bx bx-search'></i> Tìm kiếm
+            </button>
+        </div>
+    </div>
+
+    <div class="tabs-pill-container">
+        <button class="tab active" type="button" onclick="switchTab(this, 'tab-1')">Xác nhận trả sách</button>
+        <button class="tab" type="button" onclick="switchTab(this, 'tab-2')">Thanh toán phí phạt</button>
+        <button class="tab" type="button" onclick="switchTab(this, 'tab-3')">Xử lý mất sách</button>
+        <button class="tab" type="button" onclick="switchTab(this, 'tab-4')">Xác nhận đền sách</button>
+    </div>
+
+    <div class="tab-content">
+        <div id="tab-1" class="tab-pane active" style="display:flex;">
+            <h3 class="section-heading">Danh sách sách đang mượn</h3>
+            <div class="data-table-scroll table-wrapper" style="box-shadow: none; padding: 0;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Mã phiếu</th>
+                            <th style="width: 15%;">Mã sách</th>
+                            <th style="width: 20%;">Tên sách</th>
+                            <th style="width: 15%;">Người mượn</th>
+                            <th style="width: 12%;">Ngày mượn</th>
+                            <th style="width: 12%;">Hạn trả</th>
+                            <th style="width: 10%;">Trạng thái</th>
+                            <th class="col-action"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="return-record"
+                            data-loan-id="PM-001"
+                            data-book-code="KT001"
+                            data-book-title="Kinh tế vi mô"
+                            data-borrower="Trần Thị Bình"
+                            data-due-date="24/1/2026"
+                            data-status="Đang mượn"
+                            data-overdue-days="0"
+                            data-overdue-rate="10000">
+                            <td><strong>PM-001</strong></td>
+                            <td>KT001</td>
+                            <td class="col-wrap">Kinh tế vi mô</td>
+                            <td class="col-wrap">Trần Thị Bình</td>
+                            <td>10/1/2026</td>
+                            <td>24/1/2026</td>
+                            <td><span class="badge-blue">Đang mượn</span></td>
+                            <td class="col-action"><button class="btn-red return-confirm-trigger">Xác nhận trả</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-2" class="tab-pane hidden" style="display:none;">
+            <h3 class="section-heading">Danh sách người dùng nợ phí phạt</h3>
+            <div class="data-table-scroll table-wrapper" style="box-shadow: none; padding: 0;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Mã phạt</th>
+                            <th style="width: 25%;">Người dùng</th>
+                            <th style="width: 20%;">Mã SV/GV</th>
+                            <th style="width: 30%;">Tổng tiền phạt chưa thanh toán</th>
+                            <th class="col-action"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>FINE-001</strong></td>
+                            <td class="col-wrap">Trần Thị Bình</td>
+                            <td>2051010001</td>
+                            <td><span class="text-red-bold" style="font-size: 15px;">50.000đ</span></td>
+                            <td class="col-action">
+                                <button class="btn-blue-dark" onclick="document.getElementById('popupOverlay').style.display='flex'; document.getElementById('popup-payment').style.display='flex';">
+                                    Thanh toán
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-3" class="tab-pane hidden" style="display:none;">
+            <h3 class="section-heading">Danh sách bản ghi mượn cần xử lý mất sách</h3>
+            <div class="data-table-scroll table-wrapper" style="box-shadow: none; padding: 0;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Mã phiếu</th>
+                            <th style="width: 25%;">Tên sách</th>
+                            <th style="width: 15%;">Mã sách</th>
+                            <th style="width: 15%;">Người mượn</th>
+                            <th style="width: 10%;">Hạn trả</th>
+                            <th style="width: 10%;">Trạng thái</th>
+                            <th class="col-action"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="lost-record" data-loan-id="PM-001" data-book-title="Kinh tế vi mô" data-book-code="KT001" data-borrower="Trần Thị Bình" data-due-date="24/1/2026" data-status="Quá hạn" data-book-price="500000" data-processing-fee="20000">
+                            <td><strong>PM-001</strong></td>
+                            <td class="col-wrap">Kinh tế vi mô</td>
+                            <td>KT001</td>
+                            <td class="col-wrap">Trần Thị Bình</td>
+                            <td>24/1/2026</td>
+                            <td><span class="badge-orange">Quá hạn</span></td>
+                            <td class="col-action"><button class="btn-red lost-report-trigger" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-4" class="tab-pane hidden" style="display:none;">
+            <h3 class="section-heading">Danh sách hồ sơ chờ xác nhận đền sách</h3>
+            <div class="data-table-scroll table-wrapper" style="box-shadow: none; padding: 0;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Mã hồ sơ</th>
+                            <th style="width: 25%;">Sách cần đền</th>
+                            <th style="width: 15%;">Mã sách</th>
+                            <th style="width: 20%;">Người đền</th>
+                            <th style="width: 15%;">Ngày báo mất</th>
+                            <th class="col-action">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="compensateTableBody">
+                        <tr class="compensate-record"
+                            data-record-id="HS-001"
+                            data-book-title="Kinh tế vi mô"
+                            data-book-code="KT001"
+                            data-compensator="Trần Thị Bình"
+                            data-report-date="18/1/2026"
+                            data-status="Chờ đền sách">
+                            <td><strong>HS-001</strong></td>
+                            <td class="col-wrap">Kinh tế vi mô</td>
+                            <td>KT001</td>
+                            <td class="col-wrap">Trần Thị Bình</td>
+                            <td>18/1/2026</td>
+                            <td class="col-action">
+                                <span class="badge-outline-red compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block popup %}
+<div class="popup-overlay" id="popupOverlay">
+    <!-- Giữ toàn bộ popup của file returns.html ở đây -->
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/sidebar.js' %}"></script>
+<script src="{% static 'js/returns.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,122 @@
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
+
+.sidebar {
+    width: 260px;
+    background-color: #2258ba;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+    min-height: 100vh;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    padding: 30px 25px 20px;
+    gap: 12px;
+}
+
+.logo.sidebar-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.logo.sidebar-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    padding: 4px;
+    background: #ffffff;
+}
+
+.sidebar-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #ffffff;
+}
+
+.nav-links {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 15px;
+    list-style: none;
+    margin: 0;
+}
+
+.nav-links li a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 15px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 15px;
+}
+
+.nav-links li a i {
+    font-size: 22px;
+    width: 24px;
+    text-align: center;
+}
+
+.nav-links li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+
+.nav-links li.active a {
+    background-color: #f97316;
+    color: #ffffff;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.logout-wrapper {
+    padding: 15px;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 14px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #ffffff;
+    border: none;
+    background: transparent;
+    text-decoration: none;
+    font-size: 15px;
+    cursor: pointer;
+    width: 100%;
+}
+
+.logout-btn i {
+    font-size: 22px;
+    width: 24px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
