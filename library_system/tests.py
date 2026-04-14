@@ -12,6 +12,11 @@ class LibraryPagesTest(TestCase):
 		self.assertEqual(self.client.get(reverse('reader_list')).status_code, 200)
 		self.assertEqual(self.client.get(reverse('book_list')).status_code, 200)
 
+	def test_reader_page_contains_search_ui(self):
+		response = self.client.get(reverse('reader_list'))
+		self.assertContains(response, 'Tra cứu người dùng')
+		self.assertContains(response, 'Danh sách người dùng')
+
 
 class BookFlowTest(TestCase):
 	def setUp(self):
