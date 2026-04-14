@@ -1,8 +1,8 @@
 from django.contrib import messages
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import NguoiDung, Sach, SachTrongKho
+from .models import Sach, SachTrongKho
 
 
 def dashboard_view(request):
@@ -18,18 +18,7 @@ def return_list_view(request):
 
 
 def reader_list_view(request):
-	users = NguoiDung.objects.all().order_by('ho_ten').annotate(
-		active_loans=Count(
-			'phieu_muon',
-			filter=Q(phieu_muon__trang_thai__icontains='mượn') | Q(phieu_muon__trang_thai__icontains='quá hạn'),
-			distinct=True,
-		),
-		unpaid_fine_total=Sum(
-			'khoan_phat__so_tien',
-			filter=Q(khoan_phat__trang_thai_tt__icontains='chưa'),
-		),
-	)
-	return render(request, 'Users/reader_list.html', {'users': users})
+	return render(request, 'Users/reader_list.html')
 
 
 def _book_queryset(keyword):
