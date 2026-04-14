@@ -45,7 +45,21 @@
                     <th class="col-action">Thao tác</th>
                 </tr>
             </thead>
-            <tbody id="bookTableBody"></tbody>
+            <tbody id="bookTableBody">
+                {% for book in books %}
+                <tr>
+                    <td><strong>{{ book.ma_sach }}</strong></td>
+                    <td>{{ book.ten_sach }}</td>
+                    <td>{{ book.ten_tac_gia|default:'' }}</td>
+                    <td>{{ book.the_loai|default:'' }}</td>
+                    <td>{{ book.ten_nha_xuat_ban|default:'' }}</td>
+                    <td>{{ book.nam_xuat_ban }}</td>
+                    <td>{{ book.total_quantity|default:0 }}</td>
+                    <td>{% if book.total_quantity and book.borrowed_quantity < book.total_quantity %}<span class="status-badge">CÓ SẴN</span>{% elif book.total_quantity and book.borrowed_quantity >= book.total_quantity %}<span class="status-badge status-out">HẾT SÁCH</span>{% else %}<span class="status-badge">CÓ SẴN</span>{% endif %}</td>
+                    <td class="col-action"><span class="action-disabled">Không khả dụng</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 </section>

@@ -146,20 +146,27 @@ def book_list_view(request):
 
 	context = _build_book_context(request)
 	return render(request, 'books/book_list.html', context)
+
+
 def index(request):
-    return render(request, 'dashboard/index.html')
+	return dashboard_view(request)
+
 
 def borrow_list(request):
-    return render(request, 'circulation/borrow_list.html')
+	return borrow_list_view(request)
+
 
 def return_list(request):
-    return render(request, 'circulation/return_list.html')
+	return return_list_view(request)
+
 
 def book_list(request):
-    return render(request, 'books/book_list.html')
+	return book_list_view(request)
+
 
 def reader_list(request):
-    return render(request, 'dashboard/index.html')
+	return reader_list_view(request)
+
 
 def report_statistics(request):
-    return render(request, 'reports/statistics.html')
+	return render(request, 'reports/statistics.html')
