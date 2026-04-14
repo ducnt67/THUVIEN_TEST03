@@ -5,6 +5,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import Sach, SachTrongKho
 
 
+def login_view(request):
+    return render(request, 'auth/login.html')
+
+
 def dashboard_view(request):
     return render(request, 'dashboard/index.html')
 
