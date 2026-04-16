@@ -1,3 +1,65 @@
 from django.db import models
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
-# Create your models here.
+class PhieuMuon(models.Model):
+    ma_phieu_muon = models.CharField(max_length=10, primary_key=True)
+    ma_nguoi_dung = models.ForeignKey(
+        'quan_ly_nguoi_dung.NguoiDung',
+        on_delete=models.PROTECT,
+        related_name='phieu_muon'
+    )
+    ngay_muon = models.DateField(default=timezone.now)
+    trang_thai = models.CharField(max_length=50)
+    nguoi_tao = models.ForeignKey(
+        'quan_ly_nguoi_dung.NguoiDung',
+        on_delete=models.PROTECT,
+        related_name='phieu_muon_da_tao'
+    )
+
+    class Meta:
+        db_table = 'PhieuMuon'
+        ordering = ['-ngay_muon']
+        verbose_name = 'Phiếu mượn'
+        verbose_name_plural = 'Phiếu mượn'
+
+    def __str__(self):
+        return self.ma_phieu_muon
+
+
+class ChiTietPhieuMuon(models.Model):
+    ma_phieu_muon = models.ForeignKey(
+        PhieuMuon,
+        on_delete=models.CASCADE,
+        related_name='chi_tiet_phieu_muon'
+    )
+    ma_sach_trong_kho = models.ForeignKey(
+        'quan_ly_sach.SachTrongKho',
+        on_delete=models.PROTECT,
+        related_name='chi_tiet_phieu_muon'
+    )
+    han_tra = models.DateField()
+    ngay_tra = models.DateField(blank=True, null=True)
+    tinh_trang_khi_tra = models.CharField(max_length=100, blank=True, null=True)
+    ngay_khai_bao_mat = models.DateField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'ChiTietPhieuMuon'
+        verbose_name = 'Chi tiết phiếu mượn'
+        verbose_name_plural = 'Chi tiết phiếu mượn'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ma_phieu_muon', 'ma_sach_trong_kho'],
+                name='unique_chi_tiet_phieu_muon'
+            )
+        ]
+
+    def clean(self):
+        if self.han_tra and self.ma_phieu_muon and self.han_tra < self.ma_phieu_muon.ngay_muon:
+            raise ValidationError({'han_tra': 'Hạn trả không được nhỏ hơn ngày mượn.'})
+
+        if self.ngay_tra and self.ma_phieu_muon and self.ngay_tra < self.ma_phieu_muon.ngay_muon:
+            raise ValidationError({'ngay_tra': 'Ngày trả không được nhỏ hơn ngày mượn.'})
+
+    def __str__(self):
+        return f"{self.ma_phieu_muon_id} - {self.ma_sach_trong_kho_id}"

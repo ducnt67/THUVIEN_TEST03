@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
-from library_system.models import Sach, SachTrongKho
+from .models import Sach, SachTrongKho
 
 def _book_queryset(keyword):
     books = Sach.objects.all()

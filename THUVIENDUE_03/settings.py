@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'library_system',
     'muon_sach',
     'tra_sach',
     'quan_ly_sach',
