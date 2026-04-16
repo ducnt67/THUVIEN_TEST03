@@ -2,131 +2,191 @@
 {% load static %}
 
 {% block title %}Báo cáo thống kê - Thư viện DUE{% endblock %}
-{% block page_title %}Báo cáo thống kê{% endblock %}
 {% block nav_reports %}active{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}">
+{% endblock %}
+
+{% block page_title %}<span id="dynamic-title">Báo cáo sách được trả</span>{% endblock %}
+
 {% block content %}
-<div id="page-reports">
-    <section class="overview-cards">
-        <div class="card card-blue">
-            <div class="card-content">
-                <p class="card-title">Tổng số sách <i class='bx bx-book-bookmark'></i></p>
-                <h3>61</h3>
-                <p class="card-desc">49 sách còn trong kho</p>
-            </div>
+<div class="reports-container">
+    <!-- Search Section -->
+    <div class="search-group">
+        <label class="search-label">Tìm kiếm</label>
+        <div class="search-input-wrapper">
+            <input type="text" id="report-search" placeholder="Nhập tên sách để tìm kiếm...">
+            <button class="btn-filter" id="btn-filter">
+                <i class='bx bx-filter-alt'></i>
+                Lọc
+            </button>
         </div>
+    </div>
 
-        <div class="card card-blue">
-            <div class="card-content">
-                <p class="card-title">Sách đang mượn <i class='bx bx-book-open'></i></p>
-                <h3>3</h3>
-                <p class="card-desc">1 phiếu quá hạn</p>
-            </div>
-        </div>
+    <!-- Summary Stats -->
+    <div id="summary-section" class="summary-row">
+        <!-- Will be populated by JS -->
+    </div>
 
-        <div class="card card-blue">
-            <div class="card-content">
-                <p class="card-title">Tổng độc giả <i class='bx bx-group'></i></p>
-                <h3>4</h3>
-                <p class="card-desc">Đang hoạt động</p>
-            </div>
-        </div>
+    <!-- Tabs Navigation -->
+    <div class="report-tabs">
+        <button class="tab-btn active" data-tab="returned">Sách đã trả</button>
+        <button class="tab-btn" data-tab="lending">Sách đang cho mượn</button>
+        <button class="tab-btn" data-tab="stock">Sách còn trong kho</button>
+    </div>
 
-        <div class="card card-red">
-            <div class="card-content">
-                <p class="card-title">Phiếu quá hạn <i class='bx bx-calendar-x'></i></p>
-                <h3 class="text-red">1</h3>
-                <p class="card-desc">Cần xử lý</p>
-            </div>
-        </div>
-
-        <div class="card card-red">
-            <div class="card-content">
-                <p class="card-title">Tiền phạt chưa thu <i class='bx bx-money'></i></p>
-                <h3 class="text-red">50.000đ</h3>
-                <p class="card-desc">Cần thu</p>
-            </div>
-        </div>
-    </section>
-
-    <section class="charts-section">
-        <h2>Biểu đồ thống kê</h2>
-
-        <div class="charts-grid">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <span class="title">Trạng thái sách</span>
-                    <span class="subtitle">Kho vs Đang mượn</span>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="booksStatusChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-header">
-                    <span class="title">Độc giả</span>
-                    <span class="subtitle">Hoạt động</span>
-                </div>
-                <div class="chart-wrapper" style="position: relative;">
-                    <canvas id="readersChart"></canvas>
-                    <div class="donut-inner">
-                        <span class="num">4</span>
-                        <span>Đang hoạt động</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-header">
-                    <span class="title">Xu hướng quá hạn</span>
-                    <span class="subtitle">7 ngày</span>
-                </div>
-                <div class="chart-wrapper">
-                    <canvas id="overdueChart"></canvas>
-                </div>
-            </div>
-
-            <div class="chart-card">
-                <div class="chart-header">
-                    <span class="title">Tiền phạt</span>
-                    <span class="subtitle">Đã thu vs Chưa thu</span>
-                </div>
-
-                <div class="progress-section">
-                    <div class="progress-item text-red">
-                        <div class="prog-label">
-                            <span>Chưa thu</span>
-                            <strong>50.000đ</strong>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress bg-red" style="width: 100%;"></div>
-                        </div>
-                    </div>
-
-                    <div class="progress-item text-blue">
-                        <div class="prog-label">
-                            <span>Đã thu</span>
-                            <strong>0đ</strong>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress bg-blue" style="width: 0%;"></div>
-                        </div>
-                    </div>
-
-                    <p class="target-desc">Mục tiêu: thu toàn bộ trong tuần</p>
-
-                    <div class="legend-inline">
-                        <span><span class="dot dot-red"></span> Chưa thu</span>
-                        <span><span class="dot dot-gray"></span> Đã thu</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Table Section -->
+    <div class="report-table-container">
+        <table class="report-table" id="report-table">
+            <thead>
+                <tr id="table-header">
+                    <!-- Headings will be dynamic -->
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Rows will be dynamic -->
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/reports.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const tableHeader = document.getElementById('table-header');
+    const tableBody = document.getElementById('table-body');
+    const summarySection = document.getElementById('summary-section');
+    const dynamicTitle = document.getElementById('dynamic-title');
+    const searchInput = document.getElementById('report-search');
+    const filterBtn = document.getElementById('btn-filter');
+
+    let currentTab = 'returned';
+
+    // Dummy Data matching User Mockup Images
+    const data = {
+        returned: {
+            title: "Báo cáo sách được trả",
+            stats: [
+                { label: "Tổng số sách đã trả", value: "6", class: "" },
+                { label: "Trả đúng hạn", value: "3", class: "text-green" },
+                { label: "Trả quá hạn", value: "3", class: "text-red" }
+            ],
+            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Người mượn", "Ngày mượn", "Ngày trả", "Trạng thái"],
+            rows: [
+                ["PM001", "Marketing căn bản", "MK001", "Trần Thị Bình", "24/1/2026", "24/1/2026", "Đúng hạn"],
+                ["PM002", "Nhập môn kinh doanh", "KD001", "Trần Thị Bình", "19/1/2026", "20/1/2026", "Quá hạn"],
+                ["PM003", "Quản trị Marketing", "MK002", "Lê Văn Cường", "26/1/2026", "26/1/2026", "Đúng hạn"],
+                ["PM004", "Thống kê kinh doanh", "TK002", "Nguyễn Thị Dung", "18/1/2026", "22/1/2026", "Quá hạn"],
+                ["PM005", "Toán rời rạc", "TC001", "Phạm Văn Em", "25/1/2026", "25/1/2026", "Đúng hạn"],
+                ["PM006", "Kinh tế vĩ mô", "KT003", "Hoàng Thị Phương", "20/1/2026", "27/1/2026", "Quá hạn"]
+            ]
+        },
+        lending: {
+            title: "Báo cáo sách đang cho mượn",
+            stats: [
+                { label: "Tổng số sách đang mượn", value: "6", class: "" },
+                { label: "Đang trong hạn", value: "4", class: "text-green" },
+                { label: "Đã quá hạn", value: "2", class: "text-red" }
+            ],
+            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Người mượn", "Ngày mượn", "Ngày trả", "Trạng thái"],
+            rows: [
+                ["PM001", "Kinh tế học vi mô", "KT001", "Trần Thị Bình", "24/1/2026", "24/1/2026", "Đang mượn"],
+                ["PM002", "Nguyên lý kế toán", "TC001", "Trần Thị Bình", "19/1/2026", "20/1/2026", "Quá hạn"],
+                ["PM003", "Quản trị Marketing", "KT002", "Lê Văn Cường", "26/1/2026", "26/1/2026", "Đang mượn"],
+                ["PM004", "Phân tích báo cáo tài chính", "TC002", "Nguyễn Thị Dung", "18/1/2026", "22/1/2026", "Quá hạn"],
+                ["PM005", "Quản trị nguồn nhân lực", "QL001", "Phạm Văn Em", "25/1/2026", "25/1/2026", "Đang mượn"],
+                ["PM006", "Kinh tế lượng cơ bản", "KT003", "Hoàng Thị Phương", "20/1/2028", "27/1/2026", "Quá hạn"]
+            ]
+        },
+        stock: {
+            title: "Báo cáo sách còn trong kho",
+            stats: [
+                { label: "Tổng số đầu sách", value: "6", class: "" },
+                { label: "Tổng số lượng", value: "275", class: "text-green" },
+                { label: "Sắp hết hàng", value: "1", class: "text-red" }
+            ],
+            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Số lượng", "Còn lại", "Trạng thái"],
+            rows: [
+                ["PM001", "Kinh tế học vi mô", "KT001", "30", "23", "Còn sách"],
+                ["PM002", "Nguyên lý kế toán", "TC001", "40", "32", "Còn sách"],
+                ["PM003", "Quản trị Marketing", "KT002", "45", "36", "Còn sách"],
+                ["PM004", "Phân tích báo cáo tài chính", "TC002", "32", "22", "Còn sách"],
+                ["PM005", "Quản trị nguồn nhân lực", "QL001", "75", "64", "Còn sách"],
+                ["PM006", "Kinh tế lượng cơ bản", "KT003", "53", "41", "Còn sách"]
+            ]
+        }
+    };
+
+    function updateTable(tab, filter = '') {
+        const tabData = data[tab];
+        currentTab = tab;
+        
+        // Update Title
+        dynamicTitle.textContent = tabData.title;
+
+        // Update Stats
+        summarySection.innerHTML = tabData.stats.map(s => `
+            <div class="stat-item">
+                <span class="stat-label">${s.label}</span>
+                <span class="stat-value ${s.class}">${s.value}</span>
+            </div>
+        `).join('');
+
+        // Update Headers
+        tableHeader.innerHTML = tabData.headers.map(h => `<th>${h}</th>`).join('');
+
+        // Update Body
+        const filteredRows = tabData.rows.filter(row => 
+            row[1].toLowerCase().includes(filter.toLowerCase())
+        );
+
+        tableBody.innerHTML = filteredRows.map(row => {
+            const status = row[row.length - 1];
+            let statusClass = 'bg-blue';
+            if (status === 'Quá hạn' || status === 'Sắp hết' || status === 'Đã quá hạn') statusClass = 'bg-red';
+            
+            return `
+                <tr class="fade-in">
+                    ${row.slice(0, -1).map(cell => `<td>${cell}</td>`).join('')}
+                    <td><span class="status-pill ${statusClass}">${status}</span></td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    // Initial load
+    updateTable('returned');
+
+    // Tab click events
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            updateTable(tab.dataset.tab, searchInput.value);
+        });
+    });
+
+    // Filter logic
+    filterBtn.addEventListener('click', () => {
+        updateTable(currentTab, searchInput.value);
+    });
+
+    // Enter key support for search
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            updateTable(currentTab, searchInput.value);
+        }
+    });
+
+    // Clear search support
+    searchInput.addEventListener('input', (e) => {
+        if (searchInput.value === '') {
+            updateTable(currentTab, '');
+        }
+    });
+});
+</script>
 {% endblock %}
