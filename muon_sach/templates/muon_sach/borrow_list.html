@@ -139,92 +139,11 @@
         </div>
     </div>
 
-    <div class="pm-modal" id="popup-borrow-detail">
-        <div class="pm-title-block">
-            <h3 class="pm-title">Chi tiết phiếu mượn</h3>
-        </div>
-        <div class="pm-body">
-            <div class="pm-grid-4">
-                <div class="pm-field">
-                    <label class="pm-label">Mã người dùng</label>
-                    <input id="detUserId" class="pm-input" type="text" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Tên người dùng</label>
-                    <input id="detUserName" class="pm-input" type="text" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Ngày mượn</label>
-                    <input id="detBorrowDate" class="pm-input" type="date" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Ngày đến hạn trả</label>
-                    <input id="detDueDate" class="pm-input" type="date" readonly>
-                </div>
-            </div>
+    {% include 'muon_sach/chi_tiet_phieu_muon.html' %}
 
-            <div class="pm-list-hdr">
-                <span>Mã sách trong kho</span>
-                <span>Tên sách</span>
-                <span>Số lượng</span>
-            </div>
-            <div id="detBooksBody"></div>
-        </div>
-        <div class="pm-footer">
-            <button class="btn-cancel" type="button" onclick="closePm()">Hủy</button>
-            <button class="btn-save" type="button" onclick="closePm()">Lưu thay đổi</button>
-        </div>
-    </div>
+    {% include 'muon_sach/gia_han_muon_sach.html' %}
 
-    <div class="pm-modal-sm" id="popup-extend-small">
-        <div class="pm-header-sm">
-            <div>
-                <h3 class="pm-title">Gia hạn mượn sách</h3>
-                <p class="pm-subtitle">Cập nhật ngày gia hạn cho phiếu mượn</p>
-            </div>
-            <button class="pm-x-btn" onclick="closePm()">×</button>
-        </div>
-        <div class="pm-body-sm">
-            <div class="pm-info-grid">
-                <div>
-                    <div class="pm-info-label">Mã người dùng</div>
-                    <div class="pm-info-value" id="extSmUserId">–</div>
-                </div>
-                <div>
-                    <div class="pm-info-label">Họ và tên</div>
-                    <div class="pm-info-value" id="extSmUserName">–</div>
-                </div>
-                <div>
-                    <div class="pm-info-label">Mã sách</div>
-                    <div class="pm-info-value" id="extSmBookCode">–</div>
-                </div>
-                <div>
-                    <div class="pm-info-label">Tên sách</div>
-                    <div class="pm-info-value" id="extSmBookTitle">–</div>
-                </div>
-            </div>
-            <div class="pm-field" style="margin-bottom:4px;">
-                <label class="pm-label">Ngày gia hạn mới <span class="req">*</span></label>
-                <input id="extSmNewDate" class="pm-input" type="date">
-            </div>
-        </div>
-        <div class="pm-footer-sm">
-            <button class="btn-cancel" onclick="closePm()">Hủy</button>
-            <button class="btn-save" onclick="saveExtendSmall()">Lưu</button>
-        </div>
-    </div>
-
-    <div class="pm-modal-sm" id="popup-delete-confirm">
-        <div style="padding:28px 28px 0;">
-            <p class="del-title">Bạn có muốn xóa?</p>
-            <p class="del-text">Hành động này sẽ xóa phiếu mượn khỏi hệ thống. Bạn không thể hoàn tác sau khi xác
-                nhận.</p>
-        </div>
-        <div class="pm-footer-sm pm-footer-del" style="margin-top:24px; padding-top:0; border-top:none;">
-            <button class="btn-cancel" onclick="closePm()">Hủy</button>
-            <button class="btn-danger" onclick="confirmDelete()">Đồng ý</button>
-        </div>
-    </div>
+    {% include 'muon_sach/xoa_phieu_muon.html' %}
 
 </div>
 

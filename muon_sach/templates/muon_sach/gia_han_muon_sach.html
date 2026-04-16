@@ -1,0 +1,37 @@
+<div class="pm-modal-sm" id="popup-extend-small">
+    <div class="pm-header-sm">
+        <div>
+            <h3 class="pm-title">Gia hạn mượn sách</h3>
+            <p class="pm-subtitle">Cập nhật ngày gia hạn cho phiếu mượn</p>
+        </div>
+        <button class="pm-x-btn" onclick="closePm()">×</button>
+    </div>
+    <div class="pm-body-sm">
+        <div class="pm-info-grid">
+            <div>
+                <div class="pm-info-label">Mã người dùng</div>
+                <div class="pm-info-value" id="extSmUserId">–</div>
+            </div>
+            <div>
+                <div class="pm-info-label">Họ và tên</div>
+                <div class="pm-info-value" id="extSmUserName">–</div>
+            </div>
+            <div>
+                <div class="pm-info-label">Mã sách</div>
+                <div class="pm-info-value" id="extSmBookCode">–</div>
+            </div>
+            <div>
+                <div class="pm-info-label">Tên sách</div>
+                <div class="pm-info-value" id="extSmBookTitle">–</div>
+            </div>
+        </div>
+        <div class="pm-field" style="margin-bottom:4px;">
+            <label class="pm-label">Ngày gia hạn mới <span class="req">*</span></label>
+            <input id="extSmNewDate" class="pm-input" type="date">
+        </div>
+    </div>
+    <div class="pm-footer-sm">
+        <button class="btn-cancel" onclick="closePm()">Hủy</button>
+        <button class="btn-save" onclick="saveExtendSmall()">Lưu</button>
+    </div>
+</div>
