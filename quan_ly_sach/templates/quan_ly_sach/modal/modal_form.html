@@ -1,0 +1,56 @@
+<div id="bookModal" class="modal" style="{% if selected_book %}display: flex;{% endif %}">
+    <div class="modal-content form-box">
+        <h2 id="modalTitle">{% if selected_book %}Chỉnh sửa{% else %}Thêm sách mới{% endif %}</h2>
+
+        <form id="bookForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="{% if selected_book %}update{% else %}create{% endif %}">
+            <input type="hidden" name="original_id" value="{{ selected_book.ma_sach|default:'' }}">
+
+            <div class="form-group">
+                <label>Mã sách</label>
+                <input type="text" id="bookId" name="book_id" value="{{ selected_book.ma_sach|default:'' }}" required>
+                <small class="error-msg"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Tên sách</label>
+                <input type="text" id="bookTitle" name="title" value="{{ selected_book.ten_sach|default:'' }}" required>
+                <small class="error-msg"></small>
+            </div>
+
+            <div class="form-group">
+                <label>Tác giả</label>
+                <input type="text" id="bookAuthor" name="author" value="{{ selected_book.ten_tac_gia|default:'' }}">
+                <small class="error-msg"></small>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Thể loại</label>
+                    <input type="text" id="bookType" name="category" value="{{ selected_book.the_loai|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label>Nhà xuất bản</label>
+                    <input type="text" id="bookPublisher" name="publisher" value="{{ selected_book.ten_nha_xuat_ban|default:'' }}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Năm XB</label>
+                    <input type="number" id="bookYear" name="year" value="{{ selected_book.nam_xuat_ban|default:'' }}" required>
+                </div>
+                <div class="form-group">
+                    <label>Số lượng</label>
+                    <input type="number" id="bookQuantity" name="quantity" value="{{ selected_book.so_luong|default:'' }}" required>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="submit" class="btn-save">Lưu thông tin</button>
+                <button type="button" class="btn-cancel" onclick="openCancelModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>

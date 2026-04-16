@@ -246,7 +246,9 @@ img {
     padding: 14px 16px;
     margin-bottom: 10px;
 }
-
+.bx {
+    font-family: "boxicons" !important;
+}
 /* ===== DASHBOARD ===== */
 .overview-cards {
     display: grid;

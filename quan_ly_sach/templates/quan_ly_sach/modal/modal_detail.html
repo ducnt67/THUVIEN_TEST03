@@ -1,0 +1,20 @@
+<div id="detailModal" class="modal" style="{% if detail_book %}display:flex{% else %}display:none{% endif %}">
+    <div class="modal-content confirm-box">
+        <h2>Thông tin chi tiết</h2>
+
+        {% if detail_book %}
+        <div class="detail-info">
+            <p><strong>Mã sách:</strong> <span>{{ detail_book.ma_sach }}</span></p>
+            <p><strong>Tên sách:</strong> <span>{{ detail_book.ten_sach }}</span></p>
+            <p><strong>Tác giả:</strong> <span>{{ detail_book.ten_tac_gia|default:"N/A" }}</span></p>
+            <p><strong>Thể loại:</strong> <span>{{ detail_book.the_loai|default:"N/A" }}</span></p>
+            <p><strong>Nhà xuất bản:</strong> <span>{{ detail_book.ten_nha_xuat_ban|default:"N/A" }}</span></p>
+            <p class="namXB"><strong>Năm xuất bản:</strong> <span>{{ detail_book.nam_xuat_ban }}</span></p>
+        </div>
+        {% endif %}
+
+        <div class="modal-footer">
+            <a href="{% url 'book_list' %}" class="btn-blue">Đóng</a>
+        </div>
+    </div>
+</div>

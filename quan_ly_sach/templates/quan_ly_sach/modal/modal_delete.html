@@ -1,0 +1,34 @@
+<div id="deleteConfirmModal" class="modal">
+    <div class="modal-content delete-box">
+        <h3>Bạn có chắc chắn muốn xóa?</h3>
+
+        <p class="delete-subtitle">Hành động này sẽ xóa sách khỏi hệ thống.</p>
+
+        <div class="delete-warning">
+            <p><strong>Lưu ý:</strong> Sách đã có lịch sử mượn, sẽ được chuyển sang trạng thái "Ngừng sử dụng".</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="book_id" id="deleteBookId">
+
+            <div class="delete-footer">
+                <button type="submit" class="btn-confirm-delete">Đồng ý</button>
+                <button type="button" class="btn-cancel-delete" onclick="closeDeleteModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="cancelConfirmModal" class="modal">
+    <div class="modal-content cancel-box">
+        <h3>Xác nhận hủy?</h3>
+        <p class="cancel-subtitle">Hành động này sẽ xóa các thông tin sách đã nhập</p>
+
+        <div class="cancel-footer">
+            <button class="btn-back" onclick="closeCancelModal()">Hủy</button>
+            <button class="btn-confirm-cancel" onclick="clearFormAndClose()">Đồng ý</button>
+        </div>
+    </div>
+</div>
