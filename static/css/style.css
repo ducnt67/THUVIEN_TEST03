@@ -672,6 +672,28 @@ img {
     color: var(--primary-orange);
 }
 
+/* ===== SOLID BADGES (Màu đậm, chữ trắng) ===== */
+.badge-blue-solid {
+    background-color: #3b82f6;
+    color: #ffffff;
+}
+
+.badge-orange-solid {
+    background-color: #f97316;
+    color: #ffffff;
+}
+
+.badge-green-solid {
+    background-color: #22c55e;
+    color: #ffffff;
+}
+
+.badge-red-solid {
+    background-color: #ef4444;
+    color: #ffffff;
+}
+
+
 .badge-red-btn {
     background-color: var(--red);
     color: var(--white);
@@ -719,6 +741,34 @@ img {
     font-size: 13px;
     font-weight: 600;
 }
+
+/* ===== ACTION TOOLS GLOBAL ===== */
+.action-tools {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.action-tools i {
+    font-size: 1.25rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.action-tools i:hover {
+    background-color: #f1f5f9;
+    color: var(--primary-blue);
+    transform: scale(1.1);
+}
+
+.action-tools i.bx-trash:hover {
+    color: var(--red);
+    background-color: #fef2f2;
+}
+
 
 /* ===== POPUP ===== */
 .popup-overlay {

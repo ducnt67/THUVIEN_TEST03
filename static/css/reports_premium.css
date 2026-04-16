@@ -1,193 +1,229 @@
-/* Reports Premium Styling */
+/* ══════════════════════════════════════════════════════════════
+   Reports Premium CSS
+   ══════════════════════════════════════════════════════════════ */
 
 .reports-container {
-    background-color: var(--white);
-    padding: 30px;
+    background: var(--white);
+    padding: 28px 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px rgba(0,0,0,.05);
     border: 1px solid var(--border-color);
 }
 
-/* Search Section */
-.search-group {
-    margin-bottom: 25px;
-}
-
-.search-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #1e293b;
-}
+/* ── Search ─────────────────────────────────────────────────── */
+.search-group { margin-bottom: 30px; }
 
 .search-input-wrapper {
+    position: relative;
     display: flex;
     gap: 12px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #94a3b8;
+    pointer-events: none;
 }
 
 .search-input-wrapper input {
     flex: 1;
-    height: 44px;
-    padding: 0 16px;
+    height: 44px; /* Chuẩn hóa 44px */
+    padding: 0 16px 0 40px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 14px;
-    transition: all 0.2s;
-}
-
-.search-input-wrapper input:focus {
     outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+.search-input-wrapper input:focus {
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
 }
 
+/* Nút Lọc cạnh thanh search */
 .btn-filter {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    height: 44px; /* Chuẩn hóa 44px */
+    padding: 0 18px;
     background: #fff;
     border: 1px solid #e2e8f0;
-    padding: 0 16px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
+    color: #475569;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, border-color .2s;
+}
+.btn-filter:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn-filter i { font-size: 16px; color: #64748b; }
+
+/* ── Summary cards (dùng chung cho cả 4 tab) ──────────────── */
+.stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(160px, 220px));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    min-width: 0;
+}
+
+.sc-label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sc-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1.2;
+}
+
+.sc-green { color: #10b981; }
+.sc-red   { color: #ef4444; }
+.text-green { color: #10b981; }
+.text-red   { color: #ef4444; }
+
+/* ── Tab buttons ────────────────────────────────────────────── */
+.report-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding-bottom: 0;
+    border-bottom: none;
+    flex-wrap: wrap;
+}
+
+/* Sub-pills bên trong tab */
+.sub-tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.sub-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid transparent;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.btn-filter:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-}
-
-.btn-filter i {
-    font-size: 16px;
-    color: #64748b;
-}
-
-/* Summary Stats */
-.summary-row {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 25px;
-    font-size: 14px;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.stat-label {
+.sub-pill:hover { background: #e2e8f0; }
+.sub-pill.active {
+    background: #fff;
     color: #1e293b;
-    font-weight: 500;
-}
-
-.stat-value {
-    font-weight: 700;
-    font-size: 16px;
-}
-
-.stat-value.text-green {
-    color: #10b981;
-}
-
-.stat-value.text-red {
-    color: #ef4444;
-}
-
-/* Tab Navigation */
-.report-tabs {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #f1f5f9;
-    padding-bottom: 15px;
+    border-color: #1e293b;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .tab-btn {
-    padding: 8px 16px;
+    padding: 7px 16px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #fff;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #64748b;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all .2s;
 }
+.tab-btn:hover  { background: #f8fafc; }
+.tab-btn.active { border-color: #1e293b; background: #fff; color: #1e293b; font-weight: 700; }
 
-.tab-btn:hover {
-    background: #f8fafc;
-}
-
-.tab-btn.active {
-    border-color: #1e293b;
-    background: #fff;
-    color: #1e293b;
-    font-weight: 700;
-}
-
-/* Table Enhancements */
-.report-table-container {
-    overflow-x: auto;
-}
+/* ── Table shared ───────────────────────────────────────────── */
+.report-table-container { overflow-x: auto; }
 
 .report-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
 }
 
 .report-table th {
     text-align: left;
-    padding: 12px 16px;
-    font-size: 13px;
-    font-weight: 600;
+    padding: 11px 14px;
+    font-size: 12px;
+    font-weight: 700;
     color: #64748b;
     background: #f8fafc;
     border-bottom: 2px solid #f1f5f9;
+    white-space: nowrap;
+    letter-spacing: .4px;
 }
 
 .report-table td {
-    padding: 16px;
-    font-size: 14px;
+    padding: 14px;
     color: #1e293b;
     border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
 }
 
-.report-table tr:hover {
-    background: #fafafa;
+.report-table tr:last-child td { border-bottom: none; }
+.report-table tbody tr:hover   { background: #fafafa; }
+
+/* Status pills removed - replaced by global badge system */
+
+/* ── Badges (fine table) ────────────────────────────────────── */
+.fine-table .badge-late { background: #fee2e2; color: #dc2626; }
+/* Solid badges are inherited from style.css */
+
+.fine-amount { font-weight: 700; color: #1e293b; }
+
+/* ── Heading trước fine cards ──────────────────────────────── */
+.fine-summary-heading {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 12px 0;
 }
 
-/* Status Pills */
-.status-pill {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4px 12px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-    min-width: 80px;
+/* ── Empty state ────────────────────────────────────────────── */
+.empty-state {
+    text-align: center;
+    padding: 48px 0;
+    color: #94a3b8;
+    font-size: 14px;
 }
 
-.bg-blue {
-    background-color: #3b82f6;
-}
-
-.bg-red {
-    background-color: #ef4444;
-}
-
-/* Animation */
-.fade-in {
-    animation: fadeIn 0.3s ease-in-out;
-}
-
+/* ── Fade-in row animation ──────────────────────────────────── */
+.fade-in { animation: fadeIn .25s ease; }
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Responsive stat-grid ───────────────────────────────────── */
+@media (max-width: 1100px) {
+    /* 4-col fine grid → 2 cols */
+    #fine-section .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 700px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .stat-grid { grid-template-columns: 1fr !important; }
+}
+

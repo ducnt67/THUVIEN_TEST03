@@ -92,25 +92,7 @@
     width: 184px;
 }
 
-.status-badge {
-    background: #ebf8ff;
-    color: #3182ce;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 12px;
-    display: inline-block;
-}
-
-.status-badge.status-low {
-    background: #fff7ed;
-    color: #ea580c;
-}
-
-.status-badge.status-out {
-    background: #fef2f2;
-    color: #dc2626;
-}
+/* Obsolete .status-badge removed - using global .badge system instead */
 
 .actions {
     display: flex;

@@ -12,181 +12,278 @@
 
 {% block content %}
 <div class="reports-container">
-    <!-- Search Section -->
+
+    <!-- ── Search ─────────────────────────────────────────────────── -->
     <div class="search-group">
-        <label class="search-label">Tìm kiếm</label>
         <div class="search-input-wrapper">
-            <input type="text" id="report-search" placeholder="Nhập tên sách để tìm kiếm...">
+            <i class='bx bx-search search-icon'></i>
+            <input type="text" id="report-search" placeholder="Tìm kiếm người mượn, mã sách...">
             <button class="btn-filter" id="btn-filter">
-                <i class='bx bx-filter-alt'></i>
-                Lọc
+                <i class='bx bx-filter-alt'></i> Lọc
             </button>
         </div>
     </div>
 
-    <!-- Summary Stats -->
-    <div id="summary-section" class="summary-row">
-        <!-- Will be populated by JS -->
-    </div>
-
-    <!-- Tabs Navigation -->
+    <!-- ── Tabs ───────────────────────────────────────────────────── -->
     <div class="report-tabs">
         <button class="tab-btn active" data-tab="returned">Sách đã trả</button>
         <button class="tab-btn" data-tab="lending">Sách đang cho mượn</button>
         <button class="tab-btn" data-tab="stock">Sách còn trong kho</button>
+        <button class="tab-btn" data-tab="fines">Phí phạt</button>
     </div>
 
-    <!-- Table Section -->
-    <div class="report-table-container">
-        <table class="report-table" id="report-table">
-            <thead>
-                <tr id="table-header">
-                    <!-- Headings will be dynamic -->
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <!-- Rows will be dynamic -->
-            </tbody>
-        </table>
+    <!-- ══════════════════════════════════════════════════════════════
+         TAB CONTENT: returned / lending / stock
+         Cards + bảng nằm TRONG section này (giống fine tab)
+    ══════════════════════════════════════════════════════════════ -->
+    <div id="general-section">
+        <!-- Heading tên thống kê -->
+        <h3 class="fine-summary-heading" id="general-heading">Thống kê sách đã trả</h3>
+
+        <!-- Stat cards — JS render vào đây -->
+        <div class="stat-grid" id="summary-section"></div>
+
+        <!-- Bảng dữ liệu -->
+        <div class="report-table-container" id="report-table-container">
+            <table class="report-table" id="report-table">
+                <thead>
+                    <tr id="table-header"></tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
     </div>
-</div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         TAB FINES — ẩn/hiện theo tab (đã có sẵn cards + bảng)
+    ══════════════════════════════════════════════════════════════ -->
+    <div id="fine-section" style="display:none;">
+
+        <h3 class="fine-summary-heading">Thống kê phí phạt</h3>
+
+        <!-- 4 stat cards từ DB -->
+        <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-card">
+                <div class="sc-label">Tổng tiền phạt đã thu</div>
+                <div class="sc-value">{{ total_paid|floatformat:0 }}đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Tổng tiền phạt chưa thu</div>
+                <div class="sc-value sc-red">{{ total_unpaid|floatformat:0 }}đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Khoản phạt cao nhất</div>
+                <div class="sc-value">{{ max_fine|floatformat:0 }}đ</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Người mượn bị phạt nhiều nhất</div>
+                <div class="sc-value" style="font-size:15px;font-weight:600;">{{ top_user_name }}</div>
+            </div>
+        </div>
+
+        <!-- Bảng chi tiết khoản phạt từ DB -->
+        <div class="report-table-container">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>NGƯỜI MƯỢN</th>
+                        <th>MÃ SÁCH</th>
+                        <th>TÊN SÁCH</th>
+                        <th>TÌNH TRẠNG</th>
+                        <th>LÝ DO</th>
+                        <th>SỐ TIỀN PHẠT</th>
+                        <th>NGÀY TẠO</th>
+                        <th>MÃ PHIẾU MƯỢN</th>
+                        <th>TRẠNG THÁI</th>
+                    </tr>
+                </thead>
+                <tbody id="fine-table-body">
+                    {% for fine in fines %}
+                    <tr>
+                        <td><strong>{{ fine.nguoi }}</strong></td>
+                        <td>{{ fine.ma_sach }}</td>
+                        <td>{{ fine.ten_sach }}</td>
+                        <td><span class="badge badge-late">Trễ hạn</span></td>
+                        <td>{{ fine.ly_do }}</td>
+                        <td class="fine-amount">{{ fine.so_tien|floatformat:0 }}đ</td>
+                        <td>{{ fine.ngay_tao|date:"d/m/Y" }}</td>
+                        <td>{{ fine.ma_phieu }}</td>
+                        <td>
+                            {% if fine.trang_thai == 'Đã thanh toán' %}
+                            <span class="badge badge-paid">Đã thanh toán</span>
+                            {% else %}
+                            <span class="badge badge-unpaid">Chưa thanh toán</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="empty-state">Chưa có khoản phạt nào trong hệ thống</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div><!-- /fine-section -->
+
+</div><!-- /reports-container -->
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    const tableHeader = document.getElementById('table-header');
-    const tableBody = document.getElementById('table-body');
-    const summarySection = document.getElementById('summary-section');
-    const dynamicTitle = document.getElementById('dynamic-title');
-    const searchInput = document.getElementById('report-search');
-    const filterBtn = document.getElementById('btn-filter');
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const tableHeader = document.getElementById('table-header');
+        const tableBody = document.getElementById('table-body');
+        const summarySection = document.getElementById('summary-section');
+        const generalHeading = document.getElementById('general-heading');
+        const generalSection = document.getElementById('general-section');
+        const dynamicTitle = document.getElementById('dynamic-title');
+        const searchInput = document.getElementById('report-search');
+        const filterBtn = document.getElementById('btn-filter');
+        const fineSection = document.getElementById('fine-section');
 
-    let currentTab = 'returned';
+        let currentTab = 'returned';
 
-    // Dummy Data matching User Mockup Images
-    const data = {
-        returned: {
-            title: "Báo cáo sách được trả",
-            stats: [
-                { label: "Tổng số sách đã trả", value: "6", class: "" },
-                { label: "Trả đúng hạn", value: "3", class: "text-green" },
-                { label: "Trả quá hạn", value: "3", class: "text-red" }
-            ],
-            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Người mượn", "Ngày mượn", "Ngày trả", "Trạng thái"],
-            rows: [
-                ["PM001", "Marketing căn bản", "MK001", "Trần Thị Bình", "24/1/2026", "24/1/2026", "Đúng hạn"],
-                ["PM002", "Nhập môn kinh doanh", "KD001", "Trần Thị Bình", "19/1/2026", "20/1/2026", "Quá hạn"],
-                ["PM003", "Quản trị Marketing", "MK002", "Lê Văn Cường", "26/1/2026", "26/1/2026", "Đúng hạn"],
-                ["PM004", "Thống kê kinh doanh", "TK002", "Nguyễn Thị Dung", "18/1/2026", "22/1/2026", "Quá hạn"],
-                ["PM005", "Toán rời rạc", "TC001", "Phạm Văn Em", "25/1/2026", "25/1/2026", "Đúng hạn"],
-                ["PM006", "Kinh tế vĩ mô", "KT003", "Hoàng Thị Phương", "20/1/2026", "27/1/2026", "Quá hạn"]
-            ]
-        },
-        lending: {
-            title: "Báo cáo sách đang cho mượn",
-            stats: [
-                { label: "Tổng số sách đang mượn", value: "6", class: "" },
-                { label: "Đang trong hạn", value: "4", class: "text-green" },
-                { label: "Đã quá hạn", value: "2", class: "text-red" }
-            ],
-            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Người mượn", "Ngày mượn", "Ngày trả", "Trạng thái"],
-            rows: [
-                ["PM001", "Kinh tế học vi mô", "KT001", "Trần Thị Bình", "24/1/2026", "24/1/2026", "Đang mượn"],
-                ["PM002", "Nguyên lý kế toán", "TC001", "Trần Thị Bình", "19/1/2026", "20/1/2026", "Quá hạn"],
-                ["PM003", "Quản trị Marketing", "KT002", "Lê Văn Cường", "26/1/2026", "26/1/2026", "Đang mượn"],
-                ["PM004", "Phân tích báo cáo tài chính", "TC002", "Nguyễn Thị Dung", "18/1/2026", "22/1/2026", "Quá hạn"],
-                ["PM005", "Quản trị nguồn nhân lực", "QL001", "Phạm Văn Em", "25/1/2026", "25/1/2026", "Đang mượn"],
-                ["PM006", "Kinh tế lượng cơ bản", "KT003", "Hoàng Thị Phương", "20/1/2028", "27/1/2026", "Quá hạn"]
-            ]
-        },
-        stock: {
-            title: "Báo cáo sách còn trong kho",
-            stats: [
-                { label: "Tổng số đầu sách", value: "6", class: "" },
-                { label: "Tổng số lượng", value: "275", class: "text-green" },
-                { label: "Sắp hết hàng", value: "1", class: "text-red" }
-            ],
-            headers: ["Mã phiếu", "Sách", "Mã sách trong kho", "Số lượng", "Còn lại", "Trạng thái"],
-            rows: [
-                ["PM001", "Kinh tế học vi mô", "KT001", "30", "23", "Còn sách"],
-                ["PM002", "Nguyên lý kế toán", "TC001", "40", "32", "Còn sách"],
-                ["PM003", "Quản trị Marketing", "KT002", "45", "36", "Còn sách"],
-                ["PM004", "Phân tích báo cáo tài chính", "TC002", "32", "22", "Còn sách"],
-                ["PM005", "Quản trị nguồn nhân lực", "QL001", "75", "64", "Còn sách"],
-                ["PM006", "Kinh tế lượng cơ bản", "KT003", "53", "41", "Còn sách"]
-            ]
+        // ── Tab data ──────────────────────────────────────────────────────────
+        const tabData = {
+            returned: {
+                title: 'Báo cáo sách được trả',
+                heading: 'Thống kê sách đã trả',
+                stats: [
+                    { label: 'Tổng số sách đã trả', value: '{{ total_returned }}', cls: '' },
+                    { label: 'Trả đúng hạn', value: '{{ on_time }}', cls: 'sc-green' },
+                    { label: 'Trả quá hạn', value: '{{ late }}', cls: 'sc-red' },
+                ],
+                headers: ['Mã phiếu', 'Sách', 'Mã sách trong kho', 'Người mượn', 'Ngày mượn', 'Ngày trả', 'Trạng thái'],
+                rows: [
+                    ['PM001', 'Marketing căn bản', 'MK001', 'Trần Thị Bình', '24/1/2026', '24/1/2026', 'Đúng hạn'],
+                    ['PM002', 'Nhập môn kinh doanh', 'KD001', 'Trần Thị Bình', '19/1/2026', '20/1/2026', 'Quá hạn'],
+                    ['PM003', 'Quản trị Marketing', 'MK002', 'Lê Văn Cường', '26/1/2026', '26/1/2026', 'Đúng hạn'],
+                    ['PM004', 'Thống kê kinh doanh', 'TK002', 'Nguyễn Thị Dung', '18/1/2026', '22/1/2026', 'Quá hạn'],
+                    ['PM005', 'Toán rời rạc', 'TC001', 'Phạm Văn Em', '25/1/2026', '25/1/2026', 'Đúng hạn'],
+                    ['PM006', 'Kinh tế vĩ mô', 'KT003', 'Hoàng Thị Phương', '20/1/2026', '27/1/2026', 'Quá hạn'],
+                ],
+            },
+            lending: {
+                title: 'Báo cáo sách đang cho mượn',
+                heading: 'Thống kê sách đang mượn',
+                stats: [
+                    { label: 'Tổng số sách đang mượn', value: '6', cls: '' },
+                    { label: 'Đang trong hạn', value: '4', cls: 'sc-green' },
+                    { label: 'Đã quá hạn', value: '2', cls: 'sc-red' },
+                ],
+                headers: ['Mã phiếu', 'Sách', 'Mã sách trong kho', 'Người mượn', 'Ngày mượn', 'Hạn trả', 'Trạng thái'],
+                rows: [
+                    ['PM001', 'Kinh tế học vi mô', 'KT001', 'Trần Thị Bình', '24/1/2026', '24/1/2026', 'Đang mượn'],
+                    ['PM002', 'Nguyên lý kế toán', 'TC001', 'Trần Thị Bình', '19/1/2026', '20/1/2026', 'Quá hạn'],
+                    ['PM003', 'Quản trị Marketing', 'KT002', 'Lê Văn Cường', '26/1/2026', '26/1/2026', 'Đang mượn'],
+                    ['PM004', 'Phân tích báo cáo tài chính', 'TC002', 'Nguyễn Thị Dung', '18/1/2026', '22/1/2026', 'Quá hạn'],
+                    ['PM005', 'Quản trị nguồn nhân lực', 'QL001', 'Phạm Văn Em', '25/1/2026', '25/1/2026', 'Đang mượn'],
+                    ['PM006', 'Kinh tế lượng cơ bản', 'KT003', 'Hoàng Thị Phương', '20/1/2026', '27/1/2026', 'Quá hạn'],
+                ],
+            },
+            stock: {
+                title: 'Báo cáo sách còn trong kho',
+                heading: 'Thống kê sách trong kho',
+                stats: [
+                    { label: 'Tổng số đầu sách', value: '6', cls: '' },
+                    { label: 'Tổng số lượng', value: '275', cls: 'sc-green' },
+                    { label: 'Sắp hết hàng', value: '1', cls: 'sc-red' },
+                ],
+                headers: ['Mã sách', 'Tên sách', 'Mã sách trong kho', 'Số lượng', 'Còn lại', 'Trạng thái'],
+                rows: [
+                    ['KT001', 'Kinh tế học vi mô', 'KT001', '30', '23', 'Còn sách'],
+                    ['TC001', 'Nguyên lý kế toán', 'TC001', '40', '32', 'Còn sách'],
+                    ['KT002', 'Quản trị Marketing', 'KT002', '45', '36', 'Còn sách'],
+                    ['TC002', 'Phân tích báo cáo tài chính', 'TC002', '32', '22', 'Còn sách'],
+                    ['QL001', 'Quản trị nguồn nhân lực', 'QL001', '75', '64', 'Còn sách'],
+                    ['KT003', 'Kinh tế lượng cơ bản', 'KT003', '53', '41', 'Còn sách'],
+                ],
+            },
+        };
+
+        // ── Helpers ───────────────────────────────────────────────────────────
+        function pillClass(s) {
+            const status = (s || '').toLowerCase();
+            if (status.includes('quá hạn') || status.includes('sắp hết') || status.includes('chưa')) return 'badge-orange-solid';
+            if (status.includes('đã trả') || status.includes('đúng hạn') || status.includes('còn sách')) return 'badge-green-solid';
+            return 'badge-blue-solid';
         }
-    };
 
-    function updateTable(tab, filter = '') {
-        const tabData = data[tab];
-        currentTab = tab;
-        
-        // Update Title
-        dynamicTitle.textContent = tabData.title;
+        function renderStats(stats) {
+            summarySection.innerHTML = stats.map(s =>
+                `<div class="stat-card">
+                <div class="sc-label">${s.label}</div>
+                <div class="sc-value ${s.cls}">${s.value}</div>
+             </div>`
+            ).join('');
+        }
 
-        // Update Stats
-        summarySection.innerHTML = tabData.stats.map(s => `
-            <div class="stat-item">
-                <span class="stat-label">${s.label}</span>
-                <span class="stat-value ${s.class}">${s.value}</span>
-            </div>
-        `).join('');
+        function renderTable(cfg, filter) {
+            const q = (filter || '').toLowerCase();
+            tableHeader.innerHTML = cfg.headers.map(h => `<th>${h}</th>`).join('');
+            const rows = q
+                ? cfg.rows.filter(r => r.some(c => String(c).toLowerCase().includes(q)))
+                : cfg.rows;
+            if (!rows.length) {
+                tableBody.innerHTML = `<tr><td colspan="${cfg.headers.length}" class="empty-state">Không có dữ liệu phù hợp</td></tr>`;
+                return;
+            }
+            tableBody.innerHTML = rows.map(row => {
+                const status = row[row.length - 1];
+                const cells = row.slice(0, -1).map(c => `<td>${c}</td>`).join('');
+                return `<tr class="fade-in">${cells}<td><span class="badge ${pillClass(status)}">${status}</span></td></tr>`;
+            }).join('');
+        }
 
-        // Update Headers
-        tableHeader.innerHTML = tabData.headers.map(h => `<th>${h}</th>`).join('');
+        function filterFines(q) {
+            document.querySelectorAll('#fine-table-body tr').forEach(tr => {
+                tr.style.display = (!q || tr.textContent.toLowerCase().includes(q)) ? '' : 'none';
+            });
+        }
 
-        // Update Body
-        const filteredRows = tabData.rows.filter(row => 
-            row[1].toLowerCase().includes(filter.toLowerCase())
-        );
+        // ── Switch tab ────────────────────────────────────────────────────────
+        function switchTab(key, filter) {
+            currentTab = key;
+            if (key === 'fines') {
+                dynamicTitle.textContent = 'Báo cáo phí phạt';
+                generalSection.style.display = 'none';
+                fineSection.style.display = '';
+                filterFines((filter || '').toLowerCase());
+                return;
+            }
+            fineSection.style.display = 'none';
+            generalSection.style.display = '';
+            const cfg = tabData[key];
+            if (!cfg) return;
+            dynamicTitle.textContent = cfg.title;
+            generalHeading.textContent = cfg.heading;
+            renderStats(cfg.stats);
+            renderTable(cfg, filter);
+        }
 
-        tableBody.innerHTML = filteredRows.map(row => {
-            const status = row[row.length - 1];
-            let statusClass = 'bg-blue';
-            if (status === 'Quá hạn' || status === 'Sắp hết' || status === 'Đã quá hạn') statusClass = 'bg-red';
-            
-            return `
-                <tr class="fade-in">
-                    ${row.slice(0, -1).map(cell => `<td>${cell}</td>`).join('')}
-                    <td><span class="status-pill ${statusClass}">${status}</span></td>
-                </tr>
-            `;
-        }).join('');
-    }
+        // ── Init ──────────────────────────────────────────────────────────────
+        switchTab('returned', '');
 
-    // Initial load
-    updateTable('returned');
-
-    // Tab click events
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
+        // ── Events ────────────────────────────────────────────────────────────
+        tabs.forEach(btn => btn.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            updateTable(tab.dataset.tab, searchInput.value);
+            btn.classList.add('active');
+            switchTab(btn.dataset.tab, searchInput.value);
+        }));
+
+        filterBtn.addEventListener('click', () => switchTab(currentTab, searchInput.value));
+
+        searchInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') switchTab(currentTab, searchInput.value);
+        });
+
+        searchInput.addEventListener('input', () => {
+            if (!searchInput.value) switchTab(currentTab, '');
+            else if (currentTab === 'fines') filterFines(searchInput.value.toLowerCase());
         });
     });
-
-    // Filter logic
-    filterBtn.addEventListener('click', () => {
-        updateTable(currentTab, searchInput.value);
-    });
-
-    // Enter key support for search
-    searchInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            updateTable(currentTab, searchInput.value);
-        }
-    });
-
-    // Clear search support
-    searchInput.addEventListener('input', (e) => {
-        if (searchInput.value === '') {
-            updateTable(currentTab, '');
-        }
-    });
-});
 </script>
 {% endblock %}
