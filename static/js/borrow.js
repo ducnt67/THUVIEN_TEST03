@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '5/1/2026',
             dueDate: '19/1/2026',
             status: 'Quá hạn',
-            statusClass: 'tb-orange',
+            statusClass: 'badge badge-orange-solid',
             books: [
                 { code: 'MS001', title: 'Kinh tế học vi mô', qty: 1 },
                 { code: 'MS002', title: 'Toán cao cấp A1', qty: 2 }
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '11/1/2026',
             dueDate: '19/11/2026',
             status: 'Đang mượn',
-            statusClass: 'tb-blue',
+            statusClass: 'badge badge-blue-solid',
             books: [
                 { code: 'MS003', title: 'Nguyên lý kế toán', qty: 1 }
             ]
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '5/1/2026',
             dueDate: '19/11/2025',
             status: 'Đã trả',
-            statusClass: 'tb-green',
+            statusClass: 'badge badge-green-solid',
             books: [
                 { code: 'MS004', title: 'Lịch sử Đảng', qty: 1 }
             ]
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '5/1/2026',
             dueDate: '29/8/2026',
             status: 'Đang mượn',
-            statusClass: 'tb-blue',
+            statusClass: 'badge badge-blue-solid',
             books: [
                 { code: 'MS001', title: 'Kinh tế học vi mô', qty: 1 },
                 { code: 'MS005', title: 'Lập trình Python cơ bản', qty: 1 }
@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '14/2/2025',
             dueDate: '19/11/2025',
             status: 'Đã trả',
-            statusClass: 'tb-green',
+            statusClass: 'badge badge-green-solid',
             books: [
                 { code: 'MS006', title: 'Kinh tế vi mô', qty: 1 }
             ]
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '12/1/2026',
             dueDate: '9/12/2026',
             status: 'Đang mượn',
-            statusClass: 'tb-blue',
+            statusClass: 'badge badge-blue-solid',
             books: [
                 { code: 'MS007', title: 'English Communication', qty: 2 }
             ]
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '6/4/2026',
             dueDate: '24/3/2026',
             status: 'Quá hạn',
-            statusClass: 'tb-orange',
+            statusClass: 'badge badge-orange-solid',
             books: [
                 { code: 'MS008', title: 'Quản trị học', qty: 1 }
             ]
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: '18/10/2025',
             dueDate: '17/5/2026',
             status: 'Đang mượn',
-            statusClass: 'tb-blue',
+            statusClass: 'badge badge-blue-solid',
             books: [
                 { code: 'MS009', title: 'Pháp luật đại cương', qty: 1 }
             ]
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td>${s.borrowDate}</td>
                     <td>${s.dueDate}</td>
                     <td>
-                        <span class="tbadge ${s.statusClass}">${s.status}</span>
+                        <span class="${s.statusClass}">${s.status}</span>
                     </td>
                     <td class="col-action">
                         <button class="icon-btn edit btn-edit" data-id="${s.id}" title="Gia hạn">
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
             borrowDate: toDisplay(borrowDate),
             dueDate: toDisplay(dueDate),
             status: 'Đang mượn',
-            statusClass: 'tb-blue',
+            statusClass: 'badge badge-blue-solid',
             books: books
         });
 

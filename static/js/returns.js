@@ -231,7 +231,7 @@ function submitReturnConfirm() {
         const actionCell = selectedReturnRow.querySelector('td:nth-child(8)');
         if (!statusCell || !actionCell) throw new Error('Invalid cells');
 
-        statusCell.innerHTML = '<span class="badge-outline-blue">Đã trả</span>';
+        statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả</span>';
         actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
 
         closeAllPopups();
@@ -357,10 +357,10 @@ function submitLostBookReport() {
 
         if (method === 'money') {
             selectedLostRow.dataset.status = 'Đang xử lý';
-            statusCell.innerHTML = '<span class="badge-light-orange">Đang xử lý</span>';
+            statusCell.innerHTML = '<span class="badge badge-orange-solid">Đang xử lý</span>';
         } else {
             selectedLostRow.dataset.status = 'Chờ đền sách';
-            statusCell.innerHTML = '<span class="badge-outline-red">Chờ đền sách</span>';
+            statusCell.innerHTML = '<span class="badge badge-red-solid">Chờ đền sách</span>';
         }
 
         actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
@@ -471,7 +471,7 @@ function submitCompensateConfirm() {
         if (!statusCell) throw new Error('Missing status cell');
 
         selectedCompensateRow.dataset.status = 'Đã xử lý - Đền sách';
-        statusCell.innerHTML = '<span class="badge-outline-blue">Đã xử lý - Đền sách</span>';
+        statusCell.innerHTML = '<span class="badge badge-green-solid">Đã xử lý - Đền sách</span>';
 
         closeAllPopups();
         resetCompensateFormState();
@@ -490,7 +490,7 @@ function initCompensateFlow() {
         const status = row.dataset.status || '';
         const trigger = row.querySelector('.compensate-confirm-trigger');
         if (!isCompensateEligibleStatus(status) && trigger) {
-            trigger.outerHTML = '<span class="badge-outline-blue">Đã xử lý - Đền sách</span>';
+            trigger.outerHTML = '<span class="badge badge-green-solid">Đã xử lý - Đền sách</span>';
         }
     });
 

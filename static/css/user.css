@@ -46,11 +46,16 @@
    SEARCH AREA
 ========================= */
 
+/* Chuẩn hóa thanh search bar mới - Ép khoảng cách dưới */
+.user-search-section .search-bar {
+    margin-bottom: 22px !important;
+}
+
 .search-controls {
     display: flex;
     gap: 15px;
     align-items: stretch;
-    margin-bottom: 15px;
+    margin-bottom: 22px;
 }
 
 .search-input-group {
@@ -103,6 +108,7 @@
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
+    margin-top: 5px; /* Thêm đệm nhẹ phía trên */
 }
 
 .custom-select select {

@@ -2,6 +2,7 @@
    book.js – Quản lý sách
    Dùng cho: templates/books/book_list.html
 ========================================================= */
+console.log('--- DUE Library: Book Script Loaded v2 ---');
 
 let books = JSON.parse(localStorage.getItem('due_library_books')) || [
     { id: "KT001", title: "Kinh tế học vi mô", author: "N. Gregory Mankiw", type: "Kinh tế học", publisher: "NXB Thống Kê", year: 2020, quantity: "7/10" },
@@ -42,7 +43,7 @@ function safeToast(message) {
 
 function getStatusBadge(quantity) {
     if (!quantity || !quantity.includes('/')) {
-        return '<span class="status-badge">CÓ SẴN</span>';
+        return '<span class="badge badge-green-solid">Có sẵn</span>';
     }
 
     const parts = quantity.split('/');
@@ -50,14 +51,14 @@ function getStatusBadge(quantity) {
     const total = parseInt(parts[1], 10) || 0;
 
     if (total === 0 || available === 0) {
-        return '<span class="status-badge status-out">HẾT SÁCH</span>';
+        return '<span class="badge badge-orange-solid">Hết sách</span>';
     }
 
     if (available < total) {
-        return '<span class="status-badge status-low">ĐANG MƯỢN</span>';
+        return '<span class="badge badge-blue-solid">Đang mượn</span>';
     }
 
-    return '<span class="status-badge">CÓ SẴN</span>';
+    return '<span class="badge badge-green-solid">Có sẵn</span>';
 }
 
 function renderBooks(data = books) {
@@ -86,10 +87,12 @@ function renderBooks(data = books) {
                 <td>${book.year || ''}</td>
                 <td>${book.quantity || ''}</td>
                 <td>${getStatusBadge(book.quantity)}</td>
-                <td class="actions">
-                    <i class="fa-solid fa-book-open" onclick="viewDetail(${index})" title="Chi tiết"></i>
-                    <i class="fa-regular fa-pen-to-square" onclick="editBook(${index})" title="Chỉnh sửa"></i>
-                    <i class="fa-solid fa-trash-can" onclick="requestDelete(${index})" title="Xóa"></i>
+                <td class="col-action">
+                    <div class="action-tools">
+                        <i class="bx bx-info-circle" onclick="viewDetail(${index})" title="Chi tiết"></i>
+                        <i class="bx bx-edit-alt" onclick="editBook(${index})" title="Chỉnh sửa"></i>
+                        <i class="bx bx-trash" onclick="requestDelete(${index})" title="Xóa"></i>
+                    </div>
                 </td>
             </tr>
         `;

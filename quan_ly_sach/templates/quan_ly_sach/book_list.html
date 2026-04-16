@@ -55,8 +55,22 @@
                     <td>{{ book.ten_nha_xuat_ban|default:'' }}</td>
                     <td>{{ book.nam_xuat_ban }}</td>
                     <td>{{ book.total_quantity|default:0 }}</td>
-                    <td>{% if book.total_quantity and book.borrowed_quantity < book.total_quantity %}<span class="status-badge">CÓ SẴN</span>{% elif book.total_quantity and book.borrowed_quantity >= book.total_quantity %}<span class="status-badge status-out">HẾT SÁCH</span>{% else %}<span class="status-badge">CÓ SẴN</span>{% endif %}</td>
-                    <td class="col-action"><span class="action-disabled">Không khả dụng</span></td>
+                    <td>
+                        {% if book.total_quantity and book.borrowed_quantity < book.total_quantity %}
+                            <span class="badge badge-green-solid">Có sẵn</span>
+                        {% elif book.total_quantity == 0 %}
+                            <span class="badge badge-orange-solid">Hết sách</span>
+                        {% else %}
+                            <span class="badge badge-blue-solid">Đang mượn</span>
+                        {% endif %}
+                    </td>
+                    <td class="col-action">
+                        <div class="action-tools">
+                            <i class='bx bx-info-circle' title="Chi tiết" onclick="viewBookDetail('{{ book.ma_sach }}')"></i>
+                            <i class='bx bx-edit-alt' title="Chỉnh sửa" onclick="editBook('{{ book.ma_sach }}')"></i>
+                            <i class='bx bx-trash' title="Xóa" onclick="deleteBook('{{ book.ma_sach }}')"></i>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
