@@ -1,0 +1,36 @@
+<div class="pm-modal" id="popup-borrow-detail">
+    <div class="pm-title-block">
+        <h3 class="pm-title">Chi tiết phiếu mượn</h3>
+    </div>
+    <div class="pm-body">
+        <div class="pm-grid-4">
+            <div class="pm-field">
+                <label class="pm-label">Mã người dùng</label>
+                <input id="detUserId" class="pm-input" type="text" readonly>
+            </div>
+            <div class="pm-field">
+                <label class="pm-label">Tên người dùng</label>
+                <input id="detUserName" class="pm-input" type="text" readonly>
+            </div>
+            <div class="pm-field">
+                <label class="pm-label">Ngày mượn</label>
+                <input id="detBorrowDate" class="pm-input" type="date" readonly>
+            </div>
+            <div class="pm-field">
+                <label class="pm-label">Ngày đến hạn trả</label>
+                <input id="detDueDate" class="pm-input" type="date" readonly>
+            </div>
+        </div>
+
+        <div class="pm-list-hdr">
+            <span>Mã sách trong kho</span>
+            <span>Tên sách</span>
+            <span>Số lượng</span>
+        </div>
+        <div id="detBooksBody"></div>
+    </div>
+    <div class="pm-footer">
+        <button class="btn-cancel" type="button" onclick="closePm()">Hủy</button>
+        <button class="btn-save" type="button" onclick="closePm()">Lưu thay đổi</button>
+    </div>
+</div>
