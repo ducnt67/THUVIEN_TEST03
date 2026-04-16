@@ -11,7 +11,7 @@ class Sach(models.Model):
     the_loai = models.CharField(max_length=100, blank=True, null=True)
     ten_nha_xuat_ban = models.CharField(max_length=255, blank=True, null=True)
     nam_xuat_ban = models.PositiveIntegerField()
-
+    so_luong = models.PositiveIntegerField()
     class Meta:
         db_table = 'Sach'
         ordering = ['ten_sach']
