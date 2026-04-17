@@ -8,6 +8,10 @@
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0,0,0,.05);
     border: 1px solid var(--border-color);
+    height: calc(100vh - 120px); /* Cố định chiều cao, trừ header và padding */
+    min-height: 600px;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ── Search ─────────────────────────────────────────────────── */
@@ -154,21 +158,34 @@
 .tab-btn.active { border-color: #1e293b; background: #fff; color: #1e293b; font-weight: 700; }
 
 /* ── Table shared ───────────────────────────────────────────── */
-.report-table-container { overflow-x: auto; }
+.report-table-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 420px; /* Giới hạn chiều cao bảng, chỉ scroll phần tbody */
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+}
 
 .report-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
+    table-layout: auto;
 }
 
 .report-table th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f8fafc;
     text-align: left;
     padding: 11px 14px;
     font-size: 12px;
     font-weight: 700;
     color: #64748b;
-    background: #f8fafc;
     border-bottom: 2px solid #f1f5f9;
     white-space: nowrap;
     letter-spacing: .4px;
@@ -226,4 +243,18 @@
 @media (max-width: 480px) {
     .stat-grid { grid-template-columns: 1fr !important; }
 }
-
+@media (max-width: 900px) {
+    .reports-container {
+        height: auto;
+        min-height: 0;
+        padding: 16px 4px;
+    }
+    .report-table-container {
+        max-height: 320px;
+    }
+}
+@media (max-width: 600px) {
+    .report-table-container {
+        max-height: 220px;
+    }
+}
