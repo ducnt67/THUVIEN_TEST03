@@ -17,8 +17,7 @@
 .table-wrapper {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: auto;
+    overflow: auto;
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     background: #fff;
@@ -42,6 +41,7 @@ td.col-action {
     margin-bottom: 20px;
     font-size: 16px;
     color: #111827;
+    flex-shrink: 0;
 }
 
 /* ===== BORROW TABLE ===== */
@@ -544,10 +544,10 @@ table.table tbody tr:hover td {
 
 /* ===== RETURNS ===== */
 #page-return {
+    flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    min-height: 0;
-    height: calc(100vh - 140px);
 }
 
 .tabs-pill-container {
@@ -558,6 +558,7 @@ table.table tbody tr:hover td {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     margin-bottom: 20px;
     gap: 10px;
+    flex-shrink: 0;
 }
 
 .tabs-pill-container .tab {
@@ -585,15 +586,10 @@ table.table tbody tr:hover td {
 }
 
 .tab-content {
-    background: #fff;
-    border-radius: 12px;
-    padding: 24px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 .tab-pane {
@@ -601,6 +597,18 @@ table.table tbody tr:hover td {
     min-height: 0;
     display: flex;
     flex-direction: column;
+}
+
+.tab-pane-fixed {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-pane-fixed > .data-table-scroll.table-wrapper {
+    flex: 1;
+    min-height: 0;
 }
 
 .row-overdue td {
