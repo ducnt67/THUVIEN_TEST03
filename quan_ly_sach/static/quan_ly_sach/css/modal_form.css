@@ -1,0 +1,171 @@
+/* =================================================
+   🔥 MODAL FORM CSS - HOẠT ĐỘNG 100%
+==================================================== */
+
+/* 1. MODAL CHÍNH */
+#bookModal {
+    display: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    z-index: 9999999 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: blur(5px) !important;
+}
+
+/* 2. FORM BOX */
+#bookModal .form-box {
+    background: #ffffff !important;
+    width: 600px !important;
+    max-width: 90% !important;
+    padding: 40px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+    z-index: 10000000 !important;
+    animation: modalPopUp 0.3s ease-out !important;
+}
+
+/* 3. TIÊU ĐỀ */
+#bookModal h2 {
+    font-size: 26px !important;
+    font-weight: 800 !important;
+    color: #1e293b !important;
+    margin-bottom: 30px !important;
+    text-align: left !important;
+    border-bottom: 2px solid #f1f5f9 !important;
+    padding-bottom: 15px !important;
+}
+
+/* 4. FORM GROUP */
+#bookModal .form-group {
+    margin-bottom: 20px !important;
+}
+
+/* 5. LABEL */
+#bookModal label {
+    display: block !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #475569 !important;
+    margin-bottom: 8px !important;
+    text-transform: uppercase !important;
+}
+
+/* 6. INPUT */
+#bookModal input {
+    width: 100% !important;
+    height: 50px !important;
+    padding: 0 16px !important;
+    border: 2px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    font-size: 16px !important;
+    color: #1e293b !important;
+    transition: all 0.2s !important;
+    background: #ffffff !important;
+}
+
+#bookModal input:focus {
+    outline: none !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+}
+
+#bookModal input[readonly] {
+    background-color: #f8fafc !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    border-color: #f1f5f9 !important;
+}
+
+/* 7. FORM ROW */
+#bookModal .form-row {
+    display: flex !important;
+    gap: 20px !important;
+}
+
+#bookModal .form-row .form-group {
+    flex: 1 !important;
+}
+
+/* 8. ERROR MESSAGE */
+.error-msg {
+    color: #dc2626 !important;
+    font-size: 12px !important;
+    margin-top: 5px !important;
+    display: block !important;
+}
+
+.input-error {
+    border-color: #dc2626 !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+/* 9. MODAL FOOTER */
+#bookModal .modal-footer {
+    display: flex !important;
+    gap: 15px !important;
+    margin-top: 35px !important;
+}
+
+/* 10. BUTTONS */
+#bookModal .btn-save {
+    flex: 2 !important;
+    height: 56px !important;
+    background: #2563eb !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-weight: 700 !important;
+    font-size: 17px !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+}
+
+#bookModal .btn-cancel {
+    flex: 1 !important;
+    height: 56px !important;
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border: none !important;
+    border-radius: 14px !important;
+    font-weight: 600 !important;
+    font-size: 17px !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+}
+
+#bookModal .btn-save:hover {
+    background: #1d4ed8 !important;
+    transform: translateY(-2px) !important;
+}
+
+#bookModal .btn-cancel:hover {
+    background: #e2e8f0 !important;
+}
+
+/* 11. ANIMATION */
+@keyframes modalPopUp {
+    from {
+        opacity: 0 !important;
+        transform: scale(0.9) translateY(30px) !important;
+    }
+    to {
+        opacity: 1 !important;
+        transform: scale(1) translateY(0) !important;
+    }
+}
+
+/* 12. KHI MODAL HIỆN */
+#bookModal[style*="flex"],
+#bookModal.show {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}

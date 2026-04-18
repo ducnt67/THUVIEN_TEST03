@@ -1,0 +1,180 @@
+/* =================================================
+   1. CẤU TRÚC CHUNG (OVERLAY) - ÁP DỤNG CHO TẤT CẢ
+==================================================== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    z-index: 99999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+    padding: 20px;
+}
+
+.modal-content {
+    background: #ffffff;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalFadeUp 0.4s ease-out;
+    overflow: hidden;
+}
+
+@keyframes modalFadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* =================================================
+   3. VÙNG: #detailModal (XEM CHI TIẾT)
+==================================================== */
+#detailModal .confirm-box {
+    width: 500px;
+    height: 600px;
+    padding: 45px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+#detailModal h2 {
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    border-bottom: 1px solid #edf2f7;
+    padding-bottom: 20px;
+}
+
+#detailModal .detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+#detailModal .detail-info p strong {
+    width: 150px;
+    color: #718096;
+}
+
+/* =================================================
+   4. VÙNG: #deleteConfirmModal (XÓA SÁCH)
+==================================================== */
+#deleteConfirmModal .delete-box {
+    width: 450px;
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+}
+
+#deleteConfirmModal h3 { font-size: 24px; font-weight: 800; }
+
+.delete-warning {
+    background-color: #f8fafc;
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin: 25px 0;
+}
+
+.btn-confirm-delete {
+    width: 100%;
+    height: 54px;
+    background-color: #ff5722;
+    color: white;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+}
+
+/* =================================================
+   5. VÙNG: #cancelConfirmModal (XÁC NHẬN HỦY)
+==================================================== */
+#cancelConfirmModal .cancel-box {
+    width: 420px;
+    padding: 50px 30px;
+    border-radius: 40px;
+    text-align: center;
+}
+
+.cancel-footer {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.btn-confirm-cancel {
+    flex: 1.8;
+    height: 52px;
+    background-color: #ff5722;
+    color: white;
+    border-radius: 16px;
+    font-weight: 700;
+    border: none;
+}
+
+.btn-back {
+    flex: 1;
+    height: 52px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    font-weight: 700;
+}
+
+/* =================================================
+   6. VÙNG: #copyModal (THÊM BẢN SAO)
+==================================================== */
+.copy-box {
+    width: 480px;
+    padding: 40px;
+    border-radius: 32px;
+}
+
+.copy-book-info {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+#copyQty {
+    width: 100%;
+    height: 56px;
+    border: 2.5px solid #f1f5f9;
+    border-radius: 16px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* =================================================
+   7. NÚT BẤM CHUNG (MODAL FOOTER)
+==================================================== */
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.btn-save, .btn-blue {
+    flex: 2;
+    height: 54px;
+    background: #2563eb;
+    color: white;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    flex: 1;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 14px;
+    font-weight: 700;
+    border: none;
+}
+
