@@ -64,12 +64,16 @@ class SachTrongKho(models.Model):
     class TrangThai(models.TextChoices):
         AVAILABLE = 'available', 'Có sẵn'
         BORROWED = 'borrowed', 'Đang mượn'
+        OVERDUE = 'overdue', 'Quá hạn'
+        AWAITING_REPLACEMENT = 'awaiting_replacement', 'Chờ đền sách'
+        PROCESSED = 'processed', 'Đã xử lý (Đã đền bù)'
         LOST_DAMAGED = 'lost_damaged', 'Mất/Hỏng'
+
     ma_sach_trong_kho = models.CharField(max_length=25, primary_key=True, editable=False)
     ma_sach = models.ForeignKey(Sach, on_delete=models.CASCADE, related_name='sach_trong_kho')
     ma_vach = models.CharField(max_length=50, unique=True, editable=False)
     trang_thai_sach = models.CharField(
-        max_length=20,
+        max_length=30,  # Tăng max_length lên tí cho thoải mái
         choices=TrangThai.choices,
         default=TrangThai.AVAILABLE
     )
