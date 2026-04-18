@@ -61,11 +61,18 @@ class Sach(models.Model):
 
 class SachTrongKho(models.Model):
     # Để max_length dài ra tí cho thoải mái
+    class TrangThai(models.TextChoices):
+        AVAILABLE = 'available', 'Có sẵn'
+        BORROWED = 'borrowed', 'Đang mượn'
+        LOST_DAMAGED = 'lost_damaged', 'Mất/Hỏng'
     ma_sach_trong_kho = models.CharField(max_length=25, primary_key=True, editable=False)
     ma_sach = models.ForeignKey(Sach, on_delete=models.CASCADE, related_name='sach_trong_kho')
     ma_vach = models.CharField(max_length=50, unique=True, editable=False)
-    trang_thai_sach = models.CharField(max_length=50, default='available')
-
+    trang_thai_sach = models.CharField(
+        max_length=20,
+        choices=TrangThai.choices,
+        default=TrangThai.AVAILABLE
+    )
     class Meta:
         db_table = 'SachTrongKho'
         ordering = ['ma_sach_trong_kho']
