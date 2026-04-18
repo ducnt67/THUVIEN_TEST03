@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'muon_sach',
     'tra_sach',
     'quan_ly_sach',
-    'quan_ly_nguoi_dung',
+    'quan_ly_nguoi_dung.apps.QuanLyNguoiDungConfig',
     'bao_cao',
     'quan_ly_tai_khoan',
     'tong_quan',
