@@ -60,86 +60,9 @@
 {% block popup %}
 <div id="pmOverlay" class="pm-overlay">
 
-    <div class="pm-modal" id="popup-add-borrow">
-        <div class="pm-title-block">
-            <h3 class="pm-title">Thêm phiếu mượn</h3>
-        </div>
-        <div class="pm-body">
-            <form id="borrowForm" onsubmit="submitAddBorrow(event)">
-                <div class="pm-grid-4">
-                    <div class="pm-field">
-                        <label class="pm-label">Mã người dùng <span class="req">*</span></label>
-                        <input id="addUserId" class="pm-input" type="text" placeholder="VD: 2051010001" required>
-                    </div>
-                    <div class="pm-field">
-                        <label class="pm-label">Tên người dùng</label>
-                        <input id="addUserName" class="pm-input" type="text" placeholder="Tự động điền" readonly>
-                    </div>
-                    <div class="pm-field">
-                        <label class="pm-label">Ngày mượn <span class="req">*</span></label>
-                        <input id="addBorrowDate" class="pm-input" type="date" required>
-                    </div>
-                    <div class="pm-field">
-                        <label class="pm-label">Ngày đến hạn trả <span class="req">*</span></label>
-                        <input id="addDueDate" class="pm-input" type="date" required>
-                    </div>
-                </div>
+    {% include 'muon_sach/them_phieu_muon.html' %}
 
-                <div class="pm-book-col-labels">
-                    <span>Mã sách trong kho <span class="req">*</span></span>
-                    <span>Tên sách</span>
-                    <span>Số lượng</span>
-                    <span></span>
-                </div>
-                <div id="addBooksBody"></div>
 
-                <button class="btn-add-dashed" type="button" onclick="addBookRow()">+ Thêm dòng mới</button>
-            </form>
-        </div>
-        <div class="pm-footer">
-            <button class="btn-cancel" type="button" onclick="closePm()">Hủy</button>
-            <button class="btn-save" type="submit" form="borrowForm">Lưu phiếu mượn</button>
-        </div>
-    </div>
-
-    <div class="pm-modal" id="popup-extend-large">
-        <div class="pm-title-block">
-            <h3 class="pm-title">Gia hạn ngày trả sách</h3>
-        </div>
-        <div class="pm-body">
-            <div class="pm-grid-4">
-                <div class="pm-field">
-                    <label class="pm-label">Mã người dùng</label>
-                    <input id="extLgUserId" class="pm-input" type="text" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Tên người dùng</label>
-                    <input id="extLgUserName" class="pm-input" type="text" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Ngày đến hạn trả</label>
-                    <input id="extLgCurrentDue" class="pm-input" type="date" readonly>
-                </div>
-                <div class="pm-field">
-                    <label class="pm-label">Ngày đến hạn trả mới <span class="req">*</span></label>
-                    <input id="extLgNewDue" class="pm-input" type="date">
-                </div>
-            </div>
-
-            <div class="pm-list-hdr">
-                <span>Mã sách trong kho</span>
-                <span>Tên sách</span>
-                <span>Số lượng</span>
-            </div>
-            <div id="extLgBooksBody"></div>
-        </div>
-        <div class="pm-footer">
-            <button class="btn-cancel" type="button" onclick="closePm()">Hủy</button>
-            <button class="btn-save" type="button" onclick="saveExtendLarge()">Lưu thay đổi</button>
-        </div>
-    </div>
-
-    {% include 'muon_sach/chi_tiet_phieu_muon.html' %}
 
     {% include 'muon_sach/gia_han_muon_sach.html' %}
 
