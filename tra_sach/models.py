@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.utils import timezone
 import uuid
@@ -74,7 +75,7 @@ class KhoanPhat(models.Model):
     trang_thai_tt = models.CharField(max_length=50)
     ly_do = models.CharField(max_length=255, blank=True, null=True)
     nguoi_tao = models.ForeignKey(
-        'quan_ly_tai_khoan.TaiKhoan',
+        settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name='khoan_phat_da_tao',
         blank=True,
@@ -112,7 +113,7 @@ class GiaoDichThanhToan(models.Model):
     thoi_gian_thanh_toan = models.DateTimeField(default=timezone.now)
     trang_thai = models.CharField(max_length=50)
     nguoi_thu = models.ForeignKey(
-        'quan_ly_tai_khoan.TaiKhoan',
+        settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name='giao_dich_da_thu',
         blank=True,
