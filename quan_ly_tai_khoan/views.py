@@ -27,16 +27,13 @@ def login_view(request):
                 user = authenticate(request, username=user_obj.get_username(), password=password)
 
         if user is not None:
-            # Kiểm tra trạng thái tài khoản
-            from quan_ly_tai_khoan.models import TaiKhoan
-            try:
-                tai_khoan = user.nguoi_dung.tai_khoan
-                if not tai_khoan.trang_thai_tai_khoan:
-                    error_message = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.'
-                    return render(request, 'quan_ly_tai_khoan/login.html', {'error_message': error_message, 'username_value': username_value})
-            except Exception:
-                # Nếu không tìm thấy thông tin TaiKhoan, mặc định cho phép hoặc xử lý tùy nghiệp vụ
-                pass
+            if not user.is_active:
+                error_message = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.'
+                return render(
+                    request,
+                    'quan_ly_tai_khoan/login.html',
+                    {'error_message': error_message, 'username_value': username_value},
+                )
 
             login(request, user)
             messages.success(request, 'Đăng nhập thành công.')
