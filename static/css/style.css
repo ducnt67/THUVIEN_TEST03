@@ -1057,6 +1057,22 @@ img {
     font-weight: 500;
 }
 
+.auth-back-link {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.auth-back-link a {
+    font-size: 14px;
+    color: var(--primary-orange);
+    font-weight: 500;
+}
+
+.auth-back-link a:hover {
+    color: var(--primary-orange-hover);
+    text-decoration: underline;
+}
+
 .btn-block {
     width: 100%;
     display: block;
