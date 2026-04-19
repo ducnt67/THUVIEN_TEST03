@@ -11,42 +11,43 @@
 {% endblock %}
 
 {% block content %}
-<section class="search-section user-search-section card">
+<form class="search-section user-search-section card" id="userSearchForm" onsubmit="return false;">
     <h3 class="section-label">Tra cứu người dùng</h3>
     <p class="section-note">Tìm kiếm và lọc danh sách người dùng</p>
 
     <div class="search-bar">
         <div class="input-with-icon">
             <i class='bx bx-search'></i>
-            <input type="text" id="searchInput" placeholder="Nhập thông tin để tìm kiếm">
+            <input type="text" id="searchInput" name="q" value="{{ search_query }}" placeholder="Nhập thông tin để tìm kiếm">
         </div>
-        <button id="searchBtn" class="btn btn-primary btn-orange">
+        <button id="searchBtn" type="button" class="btn btn-primary btn-orange">
             <i class='bx bx-search'></i> Tìm kiếm
         </button>
     </div>
 
     <div class="filter-controls">
         <div class="custom-select">
-            <select id="filterStatus">
-                <option value="all">Tất cả (Tình trạng)</option>
-                <option value="Chưa tốt nghiệp">Chưa tốt nghiệp</option>
-                <option value="Đã tốt nghiệp">Đã tốt nghiệp</option>
+            <select id="filterStatus" name="status">
+                <option value="all" {% if filter_status == 'all' %}selected{% endif %}>Tất cả (Tình trạng)</option>
+                <option value="not_graduated" {% if filter_status == 'not_graduated' %}selected{% endif %}>Chưa tốt nghiệp</option>
+                <option value="graduated" {% if filter_status == 'graduated' %}selected{% endif %}>Đã tốt nghiệp</option>
             </select>
         </div>
 
         <div class="custom-select">
-            <select id="filterClass">
-                <option value="all">Tất cả (Lớp)</option>
-                <option value="20K1">20K1</option>
-                <option value="20K2">20K2</option>
-                <option value="19K3">19K3</option>
+            <select id="filterClass" name="class">
+                <option value="all" {% if filter_class == 'all' %}selected{% endif %}>Tất cả (Lớp)</option>
+                {% for class_name in class_options %}
+                    <option value="{{ class_name }}" {% if filter_class == class_name %}selected{% endif %}>{{ class_name }}</option>
+                {% endfor %}
             </select>
         </div>
     </div>
-</section>
+</form>
 
 <section class="table-section user-table-section card data-panel">
     <h3 class="section-label">Danh sách người dùng</h3>
+    <input type="hidden" id="readerDataUrl" value="{% url 'reader_list_data' %}">
 
     <div class="table-container data-table-scroll">
         <table id="userTable" class="table">
@@ -57,16 +58,47 @@
                     <th>Họ tên</th>
                     <th>Loại</th>
                     <th>Lớp</th>
-                    <th>TN</th>
+                    <th>Trạng thái tốt nghiệp</th>
                     <th class="col-action">Thao tác</th>
                 </tr>
             </thead>
-            <tbody id="tableBody"></tbody>
+            <tbody id="userRowsBody">
+                {% for user in users %}
+                    <tr class="user-data-row">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ user.ma_nguoi_dung }}</td>
+                        <td>{{ user.ho_ten }}</td>
+                        <td><span class="tag">{{ user.get_loai_nguoi_dung_display }}</span></td>
+                        <td>{{ user.lop|default_if_none:'' }}</td>
+                        <td>{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}</td>
+                        <td>
+                            <button
+                                type="button"
+                                class="action-btn"
+                                onclick="openModal(this)"
+                                data-user-id="{{ user.ma_nguoi_dung }}"
+                                data-user-name="{{ user.ho_ten|default_if_none:'' }}"
+                                data-user-role="{{ user.get_loai_nguoi_dung_display|default_if_none:'' }}"
+                                data-user-email="{{ user.email|default_if_none:'' }}"
+                                data-user-phone="{{ user.so_dien_thoai|default_if_none:'' }}"
+                                data-user-class="{{ user.lop|default_if_none:'' }}"
+                                data-user-graduation="{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}"
+                                data-user-borrowed="{{ user.borrowed_books|default:0 }}"
+                                data-user-fine="{{ user.unpaid_fines|default_if_none:0 }}"
+                                title="Xem chi tiết"
+                            >
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                <tr id="emptyStateRow" class="empty-state-row" {% if users %}style="display: none;"{% endif %}>
+                    <td colspan="7" class="empty-state-cell">
+                        <div id="emptyState" class="empty-state">Không tìm thấy người dùng phù hợp</div>
+                    </td>
+                </tr>
+            </tbody>
         </table>
-
-        <div id="emptyState" class="empty-state" style="display: none;">
-            Không tìm thấy người dùng phù hợp
-        </div>
     </div>
 </section>
 {% endblock %}
@@ -79,22 +111,37 @@
         <div class="user-details-grid">
             <div class="detail-box">
                 <label>Mã người dùng</label>
-                <div class="detail-value" id="modalUserId">12345678</div>
+                <div class="detail-value" id="modalUserId"></div>
             </div>
 
             <div class="detail-box">
                 <label>Họ tên</label>
-                <div class="detail-value" id="modalUserName">Nguyễn Văn An</div>
+                <div class="detail-value" id="modalUserName"></div>
             </div>
 
             <div class="detail-box">
                 <label>Email</label>
-                <div class="detail-value" id="modalUserEmail">nvana@due.edu.vn</div>
+                <div class="detail-value" id="modalUserEmail"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>Loại người dùng</label>
+                <div class="detail-value" id="modalUserRole"></div>
             </div>
 
             <div class="detail-box">
                 <label>Số điện thoại</label>
-                <div class="detail-value" id="modalUserPhone">0905123456</div>
+                <div class="detail-value" id="modalUserPhone"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>Lớp</label>
+                <div class="detail-value" id="modalUserClass"></div>
+            </div>
+
+            <div class="detail-box">
+                <label>Tình trạng tốt nghiệp</label>
+                <div class="detail-value" id="modalUserGraduation"></div>
             </div>
         </div>
 
@@ -130,5 +177,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/sidebar.js' %}"></script>
-<script src="{% static 'js/user.js' %}"></script>
+<script src="{% static 'js/user.js' %}?v=20260420-db-users-3"></script>
 {% endblock %}

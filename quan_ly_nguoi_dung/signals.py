@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from .models import NguoiDung
+from .permission_setup import sync_role_permissions
 
 
 DEFAULT_PASSWORD = '123456@abc'
@@ -17,7 +18,7 @@ def dong_bo_group_sau_khi_luu_nguoi_dung(sender, instance, **kwargs):
         # Tao User tu dong khi NguoiDung chua duoc lien ket tai khoan.
         user = User.objects.filter(username=username).first()
         if user is None:
-            user = User.objects.create_user(
+            user = User._default_manager.create_user(
                 username=username,
                 email=email_value,
                 password=DEFAULT_PASSWORD,
@@ -47,6 +48,7 @@ def dong_bo_group_sau_khi_luu_nguoi_dung(sender, instance, **kwargs):
     if ten_nhom:
         group, _ = Group.objects.get_or_create(name=ten_nhom)
         user.groups.add(group)
+        sync_role_permissions(group, instance.loai_nguoi_dung)
 
     # Đồng bộ quyền quản trị
     if instance.loai_nguoi_dung == 'doc_gia':
