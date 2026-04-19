@@ -4,13 +4,94 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
 from muon_sach.models import PhieuMuon, ChiTietPhieuMuon
 from quan_ly_nguoi_dung.models import NguoiDung
-from quan_ly_sach.models import SachTrongKho
+from quan_ly_sach.models import SachTrongKho, Sach
 from .models import KhoanPhat, ChinhSachPhat
 from django.utils import timezone
 from decimal import Decimal
+from django.db.models import Q
 
 def return_list_view(request):
-    return render(request, 'tra_sach/return_list.html')
+    # Tab 1: Danh sách sách đang mượn (chưa trả)
+    chi_tiet_muon = ChiTietPhieuMuon.objects.filter(ngay_tra__isnull=True).select_related(
+        'ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach'
+    )
+    tab1_data = []
+    for ct in chi_tiet_muon:
+        pm = ct.ma_phieu_muon
+        sach_trong_kho = ct.ma_sach_trong_kho
+        sach = sach_trong_kho.ma_sach
+        tab1_data.append({
+            'ma_phieu_muon': pm.ma_phieu_muon,
+            'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
+            'ten_sach': sach.ten_sach,
+            'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
+            'ngay_muon': pm.ngay_muon,
+            'han_tra': ct.han_tra,
+            'trang_thai': pm.trang_thai,
+            'is_overdue': ct.han_tra < timezone.now().date(),
+            'so_ngay_qua_han': (timezone.now().date() - ct.han_tra).days if ct.han_tra < timezone.now().date() else 0,
+        })
+
+    # Tab 2: Danh sách người dùng nợ phí phạt
+    khoan_phat_chua_tt = KhoanPhat.objects.filter(trang_thai_tt='Chưa thanh toán').select_related('ma_nguoi_dung')
+    tab2_data = {}
+    for kp in khoan_phat_chua_tt:
+        nd = kp.ma_nguoi_dung
+        if nd.ma_nguoi_dung not in tab2_data:
+            tab2_data[nd.ma_nguoi_dung] = {
+                'ma_nguoi_dung': nd.ma_nguoi_dung,
+                'ho_ten': nd.ho_ten,
+                'tong_tien': 0,
+            }
+        tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
+    tab2_data = list(tab2_data.values())
+
+    # Tab 3: Danh sách bản ghi mượn cần xử lý mất sách (chưa trả, chưa xử lý mất)
+    lost_qs = ChiTietPhieuMuon.objects.filter(
+        ngay_tra__isnull=True,
+        ngay_khai_bao_mat__isnull=True
+    ).select_related('ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach')
+    tab3_data = []
+    for ct in lost_qs:
+        pm = ct.ma_phieu_muon
+        sach_trong_kho = ct.ma_sach_trong_kho
+        sach = sach_trong_kho.ma_sach
+        tab3_data.append({
+            'ma_phieu_muon': pm.ma_phieu_muon,
+            'ten_sach': sach.ten_sach,
+            'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
+            'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
+            'han_tra': ct.han_tra,
+            'trang_thai': pm.trang_thai,
+        })
+
+    # Tab 4: Danh sách hồ sơ chờ xác nhận đền sách
+    comp_qs = ChiTietPhieuMuon.objects.filter(
+        ngay_tra__isnull=True,
+        ngay_khai_bao_mat__isnull=False,
+        ma_phieu_muon__trang_thai='Chờ đền sách'
+    ).select_related('ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach')
+    tab4_data = []
+    for ct in comp_qs:
+        pm = ct.ma_phieu_muon
+        sach_trong_kho = ct.ma_sach_trong_kho
+        sach = sach_trong_kho.ma_sach
+        tab4_data.append({
+            'ma_phieu_muon': pm.ma_phieu_muon,
+            'ten_sach': sach.ten_sach,
+            'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
+            'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
+            'ngay_khai_bao_mat': ct.ngay_khai_bao_mat,
+            'trang_thai': pm.trang_thai,
+        })
+
+    context = {
+        'tab1_data': tab1_data,
+        'tab2_data': tab2_data,
+        'tab3_data': tab3_data,
+        'tab4_data': tab4_data,
+    }
+    return render(request, 'tra_sach/return_list.html', context)
 
 def return_list(request):
     return return_list_view(request)

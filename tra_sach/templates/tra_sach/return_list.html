@@ -42,7 +42,7 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">Mã phiếu</th>
+                            <th style="width: 15%;">Mã phiếu mượn</th>
                             <th style="width: 15%;">Mã sách trong kho</th>
                             <th style="width: 20%;">Tên sách</th>
                             <th style="width: 15%;">Người mượn</th>
@@ -53,78 +53,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="return-record"
-                            data-loan-id="PM-001"
-                            data-book-code="KT001"
-                            data-book-title="Kinh tế vi mô"
-                            data-borrower="Trần Thị Bình"
-                            data-due-date="24/1/2026"
-                            data-status="Đang mượn"
-                            data-overdue-days="0"
-                            data-overdue-rate="10000">
-                            <td><strong>PM-001</strong></td>
-                            <td>KT001</td>
-                            <td class="col-wrap">Kinh tế vi mô</td>
-                            <td class="col-wrap">Trần Thị Bình</td>
-                            <td>10/1/2026</td>
-                            <td>24/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red return-confirm-trigger">Xác nhận trả</button></td>
+                        {% for item in tab1_data %}
+                        <tr class="return-record {% if item.is_overdue %}row-overdue{% endif %}"
+                            data-loan-id="{{ item.ma_phieu_muon }}"
+                            data-book-code="{{ item.ma_sach_trong_kho }}"
+                            data-book-title="{{ item.ten_sach }}"
+                            data-borrower="{{ item.nguoi_muon }}"
+                            data-due-date="{{ item.han_tra|date:'d/m/Y' }}"
+                            data-status="{{ item.trang_thai }}"
+                            data-overdue-days="{{ item.so_ngay_qua_han }}">
+                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td>{{ item.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ item.ten_sach }}</td>
+                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
+                            <td>{{ item.ngay_muon|date:'d/m/Y' }}</td>
+                            <td>{{ item.han_tra|date:'d/m/Y' }}</td>
+                            <td>
+                                {% if item.trang_thai == 'Đã trả' %}
+                                    <span class="badge-outline-blue">Đã trả</span>
+                                {% elif item.is_overdue %}
+                                    <span class="badge badge-orange-solid">Quá hạn</span>
+                                {% else %}
+                                    <span class="badge badge-blue-solid">Đang mượn</span>
+                                {% endif %}
+                            </td>
+                            <td class="col-action">
+                                {% if item.trang_thai == 'Đã trả' %}
+                                    <span class="action-disabled">Không khả dụng</span>
+                                {% else %}
+                                    <button class="btn-red return-confirm-trigger">Xác nhận trả</button>
+                                {% endif %}
+                            </td>
                         </tr>
-                        <tr class="return-record row-overdue"
-                            data-loan-id="PM-002"
-                            data-book-code="TC001"
-                            data-book-title="Nguyên lý kế toán"
-                            data-borrower="Trần Lâm"
-                            data-due-date="24/1/2026"
-                            data-status="Quá hạn"
-                            data-overdue-days="6"
-                            data-overdue-rate="10000">
-                            <td><strong>PM-002</strong></td>
-                            <td>TC001</td>
-                            <td class="col-wrap">Nguyên lý kế toán</td>
-                            <td class="col-wrap">Trần Lâm</td>
-                            <td>10/1/2026</td>
-                            <td>24/1/2026</td>
-                            <td><span class="badge badge-orange-solid">Quá hạn</span></td>
-                            <td class="col-action"><button class="btn-red return-confirm-trigger">Xác nhận trả</button></td>
-                        </tr>
-                        <tr class="return-record"
-                            data-loan-id="PM-003"
-                            data-book-code="KT002"
-                            data-book-title="Kinh tế vĩ mô"
-                            data-borrower="Nguyễn Kiệm"
-                            data-due-date="24/1/2026"
-                            data-status="Đang mượn"
-                            data-overdue-days="0"
-                            data-overdue-rate="10000">
-                            <td><strong>PM-003</strong></td>
-                            <td>KT002</td>
-                            <td class="col-wrap">Kinh tế vĩ mô</td>
-                            <td class="col-wrap">Nguyễn Kiệm</td>
-                            <td>10/1/2026</td>
-                            <td>24/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red return-confirm-trigger">Xác nhận trả</button></td>
-                        </tr>
-                        <tr class="return-record"
-                            data-loan-id="PM-004"
-                            data-book-code="KD001"
-                            data-book-title="Quản trị học"
-                            data-borrower="Huỳnh Nữ"
-                            data-due-date="24/1/2026"
-                            data-status="Đã trả"
-                            data-overdue-days="0"
-                            data-overdue-rate="10000">
-                            <td><strong>PM-004</strong></td>
-                            <td>KD001</td>
-                            <td class="col-wrap">Quản trị học</td>
-                            <td class="col-wrap">Huỳnh Nữ</td>
-                            <td>10/1/2026</td>
-                            <td>24/1/2026</td>
-                            <td><span class="badge-outline-blue">Đã trả</span></td>
-                            <td class="col-action"><span class="action-disabled">Không khả dụng</span></td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -143,46 +104,17 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% for item in tab2_data %}
                         <tr>
-                            <td><strong>FINE-001</strong></td>
-                            <td class="col-wrap">Trần Thị Bình</td>
-                            <td>2051010001</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">50.000đ</span></td>
+                            <td><strong>{{ item.ma_nguoi_dung }}</strong></td>
+                            <td class="col-wrap">{{ item.ho_ten }}</td>
+                            <td>{{ item.ma_nguoi_dung }}</td>
+                            <td><span class="text-red-bold" style="font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
                             <td class="col-action">
-                                <button class="btn-blue-dark"
-                                    onclick="document.getElementById('popupOverlay').style.display='flex'; document.getElementById('popup-payment').style.display='flex';">
-                                    Thanh toán
-                                </button>
+                                <button class="btn-blue-dark">Thanh toán</button>
                             </td>
                         </tr>
-                        <tr>
-                            <td><strong>FINE-002</strong></td>
-                            <td class="col-wrap">Nguyễn Tiến Phước</td>
-                            <td>2051010002</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">80.000đ</span></td>
-                            <td class="col-action"><button class="btn-blue-dark">Thanh toán</button></td>
-                        </tr>
-                        <tr>
-                            <td><strong>FINE-003</strong></td>
-                            <td class="col-wrap">Huỳnh Thị Ngọc</td>
-                            <td>2051010003</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">30.000đ</span></td>
-                            <td class="col-action"><button class="btn-blue-dark">Thanh toán</button></td>
-                        </tr>
-                        <tr>
-                            <td><strong>FINE-004</strong></td>
-                            <td class="col-wrap">Lê Lai</td>
-                            <td>2051010013</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">10.000đ</span></td>
-                            <td class="col-action"><button class="btn-blue-dark">Thanh toán</button></td>
-                        </tr>
-                        <tr>
-                            <td><strong>FINE-005</strong></td>
-                            <td class="col-wrap">Thế Đức</td>
-                            <td>2051010006</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">20.000đ</span></td>
-                            <td class="col-action"><button class="btn-blue-dark">Thanh toán</button></td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -203,60 +135,31 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr class="lost-record" data-loan-id="PM-001" data-book-title="Kinh tế vi mô" data-book-code="KT001" data-borrower="Trần Thị Bình" data-due-date="24/1/2026" data-status="Quá hạn" data-book-price="500000" data-processing-fee="20000">
-                            <td><strong>PM-001</strong></td>
-                            <td class="col-wrap">Kinh tế vi mô</td>
-                            <td>KT001</td>
-                            <td class="col-wrap">Trần Thị Bình</td>
-                            <td>24/1/2026</td>
-                            <td><span class="badge badge-orange-solid">Quá hạn</span></td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" style="display:flex; align-items:center; justify-content:center; gap:5px;" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
+                        {% for item in tab3_data %}
+                        <tr class="lost-record"
+                            data-loan-id="{{ item.ma_phieu_muon }}"
+                            data-book-title="{{ item.ten_sach }}"
+                            data-book-code="{{ item.ma_sach_trong_kho }}"
+                            data-borrower="{{ item.nguoi_muon }}"
+                            data-due-date="{{ item.han_tra|date:'d/m/Y' }}"
+                            data-status="{{ item.trang_thai }}">
+                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td class="col-wrap">{{ item.ten_sach }}</td>
+                            <td>{{ item.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
+                            <td>{{ item.han_tra|date:'d/m/Y' }}</td>
+                            <td>
+                                {% if item.trang_thai == 'Đã trả' %}
+                                    <span class="badge badge-green-solid">Đã trả</span>
+                                {% elif item.trang_thai == 'Quá hạn' %}
+                                    <span class="badge badge-orange-solid">Quá hạn</span>
+                                {% else %}
+                                    <span class="badge badge-blue-solid">Đang mượn</span>
+                                {% endif %}
+                            </td>
+                            <td class="col-action"><button class="btn-red lost-report-trigger" type="button">Báo mất</button></td>
                         </tr>
-                        <tr class="lost-record" data-loan-id="PM-003" data-book-title="Kinh tế vĩ mô" data-book-code="KT002" data-borrower="Nguyễn Kiệm" data-due-date="26/1/2026" data-status="Đang mượn" data-book-price="450000" data-processing-fee="20000">
-                            <td><strong>PM-003</strong></td>
-                            <td class="col-wrap">Kinh tế vĩ mô</td>
-                            <td>KT002</td>
-                            <td class="col-wrap">Nguyễn Kiệm</td>
-                            <td>26/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" style="display:flex; align-items:center; justify-content:center; gap:5px;" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
-                        </tr>
-                        <tr class="lost-record" data-loan-id="PM-004" data-book-title="Quản trị học" data-book-code="KD001" data-borrower="Huỳnh Nữ" data-due-date="26/1/2026" data-status="Đang mượn" data-book-price="480000" data-processing-fee="20000">
-                            <td><strong>PM-004</strong></td>
-                            <td class="col-wrap">Quản trị học</td>
-                            <td>KD001</td>
-                            <td class="col-wrap">Huỳnh Nữ</td>
-                            <td>26/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" style="display:flex; align-items:center; justify-content:center; gap:5px;" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
-                        </tr>
-                        <tr class="lost-record" data-loan-id="PM-005" data-book-title="English Communication" data-book-code="EC004" data-borrower="Yến Phương" data-due-date="26/1/2026" data-status="Đang mượn" data-book-price="420000" data-processing-fee="20000">
-                            <td><strong>PM-005</strong></td>
-                            <td class="col-wrap">English Communication</td>
-                            <td>EC004</td>
-                            <td class="col-wrap">Yến Phương</td>
-                            <td>26/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" style="display:flex; align-items:center; justify-content:center; gap:5px;" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
-                        </tr>
-                        <tr class="lost-record" data-loan-id="PM-006" data-book-title="Lịch sử Đảng" data-book-code="CT001" data-borrower="Văn Ân" data-due-date="26/1/2026" data-status="Đang mượn" data-book-price="390000" data-processing-fee="20000">
-                            <td><strong>PM-006</strong></td>
-                            <td class="col-wrap">Lịch sử Đảng</td>
-                            <td>CT001</td>
-                            <td class="col-wrap">Văn Ân</td>
-                            <td>26/1/2026</td>
-                            <td><span class="badge badge-blue-solid">Đang mượn</span></td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" style="display:flex; align-items:center; justify-content:center; gap:5px;" type="button"><i class='bx bx-error'></i> Báo mất</button></td>
-                        </tr>
-                        <tr class="lost-record" data-loan-id="PM-007" data-book-title="Kinh tế chính trị" data-book-code="CT002" data-borrower="Văn Dung" data-due-date="26/1/2026" data-status="Đã trả" data-book-price="410000" data-processing-fee="20000">
-                            <td><strong>PM-007</strong></td>
-                            <td class="col-wrap">Kinh tế chính trị</td>
-                            <td>CT002</td>
-                            <td class="col-wrap">Văn Dung</td>
-                            <td>26/1/2026</td>
-                            <td><span class="badge badge-green-solid">Đã trả</span></td>
-                            <td class="col-action"><span class="action-disabled">Không khả dụng</span></td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -276,86 +179,28 @@
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
+                        {% for item in tab4_data %}
                         <tr class="compensate-record"
-                            data-record-id="HS-001"
-                            data-book-title="Kinh tế vi mô"
-                            data-book-code="KT001"
-                            data-compensator="Trần Thị Bình"
-                            data-report-date="18/1/2026"
-                            data-status="Chờ đền sách">
-                            <td><strong>HS-001</strong></td>
-                            <td class="col-wrap">Kinh tế vi mô</td>
-                            <td>KT001</td>
-                            <td class="col-wrap">Trần Thị Bình</td>
-                            <td>18/1/2026</td>
+                            data-record-id="{{ item.ma_phieu_muon }}"
+                            data-book-title="{{ item.ten_sach }}"
+                            data-book-code="{{ item.ma_sach_trong_kho }}"
+                            data-compensator="{{ item.nguoi_muon }}"
+                            data-report-date="{{ item.ngay_khai_bao_mat|date:'d/m/Y' }}"
+                            data-status="{{ item.trang_thai }}">
+                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td class="col-wrap">{{ item.ten_sach }}</td>
+                            <td>{{ item.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
+                            <td>{{ item.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
                             <td class="col-action">
-                                <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
+                                {% if item.trang_thai == 'Chờ đền sách' %}
+                                    <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
+                                {% else %}
+                                    <span class="badge badge-green-solid">Đã xử lý</span>
+                                {% endif %}
                             </td>
                         </tr>
-                        <tr class="compensate-record"
-                            data-record-id="HS-002"
-                            data-book-title="Nguyên lý kế toán"
-                            data-book-code="TC001"
-                            data-compensator="Trần Lâm"
-                            data-report-date="20/1/2026"
-                            data-status="Chờ đền sách">
-                            <td><strong>HS-002</strong></td>
-                            <td class="col-wrap">Nguyên lý kế toán</td>
-                            <td>TC001</td>
-                            <td class="col-wrap">Trần Lâm</td>
-                            <td>20/1/2026</td>
-                            <td class="col-action">
-                                <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
-                            </td>
-                        </tr>
-                        <tr class="compensate-record"
-                            data-record-id="HS-003"
-                            data-book-title="Quản trị học"
-                            data-book-code="KD001"
-                            data-compensator="Huỳnh Nữ"
-                            data-report-date="22/1/2026"
-                            data-status="Chờ đền sách">
-                            <td><strong>HS-003</strong></td>
-                            <td class="col-wrap">Quản trị học</td>
-                            <td>KD001</td>
-                            <td class="col-wrap">Huỳnh Nữ</td>
-                            <td>22/1/2026</td>
-                            <td class="col-action">
-                                <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
-                            </td>
-                        </tr>
-                        <tr class="compensate-record"
-                            data-record-id="HS-004"
-                            data-book-title="English Communication"
-                            data-book-code="EC004"
-                            data-compensator="Yến Phương"
-                            data-report-date="23/1/2026"
-                            data-status="Chờ đền sách">
-                            <td><strong>HS-004</strong></td>
-                            <td class="col-wrap">English Communication</td>
-                            <td>EC004</td>
-                            <td class="col-wrap">Yến Phương</td>
-                            <td>23/1/2026</td>
-                            <td class="col-action">
-                                <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
-                            </td>
-                        </tr>
-                        <tr class="compensate-record"
-                            data-record-id="HS-005"
-                            data-book-title="Lịch sử Đảng"
-                            data-book-code="CT001"
-                            data-compensator="Văn Ân"
-                            data-report-date="24/1/2026"
-                            data-status="Đã xử lý - Đền sách">
-                            <td><strong>HS-005</strong></td>
-                            <td class="col-wrap">Lịch sử Đảng</td>
-                            <td>CT001</td>
-                            <td class="col-wrap">Văn Ân</td>
-                            <td>24/1/2026</td>
-                            <td class="col-action">
-                                <span class="badge badge-green-solid">Đã xử lý</span>
-                            </td>
-                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
