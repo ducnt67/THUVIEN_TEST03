@@ -67,7 +67,8 @@ class SachTrongKho(models.Model):
         OVERDUE = 'overdue', 'Quá hạn'
         AWAITING_REPLACEMENT = 'awaiting_replacement', 'Chờ đền sách'
         PROCESSED = 'processed', 'Đã xử lý (Đã đền bù)'
-        LOST_DAMAGED = 'lost_damaged', 'Mất/Hỏng'
+        DAMAGED = 'damaged', 'Hư hỏng'
+        LOST = 'lost', 'Đã mất'
 
     ma_sach_trong_kho = models.CharField(max_length=25, primary_key=True, editable=False)
     ma_sach = models.ForeignKey(Sach, on_delete=models.CASCADE, related_name='sach_trong_kho')
