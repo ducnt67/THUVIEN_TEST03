@@ -183,12 +183,13 @@
     background: #f8fafc;
     text-align: left;
     padding: 11px 14px;
-    font-size: 12px;
+    font-size: 11px; /* Slightly smaller for uppercase */
     font-weight: 700;
     color: #64748b;
     border-bottom: 2px solid #f1f5f9;
     white-space: nowrap;
-    letter-spacing: .4px;
+    letter-spacing: .5px;
+    text-transform: uppercase;
 }
 
 .report-table td {
