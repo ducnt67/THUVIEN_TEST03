@@ -1,168 +1,190 @@
+console.log('--- BOOK LIST JS LOADED ---');
 
-// --- 1. HÀM CẬP NHẬT URL (Để hiện ?edit= nhưng không load trang) ---
-function updateURL(param = '') {
+/* =========================
+   1. URL HELPER
+========================= */
+window.updateURL = function(param = '') {
     const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + param;
     window.history.pushState({ path: newUrl }, '', newUrl);
-}
+};
 
-// --- 2. CÁC HÀM ĐIỀU KHIỂN MODAL ---
-// 1. HÀM MỞ MODAL THÊM MỚI (FIX LỖI KHÔNG LOAD)
-function openAddModal() {
-    console.log("Đã click nút Thêm!");
-    const modal = document.getElementById('bookModal');
-    const form = document.getElementById('bookForm');
+/* =========================
+   2. MODAL CONTROL
+========================= */
+
+// 👉 MỞ MODAL THÊM
+window.openAddModal = function() {
+    const modal = document.getElementById('addBookModal');
+    const form = document.getElementById('addBookForm');
 
     if (modal) {
         if (form) form.reset();
-
-        // Dùng querySelector an toàn hơn
-        const act = document.querySelector('input[name="action"]');
-        if (act) act.value = "create";
-
-        document.getElementById('modalTitle').innerText = "Thêm sách mới";
-        modal.style.display = 'flex'; // Hiện modal
-    } else {
-        console.error("Không tìm thấy ID bookModal");
-    }
-}
-
-function editBook(id, title, author, type, pub, year, qty) {
-    console.log("Đã click nút Sửa!");
-    const modal = document.getElementById('bookModal');
-    if (modal) {
-        document.getElementById('modalTitle').innerText = "Chỉnh sửa thông tin";
-
-        // Điền dữ liệu
-        document.getElementById('bookId').value = id;
-        document.getElementById('bookTitle').value = title;
-        document.getElementById('bookAuthor').value = author;
-        document.getElementById('bookQty').value = qty;
-
-        document.querySelector('input[name="action"]').value = "update";
         modal.style.display = 'flex';
     }
-}
+};
 
-function editBook(id, title, author, type, pub, year, qty) {
-    updateURL('?edit=' + id);
-    resetErrors();
-    document.getElementById('modalTitle').innerText = "Chỉnh sửa thông tin";
+// 👉 MỞ MODAL SỬA
+window.editBook = function(id, title, author, type, pub, year, qty) {
+    const modal = document.getElementById('editBookModal');
 
-    document.querySelector('input[name="action"]').value = "update";
-    document.querySelector('input[name="original_id"]').value = id;
+    if (!modal) return;
 
-    // Điền dữ liệu vào Form
-    document.getElementById('bookId').value = id;
-    document.getElementById('bookId').readOnly = true;
-    document.getElementById('bookTitle').value = title;
-    document.getElementById('bookAuthor').value = author;
-    document.getElementById('bookType').value = type;
-    document.getElementById('bookPublisher').value = pub;
-    document.getElementById('bookYear').value = year;
-    document.getElementById('bookQty').value = qty;
+    document.getElementById('editBookId').value = id;
+    document.getElementById('editOriginalId').value = id;
+    document.getElementById('editBookTitle').value = title;
+    document.getElementById('editBookAuthor').value = author;
+    document.getElementById('editBookType').value = type;
+    document.getElementById('editBookPublisher').value = pub;
+    document.getElementById('editBookYear').value = year;
+    document.getElementById('editBookQty').value = qty;
 
-    document.getElementById('bookModal').style.display = 'flex';
-}
+    const subtitle = document.getElementById('editModalSubtitle');
+    if (subtitle) {
+        subtitle.innerHTML = `Cập nhật thông tin sách <strong>${id}</strong>`;
+    }
 
-// --- 3. LOGIC KIỂM TRA DỮ LIỆU (ĐÂY NÈ HOA!) ---
+    modal.style.display = 'flex';
+};
 
-function resetErrors() {
-    document.querySelectorAll('.error-msg').forEach(el => el.innerText = "");
-    document.querySelectorAll('input').forEach(el => el.classList.remove('input-error'));
-}
+/* =========================
+   3. VIEW DETAIL
+========================= */
+window.viewDetail = function(id, title, author, type, pub, year, qty, status = 'CÓ SẴN') {
+    const modal = document.getElementById('detailModal');
+    const content = document.getElementById('bookDetailContent');
 
-function showError(inputId, spanId, message) {
-    const inputEl = document.getElementById(inputId);
-    const errSpan = document.getElementById(spanId);
-    if (errSpan) errSpan.innerText = message;
-    if (inputEl) inputEl.classList.add('input-error');
-    return false; // Trả về false để đánh dấu isValid = false
-}
+    if (!modal || !content) return;
 
-const bookForm = document.getElementById('bookForm');
-if (bookForm) {
-    bookForm.onsubmit = function(e) {
-        resetErrors();
-        let isValid = true;
-        const currentYear = new Date().getFullYear();
+    content.innerHTML = `
+        <div class="detail-info">
+            <div class="detail-item">
+                <label>Mã sách</label>
+                <span>${id}</span>
+            </div>
+            <div class="detail-item">
+                <label>Trạng thái</label>
+                <span class="status-badge">${status}</span>
+            </div>
+            <div class="detail-item">
+                <label>Tên sách</label>
+                <span>${title}</span>
+            </div>
+            <div class="detail-item">
+                <label>Thể loại</label>
+                <span>${type}</span>
+            </div>
+            <div class="detail-item">
+                <label>Tác giả</label>
+                <span>${author}</span>
+            </div>
+            <div class="detail-item">
+                <label>Năm xuất bản</label>
+                <span>${year}</span>
+            </div>
+            <div class="detail-item">
+                <label>Nhà xuất bản</label>
+                <span>${pub}</span>
+            </div>
+            <div class="detail-item">
+                <label>Số lượng</label>
+                <span>${qty}</span>
+            </div>
+        </div>
+    `;
 
-        // Regex kiểm tra: Phải có ít nhất 1 chữ cái (không cho phép chỉ nhập toàn số/ký tự đặc biệt)
-        const hasLetter = /[a-zA-ZÀ-ỹ]/;
+    modal.style.display = 'flex';
+};
 
-        // Lấy giá trị từ Form
-        const id = document.getElementById('bookId').value.trim();
-        const title = document.getElementById('bookTitle').value.trim();
-        const author = document.getElementById('bookAuthor').value.trim();
-        const type = document.getElementById('bookType').value.trim();
-        const publisher = document.getElementById('bookPublisher').value.trim();
-        const yearVal = document.getElementById('bookYear').value.trim();
-        const qtyVal = document.getElementById('bookQty').value.trim();
+/* =========================
+   4. DELETE
+========================= */
+window.requestDelete = function(id) {
+    const modal = document.getElementById('deleteConfirmModal');
+    const input = document.getElementById('deleteBookId');
 
-        // LOGIC 1: Mã sách (Không để trống)
-        if (id === "") {
-            isValid = showError('bookId', 'err-id', 'Mã sách không được để trống.');
-        }
+    if (!modal || !input) {
+        console.error("❌ Không tìm thấy modal xóa");
+        return;
+    }
 
-        // LOGIC 2: Tên sách (Phải có chữ, không chỉ toàn số)
-        if (title === "" || !hasLetter.test(title)) {
-            isValid = showError('bookTitle', 'err-title', 'Tên sách không hợp lệ (không được chỉ chứa số hoặc ký tự đặc biệt).');
-        }
+    input.value = id;
 
-        // LOGIC 3: Tác giả (Phải có chữ nếu nhập)
-        if (author !== "" && !hasLetter.test(author)) {
-            isValid = showError('bookAuthor', 'err-author', 'Tên tác giả không hợp lệ.');
-        }
+    const title = modal.querySelector('.confirm-title');
+    const desc = modal.querySelector('.confirm-desc');
 
-        // LOGIC 4: Thể loại (Phải có chữ)
-        if (type === "" || !hasLetter.test(type)) {
-            isValid = showError('bookType', 'err-type', 'Vui lòng nhập thể loại hợp lệ.');
-        }
+    if (title) title.innerText = "Xác nhận xóa?";
+    if (desc) desc.innerText = `Bạn có chắc muốn xóa sách ${id}?`;
 
-        // LOGIC 5: Nhà xuất bản
-        if (publisher === "" || !hasLetter.test(publisher)) {
-            isValid = showError('bookPublisher', 'err-publisher', 'Tên NXB không hợp lệ.');
-        }
+    modal.style.display = 'flex';
+};
 
-        // LOGIC 6: Năm xuất bản (Từ 1450 đến năm hiện tại)
-        const yearInt = parseInt(yearVal);
-        if (yearVal === "" || isNaN(yearInt) || yearInt < 1450 || yearInt > currentYear) {
-            isValid = showError('bookYear', 'err-year', `Năm phải từ 1450 - ${currentYear}.`);
-        }
+window.closeDeleteModal = function() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) modal.style.display = 'none';
+};
 
-        // LOGIC 7: Số lượng (Phải là số dương)
-        const qtyInt = parseInt(qtyVal);
-        if (qtyVal === "" || isNaN(qtyInt) || qtyInt <= 0) {
-            isValid = showError('bookQty', 'err-qty', 'Số lượng phải là số lớn hơn 0.');
-        }
+/* =========================
+   5. COPY
+========================= */
+window.openCopyModal = function(id, title) {
+    const modal = document.getElementById('copyModal');
+    const info = document.getElementById('copyBookInfo');
+    const qty = document.getElementById('copyQty');
 
-        // KẾT QUẢ: Nếu có bất kỳ lỗi nào thì dừng lại (e.preventDefault)
-        if (!isValid) {
-            e.preventDefault();
-            console.log("Form có lỗi, đã chặn gửi dữ liệu.");
-            const firstError = document.querySelector('.input-error');
-            if (firstError) firstError.focus();
-        }
-        return isValid;
-    };
-}
+    if (!modal) return;
 
-// --- 4. XỬ LÝ HỦY VÀ ĐÓNG ---
-function openCancelModal() {
-    document.getElementById('cancelConfirmModal').style.display = 'flex';
-}
+    if (qty) qty.value = "";
+    document.getElementById('err-copy-qty').innerText = "";
 
-function confirmCancel() {
-    document.getElementById('bookForm').reset();
-    closeSubModal('cancelConfirmModal');
-    closeSubModal('bookModal');
-}
+    if (info) info.value = `${id} - ${title}`;
 
-function closeSubModal(id) {
-    document.getElementById(id).style.display = 'none';
-    if (id === 'bookModal') updateURL('');
-}
+    modal.setAttribute('data-current-id', id);
+    modal.style.display = 'flex';
+};
 
-// Xuất hàm ra ngoài HTML
-Object.assign(window, {
-    openAddModal, editBook, openCancelModal, confirmCancel, closeSubModal
+window.submitCopy = function() {
+    const modal = document.getElementById('copyModal');
+    const qtyInput = document.getElementById('copyQty');
+
+    const id = modal.getAttribute('data-current-id');
+    const qty = parseInt(qtyInput.value);
+
+    if (!qty || qty <= 0) {
+        document.getElementById('err-copy-qty').innerText = "Nhập số > 0";
+        qtyInput.focus();
+        return;
+    }
+
+    console.log(`Copy ${qty} sách ${id}`);
+
+    modal.style.display = 'none';
+};
+
+/* =========================
+   6. CANCEL
+========================= */
+window.openCancelModal = function() {
+    const modal = document.getElementById('cancelConfirmModal');
+    if (modal) modal.style.display = 'flex';
+};
+
+window.confirmCancel = function() {
+    const form = document.getElementById('bookForm');
+    if (form) form.reset();
+
+    window.closeSubModal('cancelConfirmModal');
+    window.closeSubModal('bookModal');
+};
+
+window.closeSubModal = function(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = 'none';
+};
+
+/* =========================
+   7. DEBUG CHECK
+========================= */
+console.log("✅ Functions ready:", {
+    viewDetail: typeof window.viewDetail,
+    requestDelete: typeof window.requestDelete
 });

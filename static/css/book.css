@@ -1,6 +1,6 @@
 /* =========================
    BOOK PAGE ONLY
-   Dùng cùng base.html + style.css + sidebar.css
+   (GIỮ NGUYÊN STYLE GỐC + FIX MODAL)
 ========================= */
 
 .table-section.card {
@@ -8,15 +8,19 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 120px);
-    min-height: 600px;
 }
-
+.section-label{
+    font-size: 16px;
+}
 .section-meta {
     margin-bottom: 15px;
     color: #4a5568;
     font-size: 13px;
 }
+
+/* =========================
+   TABLE (GIỮ NGUYÊN)
+========================= */
 
 .table-wrapper {
     border: 1px solid #edf2f7;
@@ -25,9 +29,7 @@
     margin-top: 10px;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    max-height: 420px;
-    background: #fff;
+    overflow: auto;
 }
 
 #bookTable {
@@ -47,7 +49,6 @@
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
     color: #334155;
     background-color: #f8fafc;
     border-bottom: 1px solid #f1f5f9;
@@ -55,261 +56,398 @@
 }
 
 #bookTable td {
-    text-align: left;
+    text-align: left; /* Mặc định các cột khác vẫn ở bên trái */
     padding: 16px 14px;
     font-size: 14px;
     font-weight: 600;
     color: #444;
     border-bottom: 1px solid #f0f0f0;
     white-space: nowrap;
+    display: table-cell;
 }
-
+#bookTable td:nth-child(6) {
+    text-align: center !important;
+}
 #bookTable tbody tr:hover {
     background-color: #fafbfc;
 }
+/* =========================
+   BUTTON SEARCH / ADD (FIX TRIỆT ĐỂ)
+========================= */
 
-#bookTable td:nth-child(2),
-#bookTable td:nth-child(3) {
-    white-space: normal !important;
-    min-width: 150px;
-    max-width: 250px;
-}
-
+/* Class chung cho cả 2 nút để ép chiều cao bằng nhau */
 #bookSearchBtn,
 #bookAddBtn {
-    height: 44px;
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 1;
-    display: inline-flex;
+    height: 48px !important;       /* Ép chiều cao chuẩn cho cả 2 */
+    display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-}
-
-#bookSearchBtn {
-    width: 152px;
-}
-
-#bookAddBtn {
-    width: 184px;
-}
-
-/* Obsolete .status-badge removed - using global .badge system instead */
-
-.actions {
-    display: flex;
-    gap: 8px;
-    font-size: 1.1rem;
-    color: #cbd5e0;
-    white-space: nowrap;
-}
-
-.actions i {
+    gap: 10px;
+    border-radius: 14px !important; /* Bo góc đồng bộ với Modal */
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
-    padding: 4px;
-    border-radius: 4px;
+    transition: all 0.3s ease;
+    vertical-align: middle;        /* Giúp 2 nút không bị lệch cao thấp */
 }
 
-.actions .fa-book-open:hover {
-    color: #2563eb;
-    transform: scale(1.1);
+
+/* Chỉnh riêng cho nút Tìm kiếm */
+#bookSearchBtn {
+    width: 140px !important;
+    background-color: #ff5722 !important;
+    color: #ffffff !important;
+    border: 1.5px solid #e2e8f0 !important;
+    box-shadow: none !important;
 }
 
-.actions .fa-pen-to-square:hover {
-    color: #2563eb;
-    background: #ebf4ff;
+/* Chỉnh riêng cho nút Thêm sách */
+#bookAddBtn {
+    width: 200px !important;       /* Rộng hơn để chứa đủ chữ */
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
 }
 
-.actions .fa-trash-can:hover {
-    color: #f97316;
-    background: #fff5f2;
+
+#bookAddBtn:hover,#bookSearchBtn:hover {
+    transform: translateY(-2px);
 }
 
 /* =========================
-   MODAL
+   ACTION BUTTONS
 ========================= */
 
+.btn-action {
+    border: 1px solid #ddd;
+    background: #fff;
+    border-radius: 3px;
+    height: 30px;
+    width: 30px;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 0 5px;
+    color: #aaa;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.2);
+}
+
+.btn-action.view:hover,
+.btn-action.edit:hover {
+    color: #3498db;
+}
+
+.btn-action.delete:hover {
+    color: #e74c3c;
+}
+
+/* =========================
+   STATUS BADGE
+========================= */
+
+.status-badge {
+    background: #ebf8ff;
+    color: #3182ce;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.status-badge.status-low {
+    background: #fff7ed;
+    color: #ea580c;
+}
+
+.status-badge.status-out {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+/* =========================
+   🔥 FIX MODAL (QUAN TRỌNG)
+========================= */
+
+/* =========================
+   GIAO DIỆN MODAL TỔNG THỂ
+========================= */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    /* Nền tối đậm và mờ để che bảng phía sau */
+    background: rgba(15, 23, 42, 0.8);
+    z-index: 9999;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    backdrop-filter: blur(10px);
+    padding: 20px;
 }
 
+/* Khung nội dung chung */
 .modal-content {
     background: #ffffff;
-    padding: 30px;
-    border-radius: 20px;
-    width: 500px;
-    max-width: 95vw;
-    position: relative;
+    border-radius: 30px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: modalFadeUp 0.4s ease-out;
+    overflow: hidden;
 }
 
+/* 1. ĐỊNH DẠNG CHO FORM (Thêm/Sửa) */
 .form-box {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+    width: 600px;
+    padding: 40px;
 }
 
-.confirm-box {
-    width: 400px;
-    max-width: 95vw;
-    text-align: center;
-}
+.form-box h2 {
+    font-size: 26px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    margin-bottom: 30px !important;
 
-.confirm-box h3 {
-    font-size: 1.25rem;
-    margin-bottom: 12px;
-}
+    /* Ép căn trái tuyệt đối */
+    text-align: left !important;
+    width: 100% !important;     /* Đảm bảo tiêu đề chiếm hết chiều ngang để căn trái có tác dụng */
+    display: block !important;   /* Tránh bị ảnh hưởng bởi flex-center của cha */
+    padding-left: 0 !important;
 
-.confirm-box p {
-    color: #718096;
-    font-size: 0.9rem;
-    margin-bottom: 20px;
 }
-
-.warning-text {
-    color: #f97316;
-    font-weight: 500;
-    margin-top: 10px;
+.btn btn-blue{
+    height  : 54px;
+    width   : 100%;
 }
-
-.confirm-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-}
-
-.confirm-buttons.vertical {
-    flex-direction: column;
-}
-
 .form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 12px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
-    font-weight: 500;
-    font-size: 0.9rem;
-    margin-bottom: 6px;
-    color: #333333;
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: black;
+    margin-bottom: 8px;
 }
 
-.form-group input,
-.form-group select {
-    padding: 10px 14px;
-    border: 2px solid #edf2f7;
-    border-radius: 8px;
-    font-size: 0.9rem;
+.form-group input {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    border: 2px solid #f1f5f9;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 16px;
+    color: black; /* Chữ nhạt tinh tế */
+    transition: all 0.3s;
+}
+
+.form-group input:focus {
     outline: none;
-    transition: 0.2s;
-    font-weight: 600;
-    color: #333333;
-    font-family: inherit;
-}
-
-.form-group input:focus,
-.form-group select:focus {
     border-color: #2563eb;
-    background-color: #ffffff;
+    background: #fff;
+    color: #1e293b;
 }
 
 .form-row {
     display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .form-row .form-group {
     flex: 1;
 }
 
+/* 2. ĐỊNH DẠNG CHO CHI TIẾT (Xem) */
+.confirm-box {
+    width: 500px;
+    height: 600px;
+    padding: 45px;
+    display: flex;
+    flex-direction: column;
+}
+
+.confirm-box h2 {
+    font-size: 26px;
+    font-weight: 800;
+    color: #1e293b;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 20px;
+    margin-bottom: 10px;
+}
+
+.detail-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* Căn đều các dòng */
+}
+
+.detail-info p {
+    display: flex;
+    font-size: 17px;
+    margin: 0;
+}
+
+.detail-info p strong {
+    width: 140px;
+    color: #475569;
+    font-weight: 700;
+}
+
+.detail-info p span {
+    color: #94a3b8; /* MÀU CHỮ NHẠT THEO Ý BẠN */
+    font-weight: 500;
+    flex: 1;
+}
+
+/* 3. NÚT BẤM (FOOTER) */
 .modal-footer {
     display: flex;
-    justify-content: flex-end;
     gap: 12px;
-    margin-top: 15px;
+    margin-top: 20px;
 }
 
-.btn-save {
-    background: #2563eb;
-    color: #ffffff;
+.btn-save, .btn-blue {
     flex: 2;
-    padding: 10px 20px;
+    height: 54px;
+    background: #2563eb;
+    color: white;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 18px;
     cursor: pointer;
-}
-
-.btn-save:hover {
-    background: #1d4ed8;
+    transition: 0.3s;
 }
 
 .btn-cancel {
-    background: #edf2f7;
-    color: #333333;
     flex: 1;
-    padding: 10px 20px;
+    background: #f1f5f9;
+    color: #64748b;
     border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 18px;
 }
 
-.btn-cancel:hover {
-    background: #e2e8f0;
+.btn-save:hover, .btn-blue:hover{
+    background: #1d4ed8;
+    transform: translateY(-2px);
 }
 
-.btn-white {
-    background: #ffffff;
-    color: #333333;
-    border: 1px solid #e2e8f0;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+/* Hiệu ứng */
+@keyframes modalFadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.btn-orange-confirm {
-    background: #f97316;
-    color: #ffffff;
-    padding: 12px;
+/* =========================
+   CONFIRM MODAL
+========================= */
+
+/* Lớp phủ nền mờ phía sau */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Nền đen mờ */
+    display: none; /* Mặc định ẩn, JS sẽ chuyển thành flex */
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(4px); /* Làm mờ nhẹ hậu cảnh cho sang trọng */
 }
 
-.btn-orange-confirm:hover {
-    background: #ea580c;
+/* Khung nội dung chính của Modal */
+.modal-content.confirm-box {
+    background: #fff;
+    width: 500px;
+    height: 600px;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+    display: flex;
+    flex-direction: column; /* Sắp xếp theo chiều dọc */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Tiêu đề Modal */
+.modal-content h2 {
+    font-size: 28px; /* Tăng nhẹ kích thước tiêu đề */
+    font-weight: 700;
+    color: #1a202c;
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #edf2f7;
+}
+
+/* Khu vực hiển thị thông tin: ĐÂY LÀ PHẦN QUAN TRỌNG */
+.detail-info {
+    flex: 1;                /* Tự động chiếm hết không gian trống ở giữa */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly; /* Giãn cách ĐỀU các dòng từ trên xuống dưới */
+    margin-bottom: 20px;
+}
+
+.detail-info p {
+    display: flex;
+    align-items: baseline;  /* Căn chỉnh chân chữ cho thẳng hàng */
+    margin: 0;              /* Bỏ margin để dùng space-evenly của cha */
+    font-size: 17px;
+}
+
+/* Tiêu đề bên trái */
+.detail-info p strong {
+    color: #718096;         /* Màu xám nhẹ hơn cho label */
+    font-weight: 600;
+    width: 150px;           /* Tăng độ rộng để không bị dính vào dữ liệu */
+    flex-shrink: 0;
+}
+
+/* Dữ liệu bên phải */
+.detail-info p span {
+    color: #718096;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* Nút Đóng nằm dưới cùng */
+.modal-footer {
+    margin-top: auto;       /* Đẩy xuống đáy modal */
 }
 
 .btn-blue {
-    background: #2563eb;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 20px;
+    background-color: #1a73e8;
+    color: white;
+    padding: 16px 0;        /* Nút dày hơn cho cân đối với form cao */
+    width: 100%;
+    border-radius: 14px;
+    font-size: 18px;
     font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
+    text-align: center;
+    display: block;
 }
-
-.btn-blue:hover {
-    background: #1d4ed8;
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 /* =========================
@@ -327,54 +465,226 @@
     background: #e6fffa;
     color: #00875a;
     border: 1px solid #b2f5ea;
-    padding: 16px 25px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-weight: 600;
 }
 
 /* =========================
-   RESPONSIVE
+   HOVER ROW
 ========================= */
 
-@media (max-width: 768px) {
-    .form-row {
-        flex-direction: column;
-    }
-
-    .actions {
-        flex-wrap: wrap;
-    }
+#bookTable tbody tr:hover {
+    background: #f9fafb;
 }
 
-@media (max-width: 900px) {
-    .table-section.card {
-        height: auto;
-        min-height: 0;
-        padding: 8px 2px;
-    }
-    .table-wrapper {
-        max-height: 320px;
-    }
+/* =========================
+   DELETE CONFIRM MODAL (STYLE GIỐNG HÌNH MẪU)
+========================= */
+
+/* Khung nội dung Modal Xóa */
+.modal-content.delete-box {
+    background: #ffffff;
+    width: 450px;           /* Độ rộng vừa phải cho câu hỏi ngắn */
+    padding: 40px;
+    border-radius: 30px;    /* Bo góc cực sâu như hình mẫu */
+    text-align: center;     /* Căn giữa toàn bộ nội dung */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
-@media (max-width: 600px) {
-    .table-wrapper {
-        max-height: 220px;
-    }
+/* Tiêu đề câu hỏi */
+.delete-box h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 12px;
+}
+
+/* Dòng phụ đề bên dưới tiêu đề */
+.delete-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+/* Khung lưu ý (Màu xanh nhạt/Xám) */
+.delete-warning {
+    background-color: #f8fafc;
+    padding: 15px 20px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+}
+
+.delete-warning p {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Footer chứa nút bấm */
+.delete-footer {
+    display: flex;
+    flex-direction: column; /* Sắp xếp nút theo chiều dọc như hình */
+    gap: 12px;
+}
+
+/* Nút Đồng ý (Màu Cam Rực) */
+.btn-confirm-delete {
+    width: 100%;
+    height: 54px;
+    background-color: #ff5722; /* Màu cam đỏ nổi bật */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-confirm-delete:hover {
+    background-color: #f4511e;
+    transform: translateY(-2px);
+}
+
+/* Nút Hủy (Viền mờ) */
+.btn-cancel-delete {
+    width: 100%;
+    height: 54px;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel-delete:hover {
+    background-color: #f1f5f9;
+}
+
+/* Khung nội dung Popup Hủy - Fix lỗi tràn viền */
+.modal-content.cancel-box {
+    background: #ffffff;
+    width: 450px;           /* Độ rộng chuẩn để không bị hẹp quá */
+    max-width: 90%;         /* Đảm bảo không bị tràn trên màn hình nhỏ */
+    padding: 50px 30px;     /* Tạo khoảng trống bên trong (top-bottom 50px, left-right 30px) */
+    border-radius: 30px;    /* Bo góc cực sâu như mẫu */
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    border: none;
+    display: flex;
+    flex-direction: column; /* Xếp các thành phần theo hàng dọc */
+    align-items: center;    /* Căn giữa nội dung */
+}
+
+/* Tiêu đề "Xác nhận hủy?" */
+.cancel-box h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 15px 0;    /* Fix lỗi nhảy margin gây tràn viền */
+}
+
+/* Dòng text phụ đề */
+.cancel-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+/* Căn chỉnh 2 nút nằm ngang */
+.cancel-footer {
+    display: flex;
+    width: 100%;           /* Để 2 nút chiếm hết chiều ngang padding */
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Nút Hủy (Trắng/Viền xám) */
+.btn-back {
+    flex: 1;
+    height: 52px;
+    background: #ffffff;
+    color: #1e293b;
+    border: /* Khung nội dung Popup Hủy - Fix lỗi tràn viền */
+.modal-content.cancel-box {
+    background: #ffffff;
+    width: 420px;           /* Độ rộng chuẩn để không bị hẹp quá */
+    max-width: 90%;         /* Đảm bảo không bị tràn trên màn hình nhỏ */
+    padding: 50px 30px;     /* Tạo khoảng trống bên trong (top-bottom 50px, left-right 30px) */
+    border-radius: 40px;    /* Bo góc cực sâu như mẫu */
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    border: none;
+    display: flex;
+    flex-direction: column; /* Xếp các thành phần theo hàng dọc */
+    align-items: center;    /* Căn giữa nội dung */
+}
+
+/* Tiêu đề "Xác nhận hủy?" */
+.cancel-box h3 {
+    font-size: 24px;
+    font-weight: 800;
+    color: #1e293b;
+    margin: 0 0 15px 0;    /* Fix lỗi nhảy margin gây tràn viền */
+}
+
+/* Dòng text phụ đề */
+.cancel-subtitle {
+    font-size: 16px;
+    color: #64748b;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+/* Căn chỉnh 2 nút nằm ngang */
+.cancel-footer {
+    display: flex;
+    width: 100%;           /* Để 2 nút chiếm hết chiều ngang padding */
+    gap: 12px;
+    justify-content: center;
+}
+
+/* Nút Hủy (Trắng/Viền xám) */
+.btn-back {
+    flex: 1;
+    height: 52px;
+    background: #ffffff;
+    color: #1e293b;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Nút Đồng ý (Cam rực rỡ) */
+.btn-confirm-cancel {
+    flex: 1.8;             /* Nút Đồng ý dài hơn một chút theo mẫu */
+    height: 52px;
+    background-color: #ff5722; /* Màu cam đỏ chuẩn */
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 16px;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Nút Đồng ý (Cam rực rỡ) */
+.btn-confirm-cancel {
+    flex: 1.8;             /* Nút Đồng ý dài hơn một chút theo mẫu */
+    height: 52px;
+    background-color: #ff5722; /* Màu cam đỏ chuẩn */
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 16px;
 }

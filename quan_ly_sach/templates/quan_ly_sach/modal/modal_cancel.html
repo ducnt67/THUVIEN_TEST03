@@ -1,0 +1,107 @@
+<!-- Modal xác nhân húy -->
+
+<div id="cancelConfirmModal" class="modal sub-modal" style="display: {% if selected_book %}flex{% else %}none{% endif %};">
+    <div class="modal-content confirm-box">
+        <h3 id="cancelTitle" class="confirm-title">Bạn chưa thêm mới sách, xác nhận hủy?</h3>
+
+        <p class="confirm-desc">Hành động này sẽ xóa các thông tin sách đã nhập</p>
+
+        <div class="confirm-buttons">
+            <button class="btn-white" onclick="closeSubModal('cancelConfirmModal')">Hủy</button>
+            <button class="btn-orange-confirm" onclick="confirmCancel()">Đồng ý</button>
+        </div>
+    </div>
+</div>
+
+
+<style>
+/* 1. Nền mờ siêu nhẹ 5% - Cực kỳ trong suốt theo yêu cầu */
+#cancelConfirmModal {
+    display: none !important;
+    position: fixed !important;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.05) !important; /* Độ mờ 5% */
+    z-index: 99999999 !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+/* 2. Hộp xác nhận trắng bo góc mạnh 28px */
+.confirm-box {
+    background: #ffffff !important;
+    width: 480px !important; /* Thu hẹp chiều rộng hộp một chút cho cân đối */
+    padding: 35px 40px !important;
+    border-radius: 28px !important;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08) !important;
+    animation: modalPopUp 0.3s ease-out !important;
+    text-align: left !important;
+}
+
+/* 3. Tiêu đề - Căn trái, chữ đậm đen */
+.confirm-title {
+    font-size: 24px !important;
+    font-weight: 700 !important;
+    color: #1a202c !important;
+    margin-bottom: 15px !important;
+    line-height: 1.3 !important;
+}
+
+/* 4. Mô tả - Chữ xám dạt trái */
+.confirm-desc {
+    font-size: 16px !important;
+    color: #718096 !important;
+    margin-bottom: 30px !important;
+}
+
+/* 5. Cụm nút - Dồn về bên phải */
+.confirm-buttons {
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+}
+
+/* 6. Nút "Hủy" - Cao và Hẹp ngang */
+#cancelConfirmModal .btn-white {
+    height: 48px !important; /* Tăng chiều cao */
+    width: 100px !important;  /* Cố định chiều rộng để không bị dãn bè */
+    background: #ffffff !important;
+    color: #1a202c !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s !important;
+}
+
+/* 7. Nút "Đồng ý" - Màu cam đỏ, Cao và Hẹp ngang */
+#cancelConfirmModal .btn-orange-confirm {
+    height: 48px !important; /* Tăng chiều cao */
+    width: 80px !important; /* Nút này dài hơn xíu để chứa đủ chữ "Đồng ý" */
+    background: #ff5722 !important; /* Cam đỏ chuẩn mẫu */
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s !important;
+}
+
+
+@keyframes modalPopUp {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+#cancelConfirmModal[style*="flex"] {
+    display: flex !important;
+}
+</style>
