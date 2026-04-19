@@ -1,95 +1,133 @@
 /* =========================================================
-   user.js – Quản lý người dùng
-   Dùng cho: templates/users/user_list.html
+   user.js - Quan ly nguoi dung
+   Chi xu ly modal chi tiet tren du lieu DB da render san
 ========================================================= */
 
-const usersData = [
-    { stt: 1, id: '231121514205', name: 'Trần Thị Bình', type: 'Độc giả', class: '20K1', status: 'Chưa tốt nghiệp', email: 'ttbinh@due.edu.vn', phone: '0905111222', borrowed: 2, fine: '0đ' },
-    { stt: 2, id: '231121514206', name: 'Lê Văn Cường', type: 'Độc giả', class: '20K2', status: 'Chưa tốt nghiệp', email: 'lvcuong@due.edu.vn', phone: '0905333444', borrowed: 0, fine: '50.000đ' },
-    { stt: 3, id: '231121514207', name: 'Phạm Thị Dung', type: 'Độc giả', class: '20K1', status: 'Chưa tốt nghiệp', email: 'ptdung@due.edu.vn', phone: '0905555666', borrowed: 1, fine: '0đ' },
-    { stt: 4, id: '231121514208', name: 'Hoàng Văn Em', type: 'Độc giả', class: '19K3', status: 'Đã tốt nghiệp', email: 'hvem1@due.edu.vn', phone: '0905777888', borrowed: 0, fine: '0đ' },
-    { stt: 5, id: '231121514209', name: 'Hoàng Văn Em', type: 'Độc giả', class: '19K3', status: 'Đã tốt nghiệp', email: 'hvem2@due.edu.vn', phone: '0905999000', borrowed: 0, fine: '0đ' },
-    { stt: 6, id: '231121514210', name: 'Hoàng Văn Em', type: 'Độc giả', class: '19K3', status: 'Đã tốt nghiệp', email: 'hvem3@due.edu.vn', phone: '0905123123', borrowed: 0, fine: '0đ' },
-    { stt: 7, id: '231121514211', name: 'Hoàng Văn Em', type: 'Độc giả', class: '19K3', status: 'Đã tốt nghiệp', email: 'hvem4@due.edu.vn', phone: '0905456456', borrowed: 0, fine: '0đ' }
-];
-
-const tableBody = document.getElementById('tableBody');
+const modal = document.getElementById('userModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const searchForm = document.getElementById('userSearchForm');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 const filterStatus = document.getElementById('filterStatus');
 const filterClass = document.getElementById('filterClass');
-const emptyState = document.getElementById('emptyState');
-const tableEl = document.getElementById('userTable');
+const tableBody = document.getElementById('userRowsBody');
+const emptyStateRow = document.getElementById('emptyStateRow');
+const tableContainer = document.querySelector('.table-container');
+const readerDataUrlInput = document.getElementById('readerDataUrl');
+const readerDataUrl = readerDataUrlInput ? readerDataUrlInput.value : '';
 
-const modal = document.getElementById('userModal');
-const closeModalBtn = document.getElementById('closeModalBtn');
+function updateTableScrollState(totalRows) {
+    if (!tableContainer) return;
+    tableContainer.classList.toggle('has-scroll', totalRows >= 5);
+}
 
-function renderTable(data) {
-    if (!tableBody || !tableEl || !emptyState) return;
+function normalizeText(value) {
+    return (value || '').toString().trim().toLowerCase();
+}
 
-    tableBody.innerHTML = '';
+function createUserRow(user, index) {
+    const row = document.createElement('tr');
+    row.className = 'user-data-row';
+    row.innerHTML = `
+        <td>${index}</td>
+        <td>${user.id || ''}</td>
+        <td>${user.name || ''}</td>
+        <td><span class="tag">${user.role || ''}</span></td>
+        <td>${user.class_name || ''}</td>
+        <td>${user.graduation_status || ''}</td>
+        <td>
+            <button
+                type="button"
+                class="action-btn"
+                onclick="openModal(this)"
+                data-user-id="${user.id || ''}"
+                data-user-name="${user.name || ''}"
+                data-user-role="${user.role || ''}"
+                data-user-email="${user.email || ''}"
+                data-user-phone="${user.phone || ''}"
+                data-user-class="${user.class_name || ''}"
+                data-user-graduation="${user.graduation_status || ''}"
+                data-user-borrowed="${user.borrowed_books || 0}"
+                data-user-fine="${user.unpaid_fines || 0}"
+                title="Xem chi tiết"
+            >
+                <i class="fa-regular fa-eye"></i>
+            </button>
+        </td>
+    `;
+    return row;
+}
 
-    if (data.length === 0) {
-        tableEl.style.display = 'none';
-        emptyState.style.display = 'block';
-        return;
+async function applyTableFilters() {
+    if (!readerDataUrl || !tableBody || !emptyStateRow) return;
+
+    const keyword = searchInput ? searchInput.value.trim() : '';
+    const statusValue = filterStatus ? filterStatus.value : 'all';
+    const classValue = filterClass ? filterClass.value : 'all';
+
+    const params = new URLSearchParams();
+    if (keyword) params.set('q', keyword);
+    if (statusValue) params.set('status', statusValue);
+    if (classValue) params.set('class', classValue);
+
+    const url = params.toString() ? `${readerDataUrl}?${params.toString()}` : readerDataUrl;
+
+    try {
+        const response = await fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+            cache: 'no-store',
+        });
+        if (!response.ok) {
+            throw new Error('Khong the tai du lieu nguoi dung');
+        }
+        const payload = await response.json();
+        const users = Array.isArray(payload.users) ? payload.users : [];
+
+        tableBody.querySelectorAll('.user-data-row').forEach((row) => row.remove());
+
+        if (users.length === 0) {
+            emptyStateRow.style.display = 'table-row';
+            updateTableScrollState(0);
+            if (tableContainer) {
+                tableContainer.scrollTop = 0;
+            }
+            return;
+        }
+
+        emptyStateRow.style.display = 'none';
+        users.forEach((user, index) => {
+            tableBody.appendChild(createUserRow(user, index + 1));
+        });
+        updateTableScrollState(users.length);
+        if (tableContainer) {
+            tableContainer.scrollTop = 0;
+        }
+    } catch (error) {
+        emptyStateRow.style.display = 'table-row';
+        updateTableScrollState(0);
+        if (tableContainer) {
+            tableContainer.scrollTop = 0;
+        }
     }
-
-    tableEl.style.display = 'table';
-    emptyState.style.display = 'block';
-    emptyState.style.display = 'none';
-
-    data.forEach(user => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${user.stt}</td>
-            <td>${user.id}</td>
-            <td>${user.name}</td>
-            <td><span class="tag">${user.type}</span></td>
-            <td>${user.class}</td>
-            <td>${user.status}</td>
-            <td>
-                <button class="action-btn" onclick="openModal('${user.id}')" title="Xem chi tiết">
-                    <i class="fa-regular fa-eye"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
 }
 
-function filterData() {
-    const keyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
-    const statusVal = filterStatus ? filterStatus.value : 'all';
-    const classVal = filterClass ? filterClass.value : 'all';
+window.openModal = function (trigger) {
+    if (!modal || !trigger) return;
 
-    const filtered = usersData.filter(user => {
-        const matchKeyword =
-            user.name.toLowerCase().includes(keyword) ||
-            user.id.includes(keyword);
+    const button = trigger.closest ? trigger.closest('button') : trigger;
+    if (!button) return;
 
-        const matchStatus =
-            statusVal === 'all' || user.status === statusVal;
-
-        const matchClass =
-            classVal === 'all' || user.class === classVal;
-
-        return matchKeyword && matchStatus && matchClass;
-    });
-
-    renderTable(filtered);
-}
-
-window.openModal = function (userId) {
-    const user = usersData.find(u => u.id === userId);
-    if (!user || !modal) return;
-
-    document.getElementById('modalUserId').textContent = user.id;
-    document.getElementById('modalUserName').textContent = user.name;
-    document.getElementById('modalUserEmail').textContent = user.email;
-    document.getElementById('modalUserPhone').textContent = user.phone;
-    document.getElementById('modalBooks').textContent = user.borrowed;
-    document.getElementById('modalFine').textContent = user.fine;
+    document.getElementById('modalUserId').textContent = button.dataset.userId || '';
+    document.getElementById('modalUserName').textContent = button.dataset.userName || '';
+    document.getElementById('modalUserRole').textContent = button.dataset.userRole || '';
+    document.getElementById('modalUserEmail').textContent = button.dataset.userEmail || '';
+    document.getElementById('modalUserPhone').textContent = button.dataset.userPhone || '';
+    document.getElementById('modalUserClass').textContent = button.dataset.userClass || '';
+    document.getElementById('modalUserGraduation').textContent = button.dataset.userGraduation || '';
+    document.getElementById('modalBooks').textContent = button.dataset.userBorrowed || '0';
+    const fineValue = button.dataset.userFine || '0';
+    document.getElementById('modalFine').textContent = fineValue + 'đ';
 
     modal.style.display = 'flex';
 };
@@ -110,26 +148,40 @@ if (modal) {
     });
 }
 
+if (searchForm) {
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        void applyTableFilters();
+    });
+}
+
 if (searchBtn) {
-    searchBtn.addEventListener('click', filterData);
+    searchBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        void applyTableFilters();
+    });
 }
 
 if (searchInput) {
-    searchInput.addEventListener('keyup', (e) => {
+    searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
-            filterData();
+            e.preventDefault();
+            void applyTableFilters();
         }
     });
 }
 
 if (filterStatus) {
-    filterStatus.addEventListener('change', filterData);
+    filterStatus.addEventListener('change', () => {
+        void applyTableFilters();
+    });
 }
 
 if (filterClass) {
-    filterClass.addEventListener('change', filterData);
+    filterClass.addEventListener('change', () => {
+        void applyTableFilters();
+    });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    renderTable(usersData);
-});
+void applyTableFilters();
+

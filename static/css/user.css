@@ -139,22 +139,65 @@
 .table-container {
     border: 1px solid #edf2f7;
     border-radius: 8px;
-    overflow-x: auto;
+    overflow-x: hidden;
     margin-top: 10px;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
-    max-height: 420px;
+    overflow-y: hidden;
+    height: auto;
+    max-height: none;
+    scrollbar-gutter: stable;
     background: #fff;
+}
+
+/* Chi bat scroll khi so dong >= 5 */
+.table-container.has-scroll {
+    overflow-y: auto;
+    max-height: min(320px, calc(100vh - 430px));
 }
 
 #userTable {
     margin-top: 0;
-    min-width: 900px;
+    min-width: 100%;
     width: 100%;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
     font-size: 14px;
+}
+
+#userTable th:nth-child(1),
+#userTable td:nth-child(1) {
+    width: 6%;
+}
+
+#userTable th:nth-child(2),
+#userTable td:nth-child(2) {
+    width: 16%;
+}
+
+#userTable th:nth-child(3),
+#userTable td:nth-child(3) {
+    width: 22%;
+}
+
+#userTable th:nth-child(4),
+#userTable td:nth-child(4) {
+    width: 12%;
+}
+
+#userTable th:nth-child(5),
+#userTable td:nth-child(5) {
+    width: 12%;
+}
+
+#userTable th:nth-child(6),
+#userTable td:nth-child(6) {
+    width: 22%;
+}
+
+#userTable th:nth-child(7),
+#userTable td:nth-child(7) {
+    width: 10%;
 }
 
 #userTable th {
@@ -181,6 +224,8 @@
     color: #444;
     border-bottom: 1px solid #f0f0f0;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #userTable tbody tr:hover {
@@ -195,10 +240,9 @@
 
 #userTable th:last-child,
 #userTable td:last-child {
-    width: 1%;
-    text-align: right;
+    text-align: center;
     white-space: nowrap;
-    padding-right: 24px;
+    padding-right: 14px;
 }
 
 .tag {
@@ -232,6 +276,11 @@
     padding: 40px;
     color: #6b7280;
     font-size: 15px;
+}
+
+.empty-state-row .empty-state-cell {
+    height: 160px;
+    vertical-align: middle;
 }
 
 /* =========================
@@ -418,11 +467,19 @@
         padding: 8px 2px;
     }
     .table-container {
-        max-height: 320px;
+        height: auto;
+        max-height: none;
+    }
+    .table-container.has-scroll {
+        max-height: min(280px, calc(100vh - 390px));
     }
 }
 @media (max-width: 600px) {
     .table-container {
-        max-height: 220px;
+        height: auto;
+        max-height: none;
+    }
+    .table-container.has-scroll {
+        max-height: min(230px, calc(100vh - 360px));
     }
 }
