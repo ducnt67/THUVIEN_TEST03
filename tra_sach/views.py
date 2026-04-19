@@ -1,15 +1,16 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
 from muon_sach.models import PhieuMuon, ChiTietPhieuMuon
-from quan_ly_nguoi_dung.models import NguoiDung
-from quan_ly_sach.models import SachTrongKho, Sach
+
 from .models import KhoanPhat, ChinhSachPhat
 from django.utils import timezone
 from decimal import Decimal
 from django.db.models import Q
 
+@login_required
 def return_list_view(request):
     # Tab 1: Danh sách sách đang mượn (chưa trả)
     chi_tiet_muon = ChiTietPhieuMuon.objects.filter(ngay_tra__isnull=True).select_related(
@@ -93,9 +94,11 @@ def return_list_view(request):
     }
     return render(request, 'tra_sach/return_list.html', context)
 
+@login_required
 def return_list(request):
     return return_list_view(request)
 
+@login_required
 @require_POST
 def api_xac_nhan_tra_sach(request):
     """
@@ -180,6 +183,7 @@ def api_xac_nhan_tra_sach(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
 @require_POST
 def api_thanh_toan_phi_phat(request):
     """
@@ -222,6 +226,7 @@ def api_thanh_toan_phi_phat(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
 @require_POST
 def api_xu_ly_mat_sach(request):
     """
@@ -294,6 +299,7 @@ def api_xu_ly_mat_sach(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@login_required
 @require_POST
 def api_xac_nhan_den_sach(request):
     """

@@ -1,6 +1,6 @@
 /* =========================================================
-   auth.js – Đăng nhập / quên mật khẩu / đổi mật khẩu
-   Dùng cho: templates/auth/login.html
+   auth.js - Quen mat khau / doi mat khau
+   Khong can thiep submit form login Django
 ========================================================= */
 
 function showModal(modalId) {
@@ -18,53 +18,15 @@ function showModal(modalId) {
     }
 }
 
-function handleLogin(event) {
-    if (event) event.preventDefault();
-
-    const username = document.getElementById('loginUsername')?.value.trim();
-    const password = document.getElementById('loginPassword')?.value.trim();
-
-    if (!username || !password) {
-        alert('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
-        return;
-    }
-
-    // Demo đăng nhập front-end
-    // Sau này có thể thay bằng gọi Django auth thật
-    localStorage.setItem('due_logged_in', 'true');
-    localStorage.setItem('due_logged_user', username);
-
-    window.location.href = '/';
-}
-
-function handleLogout() {
-    localStorage.removeItem('due_logged_in');
-    localStorage.removeItem('due_logged_user');
-    window.location.href = '/login/';
-}
-
 function initAuthState() {
-    const isLoggedIn = localStorage.getItem('due_logged_in') === 'true';
-
-    // Nếu đang ở trang login mà đã login thì chuyển về dashboard
-    if (isLoggedIn && window.location.pathname === '/login/') {
-        window.location.href = '/';
-        return;
-    }
-
     showModal('loginModal');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     initAuthState();
 
-    const loginForm = document.getElementById('loginForm');
     const forgotForm = document.getElementById('forgotForm');
     const resetForm = document.getElementById('resetForm');
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
 
     if (forgotForm) {
         forgotForm.addEventListener('submit', function (e) {
@@ -72,11 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const email = document.getElementById('forgotEmail')?.value.trim();
             if (!email) {
-                alert('Vui lòng nhập email.');
+                alert('Vui long nhap email.');
                 return;
             }
 
-            alert('Đã xác nhận email. Vui lòng đặt lại mật khẩu.');
+            alert('Da xac nhan email. Vui long dat lai mat khau.');
             showModal('resetModal');
         });
     }
@@ -90,20 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const confirmPassword = document.getElementById('confirmPassword')?.value.trim();
 
             if (!oldPassword || !newPassword || !confirmPassword) {
-                alert('Vui lòng nhập đầy đủ thông tin.');
+                alert('Vui long nhap day du thong tin.');
                 return;
             }
 
             if (newPassword !== confirmPassword) {
-                alert('Mật khẩu xác nhận không khớp.');
+                alert('Mat khau xac nhan khong khop.');
                 return;
             }
 
-            alert('Đổi mật khẩu thành công!');
+            alert('Doi mat khau thanh cong!');
             showModal('loginModal');
         });
     }
 });
 
 window.showModal = showModal;
-window.handleLogout = handleLogout;
+

@@ -1020,6 +1020,18 @@ img {
     margin-bottom: 30px;
 }
 
+.auth-header .logo.lg {
+    width: 64px !important;
+    height: 64px !important;
+    margin: 0 auto;
+}
+
+.auth-header .logo.lg img {
+    width: 64px !important;
+    height: 64px !important;
+    object-fit: contain;
+}
+
 .auth-header h2 {
     font-size: 16px;
     font-weight: 700;

@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-qxy-k)spj4($+y04$-y564fwb&z)&51gidst$or=8=(v^g=!(u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 # Application definition
 
@@ -102,6 +102,11 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Authentication redirects
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/tong-quan/'
+LOGOUT_REDIRECT_URL = '/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
