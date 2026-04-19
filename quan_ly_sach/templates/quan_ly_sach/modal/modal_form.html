@@ -1,0 +1,42 @@
+<div id="addBookModal" class="modal" style="display: none;">
+    <div class="modal-content form-box">
+        <span class="close-modal" onclick="closeSubModal('addBookModal')">&times;</span>
+        <h2>Thêm sách mới</h2>
+        <p class="modal-subtitle">Nhập đầy đủ thông tin sách cần thêm vào thư viện</p>
+
+        <form id="addBookForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Tên sách <span style="color: red;">*</span></label>
+                    <input type="text" id="addBookTitle" name="title">
+                </div>
+                <div class="form-group">
+                    <label>Tác giả <span style="color: red;">*</span></label>
+                    <input type="text" id="addBookAuthor" name="author">
+                </div>
+                <div class="form-group">
+                    <label>Thể loại <span style="color: red;">*</span></label>
+                    <input type="text" id="addBookType" name="category">
+                </div>
+                <div class="form-group">
+                    <label>Nhà xuất bản <span style="color: red;">*</span></label>
+                    <input type="text" id="addBookPublisher" name="publisher">
+                </div>
+                <div class="form-group">
+                    <label>Năm xuất bản <span style="color: red;">*</span></label>
+                    <input type="number" id="addBookYear" name="year">
+                </div>
+                <div class="form-group">
+                    <label>Số lượng <span style="color: red;">*</span></label>
+                    <input type="number" id="addBookQty" name="quantity">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="openCancelModal()">Hủy</button>
+                <button type="submit" class="btn-save">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>

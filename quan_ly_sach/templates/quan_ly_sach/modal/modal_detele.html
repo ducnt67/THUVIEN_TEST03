@@ -1,0 +1,132 @@
+<!-- Modal xác nhận xóa -->
+<div id="deleteConfirmModal" class="modal">
+    <div class="modal-box-confirm">
+        <h2 class="confirm-title">Bạn có chắc chắn muốn xóa?</h2>
+        <p class="confirm-desc">Hành động này sẽ xóa sách khỏi hệ thống.</p>
+
+        <p class="confirm-note-red">
+            Lưu ý: Sách đã có lịch sử mượn, sẽ được chuyển sang trạng thái “Ngừng sử dụng” thay vì xóa hoàn toàn
+        </p>
+        <form id="deleteForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="book_id" id="deleteBookId">
+
+            <input type="hidden" id="deleteBookName">
+
+            <div class="confirm-footer">
+                <button type="submit" class="btn-confirm-orange">Đồng ý</button>
+                <button type="button" class="btn-cancel-white" onclick="openCancelModal()">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* --- Nền Modal (Mờ 20%) --- */
+    #deleteConfirmModal {
+        display: none !important;
+        position: fixed !important;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.2) !important;
+        z-index: 10000000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Hộp trắng bo góc mạnh, padding thoáng như hình */
+    .modal-box-confirm {
+        background: #ffffff !important;
+        width: 480px !important; /* Độ rộng vừa phải */
+        padding: 40px !important; /* Padding thoáng y như hình */
+        border-radius: 28px !important; /* Bo góc tròn mạnh */
+        text-align: center !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1) !important;
+        position: relative;
+    }
+
+    /* Tiêu đề "Bạn có chắc chắn muốn xóa?" */
+    .confirm-title {
+        font-size: 26px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        margin-bottom: 12px !important;
+        text-align: left !important; /* Căn trái y như hình */
+    }
+
+    /* Nội dung mô tả phía dưới */
+    .confirm-desc {
+        font-size: 16px !important;
+        color: #64748b !important;
+        line-height: 1.6 !important;
+        margin-bottom: 8px !important;
+        text-align: left !important; /* Căn trái */
+    }
+
+    /* Dòng lưu ý chữ đỏ đặc biệt */
+    .confirm-note-red {
+        font-size: 15px !important;
+        color: #ef4444 !important; /* Màu đỏ nổi bật */
+        line-height: 1.6 !important;
+        margin-bottom: 25px !important;
+        text-align: center !important; /* Căn trái y như hình */
+        font-weight: 500 !important;
+    }
+
+    /* Footer chứa nút NẰM DỌC */
+    .confirm-footer-column {
+        display: flex !important;
+        flex-direction: column !important; /* Chuyển sang nằm dọc */
+        gap: 15px !important; /* Khoảng cách giữa 2 nút */
+        width: 100% !important;
+    }
+
+    /* NÚT ĐỒNG Ý - MÀU CAM RỰC RỠ Y NHƯ HÌNH */
+    .btn-confirm-orange {
+        width: 100% !important;
+        height: 55px !important; /* Nút cao, to y như hình */
+        background: #ff5722 !important; /* Màu cam giống hình image_fd0d1d.png */
+        color: white !important;
+        border: none !important;
+        border-radius: 16px !important; /* Bo góc mạnh y như hình */
+        font-weight: 700 !important;
+        font-size: 18px !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+        margin-bottom:20px !important;
+    }
+
+    /* NÚT HỦY - TRẮNG VIỀN XÁM */
+    .btn-cancel-white {
+        width: 100% !important;
+        height: 55px !important;
+        background: #ffffff !important;
+        color: #1e293b !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        font-weight: 700 !important;
+        font-size: 18px !important;
+        cursor: pointer !important;
+        transition: all 0.2s !important;
+    }
+
+    /* Hiệu ứng hover cho nút Cam */
+    .btn-confirm-orange:hover {
+        background: #f4511e !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* Hiệu ứng hover cho nút Trắng */
+    .btn-cancel-white:hover {
+        background: #f8fafc !important;
+    }
+
+    /* Hiệu ứng hiện modal */
+    #deleteConfirmModal[style*="flex"] {
+        display: flex !important;
+    }
+</style>
+
+
+
