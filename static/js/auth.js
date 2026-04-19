@@ -84,6 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            if (newPassword.length < 8) {
+                alert('Mật khẩu mới phải có ít nhất 8 ký tự.');
+                return;
+            }
+
             if (newPassword !== confirmPassword) {
                 alert('Mật khẩu xác nhận không khớp.');
                 return;
@@ -97,9 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                 },
-                body: JSON.stringify({
+                body: JSON.stringify({ 
                     email: email,
-                    new_password: newPassword
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
                 })
             })
                 .then(response => response.json())
