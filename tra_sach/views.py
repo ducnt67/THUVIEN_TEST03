@@ -124,6 +124,15 @@ def api_xac_nhan_tra_sach(request):
             ctpm.ngay_tra = timezone.now().date()
             ctpm.tinh_trang_khi_tra = 'Tốt' if tinh_trang == 'tot' else 'Hư hỏng'
             ctpm.save()
+            # Cập nhật số lượng và trạng thái sách trong kho khi trả
+            sach_trong_kho = ctpm.ma_sach_trong_kho
+            if hasattr(sach_trong_kho, 'so_luong'):
+                sach_trong_kho.so_luong = (sach_trong_kho.so_luong or 0) + 1
+            if tinh_trang == 'tot':
+                sach_trong_kho.trang_thai_sach = 'available'
+            elif tinh_trang == 'hu_hong':
+                sach_trong_kho.trang_thai_sach = 'damaged'
+            sach_trong_kho.save()
             # Cập nhật trạng thái phiếu mượn nếu tất cả sách đã trả
             if not ChiTietPhieuMuon.objects.filter(ma_phieu_muon=pm, ngay_tra__isnull=True).exists():
                 pm.trang_thai = 'Đã trả'
@@ -239,7 +248,15 @@ def api_xu_ly_mat_sach(request):
                 return JsonResponse({'error': 'Chỉ xử lý mất sách khi trạng thái là Đang mượn hoặc Quá hạn.'}, status=400)
             ctpm.ngay_khai_bao_mat = ngay_khai_bao_mat
             ctpm.save()
+            sach_trong_kho = ctpm.ma_sach_trong_kho
             if phuong_an == 'den_bu_tien':
+                sach_trong_kho.trang_thai_sach = 'lost'
+                sach_trong_kho.save()
+                # Giảm số lượng sách
+                sach = sach_trong_kho.ma_sach
+                if sach.so_luong > 0:
+                    sach.so_luong -= 1
+                    sach.save()
                 chinh_sach_mat = ChinhSachPhat.objects.filter(loai_phat__icontains='Mất sách').first()
                 if not chinh_sach_mat:
                     return JsonResponse({'error': 'Chưa cấu hình chính sách phạt mất sách.'}, status=400)
@@ -260,6 +277,13 @@ def api_xu_ly_mat_sach(request):
                 pm.trang_thai = 'Đang xử lý'
                 pm.save()
             elif phuong_an == 'den_sach_moi':
+                sach_trong_kho.trang_thai_sach = 'lost'
+                sach_trong_kho.save()
+                # Giảm số lượng sách
+                sach = sach_trong_kho.ma_sach
+                if sach.so_luong > 0:
+                    sach.so_luong -= 1
+                    sach.save()
                 pm.trang_thai = 'Chờ đền sách'
                 pm.save()
             else:
@@ -289,17 +313,26 @@ def api_xac_nhan_den_sach(request):
                 return JsonResponse({'error': 'Chỉ xác nhận khi trạng thái là Chờ đền sách.'}, status=400)
             pm.trang_thai = 'Đã xử lý - Đền sách'
             pm.save()
-            from quan_ly_sach.models import SachTrongKho
-            SachTrongKho.objects.create(
+            from quan_ly_sach.models import SachTrongKho, Sach
+            sach_trong_kho = SachTrongKho.objects.create(
                 ma_sach_trong_kho=ma_sach_trong_kho_moi,
-                trang_thai='Sẵn sàng',
+                trang_thai_sach='available',
                 ghi_chu=thong_tin_sach_moi
             )
+            # Tăng số lượng sách
+            # Tìm sách theo tiền tố mã sách trong kho
+            ma_sach = ma_sach_trong_kho_moi.split('-')[0] if '-' in ma_sach_trong_kho_moi else None
+            if ma_sach:
+                try:
+                    sach = Sach.objects.get(ma_sach=ma_sach)
+                    sach.so_luong += 1
+                    sach.save()
+                except Sach.DoesNotExist:
+                    pass
             return JsonResponse({'success': True})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy phiếu mượn.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# (Không cần xử lý scan mã phiếu mượn ở backend, vì đã bỏ ở FE)
 # Không có endpoint hoặc logic scan barcode ở backend, không cần chỉnh sửa gì thêm cho phần này.
