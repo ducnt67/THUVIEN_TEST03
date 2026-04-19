@@ -1,9 +1,10 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
+import uuid
 
 class ChinhSachPhat(models.Model):
-    ma_loai_phat = models.CharField(max_length=10, primary_key=True)
+    ma_loai_phat = models.CharField(max_length=32, primary_key=True, editable=False)
     loai_phat = models.CharField(max_length=100)
     muc_phat_moi_ngay = models.DecimalField(
         max_digits=19,
@@ -36,9 +37,14 @@ class ChinhSachPhat(models.Model):
     def __str__(self):
         return f"{self.ma_loai_phat} - {self.loai_phat}"
 
+    def save(self, *args, **kwargs):
+        if not self.ma_loai_phat:
+            self.ma_loai_phat = f"RULE-{uuid.uuid4().hex[:24].upper()}"
+        super().save(*args, **kwargs)
+
 
 class KhoanPhat(models.Model):
-    ma_phat = models.CharField(max_length=10, primary_key=True)
+    ma_phat = models.CharField(max_length=32, primary_key=True, editable=False)
     ma_nguoi_dung = models.ForeignKey(
         'quan_ly_nguoi_dung.NguoiDung',
         on_delete=models.PROTECT,
@@ -70,7 +76,9 @@ class KhoanPhat(models.Model):
     nguoi_tao = models.ForeignKey(
         'quan_ly_tai_khoan.TaiKhoan',
         on_delete=models.PROTECT,
-        related_name='khoan_phat_da_tao'
+        related_name='khoan_phat_da_tao',
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -82,9 +90,14 @@ class KhoanPhat(models.Model):
     def __str__(self):
         return self.ma_phat
 
+    def save(self, *args, **kwargs):
+        if not self.ma_phat:
+            self.ma_phat = f"FINE-{uuid.uuid4().hex[:24].upper()}"
+        super().save(*args, **kwargs)
+
 
 class GiaoDichThanhToan(models.Model):
-    ma_giao_dich = models.CharField(max_length=10, primary_key=True)
+    ma_giao_dich = models.CharField(max_length=32, primary_key=True, editable=False)
     ma_nguoi_dung = models.ForeignKey(
         'quan_ly_nguoi_dung.NguoiDung',
         on_delete=models.PROTECT,
@@ -101,7 +114,9 @@ class GiaoDichThanhToan(models.Model):
     nguoi_thu = models.ForeignKey(
         'quan_ly_tai_khoan.TaiKhoan',
         on_delete=models.PROTECT,
-        related_name='giao_dich_da_thu'
+        related_name='giao_dich_da_thu',
+        blank=True,
+        null=True
     )
 
     class Meta:
@@ -112,6 +127,11 @@ class GiaoDichThanhToan(models.Model):
 
     def __str__(self):
         return self.ma_giao_dich
+
+    def save(self, *args, **kwargs):
+        if not self.ma_giao_dich:
+            self.ma_giao_dich = f"PAY-{uuid.uuid4().hex[:24].upper()}"
+        super().save(*args, **kwargs)
 
 
 class ChiTietThanhToan(models.Model):
