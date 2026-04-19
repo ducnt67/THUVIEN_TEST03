@@ -1,7 +1,9 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, F
-from django.shortcuts import get_object_or_404, redirect, render
-from .models import Sach
+from django.shortcuts import get_object_or_404, redirect
+import django.shortcuts as shortcuts
+from .models import Sach, SachTrongKho
 
 
 def _book_queryset(keyword):
@@ -52,6 +54,7 @@ def _build_book_context(request):
     }
 
 
+@login_required
 def book_list_view(request):
     # =========================
     # XỬ LÝ POST (CREATE / UPDATE / DELETE)
@@ -72,7 +75,7 @@ def book_list_view(request):
         # 1. Kiểm tra hành động Xóa (Xử lý riêng vì không cần validate field khác)
         if action == "delete":
             book = get_object_or_404(Sach, ma_sach=book_id)
-            if book.sach_trong_kho.exists():
+            if SachTrongKho.objects.filter(ma_sach=book).exists():
                 messages.error(request, f"Không thể xóa sách '{book.ten_sach}' đang có dữ liệu trong kho.")
             else:
                 book.delete()
@@ -134,18 +137,17 @@ def book_list_view(request):
     # XỬ LÝ GET (HIỂN THỊ)
     # =========================
     context = _build_book_context(request)
-    return render(request, "book_list.html", context)
+    return shortcuts.render(request, "book_list.html", context)
 
 
+@login_required
 def book_list(request):
     """Entry point cho url 'book_list'"""
     return book_list_view(request)
 
 
-from django.shortcuts import render
-from .models import Sach, SachTrongKho  # Thay bằng tên model thật của Hoa
 
-
+@login_required
 def quan_ly_kho_view(request):
     # Lấy mã sách từ tham số ?ma_sach=MS0002
     ma_sach_tu_url = request.GET.get('ma_sach')
@@ -156,7 +158,7 @@ def quan_ly_kho_view(request):
     # Lấy danh sách các bản sao trong kho của cuốn sách đó
     danh_sach_kho = SachTrongKho.objects.filter(ma_sach=sach_chinh)
 
-    return render(request, 'sachtrongkho.html', {
+    return shortcuts.render(request, 'sachtrongkho.html', {
         'sach': sach_chinh,
         'danh_sach_kho': danh_sach_kho
     })

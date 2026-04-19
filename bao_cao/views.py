@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.db.models import Q, Sum, Max, F
 from muon_sach.models import ChiTietPhieuMuon
@@ -5,6 +6,7 @@ from tra_sach.models import KhoanPhat
 from django.utils import timezone
 
 
+@login_required
 def report_statistics(request):
     today = timezone.now().date()
 
