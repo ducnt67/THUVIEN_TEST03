@@ -1,42 +1,121 @@
 <div id="copyModal" class="modal">
     <div class="modal-content form-box">
-        <h2>Thêm bản sao sách</h2>
-        <p class="sub-title" style="margin-bottom: 20px; color: #64748b;">Nhập số lượng bản sao muốn bổ sung cho kho sách.</p>
+        <form id="addCopiesForm" action="{% url 'book_list' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_copies">
+            <h2>Thêm bản sao sách</h2>
+            <p class="sub-title" style="margin-bottom: 20px; color: #64748b;">Nhập số lượng bản sao muốn bổ sung cho kho sách.</p>
 
-        <div class="form-group">
-            <label>Thông tin sách</label>
-            <input id="copyBookInfo" readonly style="background-color: #f8fafc; font-weight: 600;">
-        </div>
+            <div class="form-group">
+                <label>Thông tin sách</label>
+                <input type="hidden" name="book_id" id="copyBookId">
+                <input id="copyBookInfo" readonly style="background-color: #f8fafc; font-weight: 600;">
+            </div>
 
-        <div class="form-group">
-            <label class="required">Số lượng thêm mới</label>
-            <input id="copyQty" type="number" min="1" placeholder="Nhập số lượng (Ví dụ: 5, 10...)">
-            <span id="err-copy-qty" class="error-msg"></span>
-        </div>
+            <div class="form-group">
+                <label class="required">Số lượng thêm mới</label>
+                <input id="copyQty" name="num_to_add" type="number" min="1" placeholder="Nhập số lượng (Ví dụ: 5, 10...)">
+                <span id="err-copy-qty" class="error-msg"></span>
+            </div>
 
-        <div class="modal-footer">
-            <button type="button" class="btn-cancel" onclick="openCancelModal()">Hủy</button>
-            <button type="button" class="btn-save" onclick="submitCopy()">Xác nhận thêm</button>
-        </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="openCancelModal()">Hủy</button>
+                <button type="button" class="btn-save" onclick="submitCopy()">Xác nhận thêm</button>
+            </div>
+        </form>
     </div>
 </div>
-
 <style>
-    /* Style riêng cho Copy Modal để phân biệt với Form chính */
-    #copyModal .form-box {
-        width: 450px !important; /* Nhỏ gọn hơn form thêm sách */
+    /* Style cho Copy Modal */
+    #copyModal .modal-content {
+        width: 420px !important;
+        border-radius: 20px; /* Bo góc tròn trịa như ảnh mẫu */
+        padding: 30px;
+        border: none;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
+    #copyModal h2 {
+        font-size: 1.5rem;
+        color: #1e293b;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    #copyModal .form-group label {
+        display: block;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+
+    /* Input Readonly (Thông tin sách) */
     #copyModal input[readonly] {
-        border-color: #e2e8f0 !important;
-        color: #475569 !important;
+        background-color: #f1f5f9 !important;
+        border: 1px solid #e2e8f0 !important;
+        color: #64748b !important;
+        cursor: not-allowed;
+        font-size: 14px;
+    }
+
+    /* Input nhập số lượng */
+    #copyModal input[type="number"] {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        transition: all 0.2s;
+    }
+
+    #copyModal input[type="number"]:focus {
+        border-color: #059669;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+    }
+
+    /* Footer & Buttons */
+    #copyModal .modal-footer {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+        border-top: none;
+        padding: 0;
+    }
+
+    #copyModal .btn-cancel {
+        flex: 1;
+        background-color: #f1f5f9;
+        color: #475569;
+        border: none;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
     }
 
     #copyModal .btn-save {
-        background-color: #059669 !important; /* Màu xanh lá để phân biệt với nút Lưu (Blue) */
+        flex: 2;
+        background-color: #10b981 !important; /* Xanh lá Emerald mượt mà */
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
     }
 
     #copyModal .btn-save:hover {
-        background-color: #047857 !important;
+        background-color: #059669 !important;
+        opacity: 0.9;
     }
-    </style>
+
+    .error-msg {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+</style>

@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_form_edit.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_detail_new.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_copy.css' %}">
+<link rel="stylesheet" href="{% static 'quan_ly_sach/css/toast_notification.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -61,17 +62,34 @@
                         <td>{{ book.nam_xuat_ban }}</td>
 
                         <td>
-                            <div class="quantity-info">
-                                <b>{{ book.total_quantity }}</b>
-                                <small class="text-muted">(Mượn: {{ book.borrowed_quantity }})</small>
+                            <div class="quantity-info" style="display: flex; flex-direction: column; align-items: center;">
+                                <div style="font-size: 15px;">
+                                    <b style="{% if book.available_quantity > 0 %}color: #1e293b;{% else %}color: #ef4444;{% endif %}">
+                                        {{ book.available_quantity }}
+                                    </b>
+
+                                    <span style="color: #1e293b; margin: 0 2px;">/</span>
+
+                                    <span style="color: #1e293b; font-weight: 500;">{{ book.total_quantity }}</span>
+                                </div>
+
+                                <small style="font-size: 11px; margin-top: 2px;">
+                                    {% if book.unavailable_quantity > 0 %}
+                                        <span style="color: #f59e0b;" title="Bao gồm: Mượn, Quá hạn, Hỏng...">
+                                             Mượn: {{ book.unavailable_quantity }}
+                                        </span>
+                                    {% else %}
+                                        <span style="color: #94a3b8;">Đầy đủ trên kệ</span>
+                                    {% endif %}
+                                </small>
                             </div>
                         </td>
 
                         <td>
-                            {% if book.total_quantity > book.borrowed_quantity %}
-                                <span class="status-badge status-available">Sẵn sàng</span>
+                            {% if book.available_quantity > 0 %}
+                                <span class="status-badge status-available" style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">SẴN SÀNG</span>
                             {% else %}
-                                <span class="status-badge status-unavailable">Hết sách</span>
+                                <span class="status-badge status-unavailable" style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">HẾT SÁCH</span>
                             {% endif %}
                         </td>
 
@@ -120,8 +138,6 @@
 <!-- Modal thêm phiên sao -->
 {% include 'quan_ly_sach/modal/modal_copy.html' %}
 
-<!--&lt;!&ndash; Modal thêm bản sao &ndash;&gt;-->
-
 {% endblock %}
 
 {% block extra_js %}
@@ -129,5 +145,8 @@
 <script src="{% static 'js/ui.js' %}"></script>
 <script src="{% static 'js/sidebar.js' %}"></script>
 <script src="{% static 'quan_ly_sach/js/book_list.js' %}"></script>
-<script src="{% static 'quan_ly_sach/js/modal_cancel_fix.js' %}"></script>
+<script src="{% static 'quan_ly_sach/js/modal_fix.js' %}"></script>
+<script src="{% static 'quan_ly_sach/js/toast_notification.js' %}"></script>
+<script src="{% static 'quan_ly_sach/js/toast_integration.js' %}"></script>
+<script src="{% static 'quan_ly_sach/js/auto_book_id.js' %}"></script>
 {% endblock %}
