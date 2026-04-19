@@ -42,6 +42,17 @@ class ChiTietPhieuMuon(models.Model):
     ngay_tra = models.DateField(blank=True, null=True)
     tinh_trang_khi_tra = models.CharField(max_length=100, blank=True, null=True)
     ngay_khai_bao_mat = models.DateField(blank=True, null=True)
+    phuong_an_boi_thuong = models.CharField(
+        max_length=20,
+        choices=[
+            ('', 'Chưa chọn'),
+            ('den_bu_tien', 'Bồi thường tiền'),
+            ('den_sach_moi', 'Đền sách mới')
+        ],
+        default='',
+        blank=True,
+        verbose_name='Phương án bồi thường'
+    )
 
     class Meta:
         db_table = 'ChiTietPhieuMuon'
