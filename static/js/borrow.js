@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let pendingDeleteId = null;
     let extLargeSlipId = null;
     let extSmallSlipId = null;
+    let detailSlipId = null;
 
     /* ========================
        TOAST HELPER
@@ -437,15 +438,52 @@ document.addEventListener('DOMContentLoaded', function () {
             if (detBorrowDate) detBorrowDate.value = toIso(slip.borrowDate);
             if (detDueDate) detDueDate.value = toIso(slip.dueDate);
 
+            detailSlipId = rowId;
             renderBookList('detBooksBody', slip.books);
             openPm('popup-borrow-detail');
         }
     });
 
     /* ========================
+       SAVE DETAIL CHANGES
+    ======================== */
+    window.saveDetailChanges = async function () {
+        const newDate = document.getElementById('detDueDate')?.value || '';
+
+        if (!newDate) {
+            safeToast('error', 'Vui lòng chọn ngày đến hạn mới.');
+            return;
+        }
+
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch(`/api/borrow/extend/${detailSlipId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ newDueDate: newDate })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips();
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error updating borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi cập nhật.');
+        }
+    };
+
+    /* ========================
        SAVE EXTEND SMALL
     ======================== */
-    window.saveExtendSmall = function () {
+    window.saveExtendSmall = async function () {
         const newDate = document.getElementById('extSmNewDate')?.value || '';
 
         if (!newDate) {
@@ -453,23 +491,35 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const slip = slips.find(function (s) {
-            return s.id === extSmallSlipId;
-        });
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch(`/api/borrow/extend/${extSmallSlipId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ newDueDate: newDate })
+            });
 
-        if (slip) {
-            slip.dueDate = toDisplay(newDate);
-            renderRows(slips);
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips();
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error extending borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi gia hạn.');
         }
-
-        window.closePm();
-        safeToast('success', 'Gia hạn thành công.');
     };
 
     /* ========================
        SAVE EXTEND LARGE
     ======================== */
-    window.saveExtendLarge = function () {
+    window.saveExtendLarge = async function () {
         const newDate = document.getElementById('extLgNewDue')?.value || '';
 
         if (!newDate) {
@@ -477,17 +527,29 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const slip = slips.find(function (s) {
-            return s.id === extLargeSlipId;
-        });
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch(`/api/borrow/extend/${extLargeSlipId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({ newDueDate: newDate })
+            });
 
-        if (slip) {
-            slip.dueDate = toDisplay(newDate);
-            renderRows(slips);
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips();
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error extending borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi gia hạn.');
         }
-
-        window.closePm();
-        safeToast('success', 'Lưu thay đổi thành công.');
     };
 
     /* ========================

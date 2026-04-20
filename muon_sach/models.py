@@ -53,6 +53,30 @@ class PhieuMuon(models.Model):
     def __str__(self):
         return f"{self.ma_phieu_muon}- {self.get_trang_thai_display()}"
 
+    def sync_status(self):
+        """
+        Calculates and updates the trang_thai field based on book details and current date.
+        """
+        chi_tiet = self.chi_tiet_phieu_muon.all()
+        if not chi_tiet.exists():
+            return self.trang_thai
+
+        today = timezone.now().date()
+        all_returned = all(ct.ngay_tra is not None for ct in chi_tiet)
+        any_overdue = any(ct.ngay_tra is None and ct.han_tra < today for ct in chi_tiet)
+
+        new_status = 'dang_muon'
+        if all_returned:
+            new_status = 'da_tra'
+        elif any_overdue:
+            new_status = 'qua_han'
+
+        if self.trang_thai != new_status:
+            self.trang_thai = new_status
+            PhieuMuon.objects.filter(pk=self.pk).update(trang_thai=new_status)
+        
+        return new_status
+
 
 class ChiTietPhieuMuon(models.Model):
     ma_phieu_muon = models.ForeignKey(
