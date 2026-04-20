@@ -30,11 +30,11 @@
     </div>
 </section>
 
-<section class="table-section card data-panel">
-    <p class="section-label" style="margin: 0 0 15px 0;">Danh sách sách</p>
-    <p id="bookCount" class="section-meta" style="margin: 0 0 20px 0;">Hiển thị sách</p>
+<section class="table-section card data-panel" style="padding: 24px; height: 600px; min-height: 0; display: flex; flex-direction: column;">
+    <p class="section-label" style="margin-bottom: 5px;">Danh sách sách</p>
+    <p id="bookCount" class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách sách trong thư viện</p>
 
-    <div class="table-wrapper data-table-scroll">
+    <div class="table-wrapper data-table-scroll" style="flex: 1 1 auto; min-height: 0; max-height: 100%; overflow: auto;">
         <table class="table" id="bookTable">
             <thead>
                 <tr>
@@ -59,14 +59,12 @@
                         <td>{{ book.the_loai|default:"-" }}</td>
                         <td>{{ book.ten_nha_xuat_ban|default:"-" }}</td>
                         <td>{{ book.nam_xuat_ban }}</td>
-
                         <td>
                             <div class="quantity-info">
                                 <b>{{ book.total_quantity }}</b>
                                 <small class="text-muted">(Mượn: {{ book.borrowed_quantity }})</small>
                             </div>
                         </td>
-
                         <td>
                             {% if book.total_quantity > book.borrowed_quantity %}
                                 <span class="status-badge status-available">Sẵn sàng</span>
@@ -74,30 +72,26 @@
                                 <span class="status-badge status-unavailable">Hết sách</span>
                             {% endif %}
                         </td>
-
                         <td class="col-action">
                             <div class="action-tools">
                                 <i class="bx bx-info-circle" title="Chi tiết"
                                    onclick="event.stopPropagation(); viewDetail('{{ book.ma_sach }}', '{{ book.ten_sach }}', '{{ book.ten_tac_gia }}', '{{ book.the_loai }}', '{{ book.ten_nha_xuat_ban }}', '{{ book.nam_xuat_ban }}', '{{ book.total_quantity }}')"></i>
-
                                 <i class="bx bx-edit-alt" title="Sửa"
                                    onclick="event.stopPropagation(); editBook('{{ book.ma_sach }}', '{{ book.ten_sach }}', '{{ book.ten_tac_gia }}', '{{ book.the_loai }}', '{{ book.ten_nha_xuat_ban }}', '{{ book.nam_xuat_ban }}', '{{ book.total_quantity }}')"></i>
-
                                 <i class="bx bx-copy-alt" title="Thêm sách"
                                    onclick="event.stopPropagation(); openCopyModal('{{ book.ma_sach }}', '{{ book.ten_sach }}')"></i>
-
                                 <i class="bx bx-trash" title="Xóa"
                                    onclick="event.stopPropagation(); requestDelete('{{ book.ma_sach }}')"></i>
                             </div>
                         </td>
                     </tr>
-                    {% empty %}
+                {% empty %}
                     <tr>
                         <td colspan="9" style="text-align: center; padding: 20px;">
                             <i class='bx bx-info-circle'></i> Chưa có đầu sách nào trong hệ thống.
                         </td>
                     </tr>
-                    {% endfor %}
+                {% endfor %}
             </tbody>
         </table>
     </div>
