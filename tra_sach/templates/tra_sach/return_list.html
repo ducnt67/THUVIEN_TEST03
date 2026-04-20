@@ -35,10 +35,11 @@
         <button class="tab" type="button" onclick="switchTab(this, 'tab-3')">Xử lý mất sách</button>
         <button class="tab" type="button" onclick="switchTab(this, 'tab-4')">Xác nhận đền sách</button>
     </div>
-    <div class="tab-content card" style="padding: 24px;">
+    <div class="tab-content card data-panel" style="padding: 24px; display: block; margin-bottom: 40px;">
         <div id="tab-1" class="tab-pane active tab-pane-fixed">
-            <p class="section-label" style="margin-bottom: 15px;">Danh sách sách đang mượn</p>
-            <div class="data-table-scroll table-wrapper">
+            <p class="section-label" style="margin-bottom: 5px;">Danh sách sách đang mượn</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách sách đang mượn chi tiết</p>
+            <div class="data-table-scroll table-wrapper" style="max-height: 480px; overflow: auto;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -92,8 +93,9 @@
             </div>
         </div>
         <div id="tab-2" class="tab-pane hidden tab-pane-fixed">
-            <p class="section-label" style="margin-bottom: 15px;">Danh sách người dùng nợ phí phạt</p>
-            <div class="data-table-scroll table-wrapper">
+            <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng nợ phí phạt</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách phí phạt chưa thanh toán</p>
+            <div class="data-table-scroll table-wrapper" style="max-height: 480px; overflow: auto;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -121,8 +123,9 @@
             </div>
         </div>
         <div id="tab-3" class="tab-pane hidden tab-pane-fixed">
-            <p class="section-label" style="margin-bottom: 15px;">Danh sách bản ghi mượn cần xử lý mất sách</p>
-            <div class="data-table-scroll table-wrapper">
+            <p class="section-label" style="margin-bottom: 5px;">Danh sách bản ghi mượn cần xử lý mất sách</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách báo mất sách</p>
+            <div class="data-table-scroll table-wrapper" style="max-height: 480px; overflow: auto;">
                 <table class="table">
                     <thead>
                         <tr>
@@ -166,8 +169,9 @@
             </div>
         </div>
         <div id="tab-4" class="tab-pane hidden tab-pane-fixed">
-            <p class="section-label" style="margin-bottom: 15px;">Danh sách hồ sơ chờ xác nhận đền sách</p>
-            <div class="data-table-scroll table-wrapper">
+            <p class="section-label" style="margin-bottom: 5px;">Danh sách hồ sơ chờ xác nhận đền sách</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách hồ sơ bồi thường</p>
+            <div class="data-table-scroll table-wrapper" style="max-height: 480px; overflow: auto;">
                 <table class="table">
                     <thead>
                         <tr>

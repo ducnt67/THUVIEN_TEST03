@@ -18,9 +18,11 @@
 }
 
 .user-table-section {
-    display: block; /* Để card co giãn theo nội dung bảng */
-    height: auto;
-    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    margin-bottom: 0; /* Đã có padding của main-content lo phần khoảng cách */
 }
 
 /* ===== Tiêu đề section đồng bộ book.css ===== */
@@ -133,13 +135,60 @@
    TABLE
 ========================= */
 
-.table-container {
+/* ĐỒNG BỘ TABLE NGƯỜI DÙNG VỚI BẢNG SÁCH */
+.table-wrapper.data-table-scroll {
+    flex: 1;
+    min-height: 0;
+    max-height: none; /* Lấp đầy toàn bộ Card để cuộn nội bộ */
+    overflow: auto;
     border: 1px solid #edf2f7;
     border-radius: 8px;
     margin-top: 10px;
-    overflow: auto; /* Mở khóa cuộn */
-    max-height: 550px; /* Giới hạn chiều cao để không bị tràn màn hình */
     background: #fff;
+}
+
+#userTable {
+    margin-top: 0;
+    min-width: 900px;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 14px;
+}
+
+#userTable th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    text-align: left;
+    padding: 16px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #334155;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+#userTable td {
+    text-align: left;
+    padding: 16px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    border-bottom: 1px solid #f0f0f0;
+    white-space: nowrap;
+    display: table-cell;
+}
+#userTable tbody tr:hover {
+    background-color: #fafbfc;
+}
+
+#userTable td:last-child, #userTable th:last-child {
+    text-align: center;
+    white-space: nowrap;
+    padding-right: 14px;
 }
 
 /* Custom Scrollbar cho trang Người dùng */
@@ -160,96 +209,6 @@
 
 .table-container::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
-}
-
-#userTable {
-    margin-top: 0;
-    min-width: 1100px; /* Ép bảng rộng để không bị khuất dữ liệu */
-    width: 100%;
-    border-collapse: separate; /* Cần cho sticky header */
-    border-spacing: 0;
-    table-layout: fixed;
-    font-size: 14px;
-}
-
-#userTable th:nth-child(1),
-#userTable td:nth-child(1) {
-    width: 6%;
-}
-
-#userTable th:nth-child(2),
-#userTable td:nth-child(2) {
-    width: 16%;
-}
-
-#userTable th:nth-child(3),
-#userTable td:nth-child(3) {
-    width: 22%;
-}
-
-#userTable th:nth-child(4),
-#userTable td:nth-child(4) {
-    width: 12%;
-}
-
-#userTable th:nth-child(5),
-#userTable td:nth-child(5) {
-    width: 12%;
-}
-
-#userTable th:nth-child(6),
-#userTable td:nth-child(6) {
-    width: 22%;
-}
-
-#userTable th:nth-child(7),
-#userTable td:nth-child(7) {
-    width: 10%;
-}
-
-#userTable th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    text-align: left;
-    padding: 16px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: #334155;
-    background-color: #f8fafc;
-    border-bottom: 1px solid #f1f5f9;
-    white-space: nowrap;
-}
-
-#userTable td {
-    text-align: left;
-    padding: 16px 14px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #444;
-    border-bottom: 1px solid #f0f0f0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-#userTable tbody tr:hover {
-    background-color: #fafbfc;
-}
-
-#userTable td:nth-child(3) {
-    white-space: normal !important;
-    min-width: 150px;
-    max-width: 220px;
-}
-
-#userTable th:last-child,
-#userTable td:last-child {
-    text-align: center;
-    white-space: nowrap;
-    padding-right: 14px;
 }
 
 .tag {
@@ -468,25 +427,23 @@
 }
 
 @media (max-width: 900px) {
-    .user-table-section {
-        height: auto;
-        min-height: 0;
-        padding: 8px 2px;
-    }
-    .table-container {
-        height: auto;
-        max-height: none;
-    }
-    .table-container.has-scroll {
+    .table-wrapper.data-table-scroll {
         max-height: min(280px, calc(100vh - 390px));
+    }
+    #userTable {
+        min-width: 700px;
+    }
+    .user-table-section {
+        padding: 8px 2px;
+        min-height: 0;
+        height: auto;
     }
 }
 @media (max-width: 600px) {
-    .table-container {
-        height: auto;
-        max-height: none;
-    }
-    .table-container.has-scroll {
+    .table-wrapper.data-table-scroll {
         max-height: min(230px, calc(100vh - 360px));
+    }
+    #userTable {
+        min-width: 500px;
     }
 }

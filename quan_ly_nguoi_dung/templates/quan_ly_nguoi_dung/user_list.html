@@ -45,11 +45,12 @@
     </div>
 </form>
 
-<section class="table-section user-table-section card data-panel">
-    <h3 class="section-label">Danh sách người dùng</h3>
+<section class="table-section user-table-section card data-panel" style="padding: 24px; height: 600px; min-height: 0; display: flex; flex-direction: column;">
+    <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng</p>
+    <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách người dùng trong hệ thống</p>
     <input type="hidden" id="readerDataUrl" value="{% url 'reader_list_data' %}">
 
-    <div class="table-container data-table-scroll">
+    <div class="table-wrapper data-table-scroll" style="flex: 1 1 auto; min-height: 0; max-height: 100%; overflow: auto;">
         <table id="userTable" class="table">
             <thead>
                 <tr>
@@ -64,33 +65,29 @@
             </thead>
             <tbody id="userRowsBody">
                 {% for user in users %}
-                    <tr class="user-data-row">
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ user.ma_nguoi_dung }}</td>
-                        <td>{{ user.ho_ten }}</td>
-                        <td><span class="tag">{{ user.get_loai_nguoi_dung_display }}</span></td>
-                        <td>{{ user.lop|default_if_none:'' }}</td>
-                        <td>{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}</td>
-                        <td>
-                            <button
-                                type="button"
-                                class="action-btn"
-                                onclick="openModal(this)"
-                                data-user-id="{{ user.ma_nguoi_dung }}"
-                                data-user-name="{{ user.ho_ten|default_if_none:'' }}"
-                                data-user-role="{{ user.get_loai_nguoi_dung_display|default_if_none:'' }}"
-                                data-user-email="{{ user.email|default_if_none:'' }}"
-                                data-user-phone="{{ user.so_dien_thoai|default_if_none:'' }}"
-                                data-user-class="{{ user.lop|default_if_none:'' }}"
-                                data-user-graduation="{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}"
-                                data-user-borrowed="{{ user.borrowed_books|default:0 }}"
-                                data-user-fine="{{ user.unpaid_fines|default_if_none:0 }}"
-                                title="Xem chi tiết"
-                            >
-                                <i class="fa-regular fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
+                <tr class="user-data-row">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ user.ma_nguoi_dung }}</td>
+                    <td>{{ user.ho_ten }}</td>
+                    <td><span class="tag">{{ user.get_loai_nguoi_dung_display }}</span></td>
+                    <td>{{ user.lop|default_if_none:'' }}</td>
+                    <td>{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}</td>
+                    <td>
+                        <button type="button" class="action-btn" onclick="openModal(this)"
+                            data-user-id="{{ user.ma_nguoi_dung }}"
+                            data-user-name="{{ user.ho_ten|default_if_none:'' }}"
+                            data-user-role="{{ user.get_loai_nguoi_dung_display|default_if_none:'' }}"
+                            data-user-email="{{ user.email|default_if_none:'' }}"
+                            data-user-phone="{{ user.so_dien_thoai|default_if_none:'' }}"
+                            data-user-class="{{ user.lop|default_if_none:'' }}"
+                            data-user-graduation="{% if user.trang_thai_tot_nghiep %}Đã tốt nghiệp{% else %}Chưa tốt nghiệp{% endif %}"
+                            data-user-borrowed="{{ user.borrowed_books|default:0 }}"
+                            data-user-fine="{{ user.unpaid_fines|default_if_none:0 }}"
+                            title="Xem chi tiết">
+                            <i class="fa-regular fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
                 {% endfor %}
                 <tr id="emptyStateRow" class="empty-state-row" {% if users %}style="display: none;"{% endif %}>
                     <td colspan="7" class="empty-state-cell">

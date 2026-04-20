@@ -36,7 +36,7 @@
          TAB CONTENT: returned / lending / stock
          Cards + bảng nằm TRONG section này (giống fine tab)
     ══════════════════════════════════════════════════════════════ -->
-    <div id="general-section">
+    <div id="general-section" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
         <!-- Heading tên thống kê -->
         <h3 class="fine-summary-heading" id="general-heading">Thống kê sách đã trả</h3>
 
@@ -89,12 +89,14 @@
 
         <!-- Bảng dữ liệu sẽ được render bằng JS -->
         <div class="report-table-container" id="report-table-container">
-            <table class="report-table" id="report-table">
-                <thead>
-                    <tr id="table-header"></tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
+            <div class="data-table-scroll table-wrapper" style="flex: 1 1 auto; min-height: 0;">
+                <table id="reportTable" class="table">
+                    <thead>
+                        <tr id="table-header"></tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
