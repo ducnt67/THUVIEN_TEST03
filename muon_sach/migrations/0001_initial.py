@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('quan_ly_sach', '0001_initial'),
-        ('quan_ly_nguoi_dung', '0002_nguoidung_user_alter_nguoidung_email_and_more'),
+        ('quan_ly_nguoi_dung', '0001_initial'),
     ]
 
     operations = [
