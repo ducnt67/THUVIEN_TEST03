@@ -72,11 +72,13 @@ function formatCurrency(value) {
 }
 
 function isReturnEligibleStatus(status) {
-    return status === 'Đang mượn' || status === 'Quá hạn';
+    const s = (status || '').toLowerCase();
+    return s === 'đang mượn' || s === 'quá hạn' || s === 'dang_muon' || s === 'qua_han';
 }
 
 function isLostEligibleStatus(status) {
-    return status === 'Đang mượn' || status === 'Quá hạn';
+    const s = (status || '').toLowerCase();
+    return s === 'đang mượn' || s === 'quá hạn' || s === 'dang_muon' || s === 'qua_han';
 }
 
 function openModalById(id) {
@@ -232,7 +234,7 @@ function submitReturnConfirm() {
     const ma_sach_trong_kho = selectedReturnRow?.dataset.bookCode || '';
 
     // Gửi request xác nhận trả sách
-    fetch('/tra_sach/api/xac_nhan_tra_sach/', {
+    fetch('/api/xac_nhan_tra_sach/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -241,7 +243,7 @@ function submitReturnConfirm() {
         body: new URLSearchParams({
             ma_phieu_muon,
             ma_sach_trong_kho,
-            tinh_trang_khi_tra: condition === 'damaged' ? 'hu_hong' : 'tot',
+            tinh_trang: condition === 'damaged' ? 'hu_hong' : 'tot',
             mo_ta_hu_hong: damageDescription,
             damage_level: condition === 'damaged' ? damageLevel : ''
         })
@@ -250,12 +252,15 @@ function submitReturnConfirm() {
     .then(data => {
         if (data.success) {
             selectedReturnRow.dataset.status = 'Đã trả';
-            selectedReturnRow.dataset.overdueDays = '0';
+            if (selectedReturnRow.dataset.overdueDays) selectedReturnRow.dataset.overdueDays = '0';
             selectedReturnRow.classList.remove('row-overdue');
-            const statusCell = selectedReturnRow.querySelector('td:nth-child(7)');
-            const actionCell = selectedReturnRow.querySelector('td:nth-child(8)');
+            
+            const statusCell = selectedReturnRow.querySelector('.col-status');
+            const actionCell = selectedReturnRow.querySelector('.col-action');
+            
             if (statusCell) statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả</span>';
-            if (actionCell) actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
+            if (actionCell) actionCell.innerHTML = '';
+            
             closeAllPopups();
             resetReturnFormState();
             showToast('returnSuccess');
@@ -287,7 +292,13 @@ function markLostMethodError(showError) {
 function resetLostFormState() {
     const dateInput = document.getElementById('lostReportDate');
     const noteInput = document.getElementById('lostNote');
-    if (dateInput) dateInput.value = '';
+    
+    // Tự động chọn ngày hôm nay
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+    }
+    
     if (noteInput) noteInput.value = '';
 
     document.querySelectorAll('input[name="compensateMethod"]').forEach((input) => {
@@ -301,7 +312,7 @@ function resetLostFormState() {
 
 function updateLostOutcome() {
     const method = getSelectedRadioValue('compensateMethod');
-    const bookPrice = Number(selectedLostRow?.dataset.bookPrice || 0);
+    const lostFee = Number(selectedLostRow?.dataset.lostFee || 0);
     const processingFee = Number(selectedLostRow?.dataset.processingFee || 0);
 
     const lostFineCreation = document.getElementById('lostFineCreation');
@@ -327,9 +338,9 @@ function updateLostOutcome() {
         if (lostFineCreation) lostFineCreation.innerText = 'Có tạo khoản phạt';
         if (lostFineType) lostFineType.innerText = 'Mất sách';
         if (lostFineStatus) lostFineStatus.innerText = 'Chưa thanh toán';
-        if (lostProcessingFee) lostProcessingFee.innerText = formatCurrency(processingFee);
+        if (lostProcessingFee) lostProcessingFee.innerText = formatCurrency(lostFee);
         if (lostRecordNextStatus) lostRecordNextStatus.innerText = 'Đang xử lý';
-        if (lostTotalAmount) lostTotalAmount.innerText = formatCurrency(bookPrice + processingFee);
+        if (lostTotalAmount) lostTotalAmount.innerText = formatCurrency(lostFee + processingFee);
         if (lostOutcomeHint) lostOutcomeHint.innerText = 'Sau xác nhận: tạo phạt Mất sách trạng thái Chưa thanh toán, cộng thêm phí xử lý nếu có.';
         return;
     }
@@ -344,7 +355,7 @@ function updateLostOutcome() {
 }
 
 function openLostReport(triggerButton) {
-    const row = triggerButton.closest('tr.lost-record');
+    const row = triggerButton.closest('tr');
     if (!row) return;
 
     const status = row.dataset.status || '';
@@ -372,29 +383,51 @@ function submitLostBookReport() {
     markLostMethodError(!method);
     if (!validDate || !method) return;
 
-    try {
-        if (!selectedLostRow) throw new Error('Missing row');
+    const ma_phieu_muon = selectedLostRow?.dataset.loanId || '';
+    const ma_sach_trong_kho = selectedLostRow?.dataset.bookCode || '';
+    const ghi_chu = document.getElementById('lostNote')?.value || '';
 
-        const statusCell = selectedLostRow.querySelector('td:nth-child(6)');
-        const actionCell = selectedLostRow.querySelector('td:nth-child(7)');
-        if (!statusCell || !actionCell) throw new Error('Invalid row structure');
+    fetch('/api/xu_ly_mat_sach/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': window.CSRF_TOKEN || ''
+        },
+        body: new URLSearchParams({
+            ma_phieu_muon,
+            ma_sach_trong_kho,
+            ngay_khai_bao_mat: reportDate,
+            phuong_an: method === 'money' ? 'den_bu_tien' : 'den_sach_moi',
+            ghi_chu
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const statusCell = selectedLostRow.querySelector('.col-status');
+            const actionCell = selectedLostRow.querySelector('.col-action');
 
-        if (method === 'money') {
-            selectedLostRow.dataset.status = 'Đang xử lý';
-            statusCell.innerHTML = '<span class="badge badge-orange-solid">Đang xử lý</span>';
+            if (method === 'money') {
+                selectedLostRow.dataset.status = 'Đang xử lý';
+                if (statusCell) statusCell.innerHTML = '<span class="badge badge-orange-solid">Đang xử lý</span>';
+            } else {
+                selectedLostRow.dataset.status = 'Chờ đền sách';
+                if (statusCell) statusCell.innerHTML = '<span class="badge badge-red-solid">Chờ đền sách</span>';
+            }
+
+            if (actionCell) actionCell.innerHTML = '';
+
+            closeAllPopups();
+            resetLostFormState();
+            showToast('lostSuccess');
+            
+            // Tải lại trang để đồng bộ dữ liệu giữa các Tab
+            setTimeout(() => location.reload(), 1000);
         } else {
-            selectedLostRow.dataset.status = 'Chờ đền sách';
-            statusCell.innerHTML = '<span class="badge badge-red-solid">Chờ đền sách</span>';
+            showToast('lostError', data.error || 'Xử lý mất sách thất bại');
         }
-
-        actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
-
-        closeAllPopups();
-        resetLostFormState();
-        showToast('lostSuccess');
-    } catch (error) {
-        showToast('lostError');
-    }
+    })
+    .catch(() => showToast('lostError'));
 }
 
 function initLostFlow() {
@@ -414,17 +447,20 @@ function initLostFlow() {
         reportDateInput.addEventListener('change', () => markLostDateError(false));
     }
 
-    document.querySelectorAll('tr.lost-record').forEach((row) => {
+    document.querySelectorAll('tr.lost-record, tr.return-record').forEach((row) => {
         const status = row.dataset.status || '';
         if (!isLostEligibleStatus(status)) {
-            const actionCell = row.querySelector('td:nth-child(7)');
-            if (actionCell) actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
+            const actionCell = row.querySelector('.col-action-lost');
+            if (actionCell) {
+                actionCell.innerHTML = '';
+            }
         }
     });
 }
 
 function isCompensateEligibleStatus(status) {
-    return status === 'Chờ đền sách';
+    const s = (status || '').toLowerCase();
+    return s === 'chờ đền sách' || s === 'cho_den_sach' || s === 'cho_den';
 }
 
 function markCompInspectionError(showError) {
@@ -484,25 +520,43 @@ function submitCompensateConfirm() {
     markCompInspectionError(false);
 
     if (inspection === 'fail') {
-        showToast('compensateError');
+        showToast('compensateError', 'Sách đền không đạt yêu cầu, vui lòng kiểm tra lại.');
         return;
     }
 
-    try {
-        if (!selectedCompensateRow) throw new Error('Missing compensate row');
+    const ma_phieu_muon = selectedCompensateRow?.dataset.recordId || '';
+    const ma_sach_trong_kho_moi = document.getElementById('compInspectionNote')?.value || ''; // Giả sử dùng note để nhập mã sách mới tạm thời hoặc cần field riêng
 
-        const statusCell = selectedCompensateRow.querySelector('td:nth-child(6)');
-        if (!statusCell) throw new Error('Missing status cell');
+    fetch('/api/xac_nhan_den_sach/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': window.CSRF_TOKEN || ''
+        },
+        body: new URLSearchParams({
+            ma_phieu_muon,
+            ma_sach_trong_kho_moi: ma_sach_trong_kho_moi,
+            thong_tin_sach_moi: ma_sach_trong_kho_moi
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const statusCell = selectedCompensateRow.querySelector('.col-status');
+            const actionCell = selectedCompensateRow.querySelector('.col-action');
 
-        selectedCompensateRow.dataset.status = 'Đã xử lý - Đền sách';
-        statusCell.innerHTML = '<span class="badge badge-green-solid">Đã xử lý - Đền sách</span>';
+            selectedCompensateRow.dataset.status = 'da_tra';
+            if (statusCell) statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả (Đền sách)</span>';
+            if (actionCell) actionCell.innerHTML = '';
 
-        closeAllPopups();
-        resetCompensateFormState();
-        showToast('compensateSuccess');
-    } catch (error) {
-        showToast('compensateError');
-    }
+            closeAllPopups();
+            resetCompensateFormState();
+            showToast('compensateSuccess');
+        } else {
+            showToast('compensateError', data.error || 'Xác nhận đền sách thất bại');
+        }
+    })
+    .catch(() => showToast('compensateError'));
 }
 
 function initCompensateFlow() {
@@ -514,7 +568,7 @@ function initCompensateFlow() {
         const status = row.dataset.status || '';
         const trigger = row.querySelector('.compensate-confirm-trigger');
         if (!isCompensateEligibleStatus(status) && trigger) {
-            trigger.outerHTML = '<span class="badge badge-green-solid">Đã xử lý - Đền sách</span>';
+            trigger.outerHTML = '';
         }
     });
 
@@ -558,11 +612,115 @@ function initReturnFlow() {
     document.querySelectorAll('tr.return-record').forEach((row) => {
         const status = row.dataset.status || '';
         if (!isReturnEligibleStatus(status)) {
-            const actionCell = row.querySelector('td:nth-child(8)');
-            if (actionCell) actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
+            const actionCell = row.querySelector('.col-action');
+            if (actionCell) actionCell.innerHTML = '';
             row.classList.remove('row-overdue');
         }
     });
+}
+
+let selectedPaymentUser = null;
+
+function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
+    selectedPaymentUser = maNguoiDung;
+    const nameEl = document.getElementById('payUserName');
+    const totalEl = document.getElementById('payTotalAmount');
+    if (nameEl) nameEl.innerText = hoTen;
+    if (totalEl) totalEl.innerText = formatCurrency(tongTien);
+
+    // Xóa nội dung bảng cũ và hiện loading
+    const tableBody = document.getElementById('paymentTableBody');
+    if (tableBody) tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#6b7280;">Đang tải chi tiết các khoản phạt...</td></tr>';
+
+    openModalById('popup-payment');
+
+    // Fetch chi tiết từ server
+    fetch(`/api/get_user_fines/?ma_nguoi_dung=${maNguoiDung}`)
+    .then(res => res.json())
+    .then(data => {
+        window.currentFineIds = []; // Reset danh sách mã phạt
+        if (data.success && data.fines.length > 0) {
+            tableBody.innerHTML = '';
+            data.fines.forEach(fine => {
+                window.currentFineIds.push(fine.ma_phat);
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #f3f4f6';
+                row.innerHTML = `
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_sach_trong_kho}</td>
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ten_sach}</td>
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.loai_phat}</td>
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ly_do}</td>
+                    <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316;">${formatCurrency(fine.so_tien)}</td>
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ngay_tao}</td>
+                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_phieu_muon}</td>
+                    <td style="padding:12px 14px;">
+                        <span class="badge ${fine.trang_thai === 'Đã thanh toán' ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px;">
+                            ${fine.trang_thai}
+                        </span>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Ẩn/Hiện bộ điều khiển thanh toán tùy vào còn nợ hay không
+            const paymentControls = document.getElementById('paymentControls');
+            const hasUnpaid = data.fines.some(f => f.trang_thai === 'Chưa thanh toán');
+            if (paymentControls) {
+                paymentControls.style.display = hasUnpaid ? 'block' : 'none';
+            }
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">Không có lịch sử phí phạt.</td></tr>';
+            const paymentControls = document.getElementById('paymentControls');
+            if (paymentControls) paymentControls.style.display = 'none';
+        }
+    })
+    .catch(() => {
+        tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#ef4444;">Lỗi kết nối khi tải chi tiết phí phạt.</td></tr>';
+    });
+}
+
+function submitPayment() {
+    if (!selectedPaymentUser) return;
+    const paymentMethod = getSelectedRadioValue('paymentMethodNew');
+    
+    // Thu thập tất cả mã phạt đang hiển thị trong bảng
+    const fineIds = [];
+    const tableRows = document.querySelectorAll('#paymentTableBody tr');
+    // Lưu ý: Nếu ở bước openPaymentPopup ta đã lưu lại danh sách fineIds thì dùng sẽ chuẩn hơn.
+    // Ở đây ta có thể lưu vào một biến global khi fetch chi tiết.
+    if (window.currentFineIds && window.currentFineIds.length > 0) {
+        window.currentFineIds.forEach(id => fineIds.push(id));
+    }
+
+    if (fineIds.length === 0) {
+        alert('Không có khoản phạt nào để thanh toán.');
+        return;
+    }
+
+    const params = new URLSearchParams();
+    params.append('ma_nguoi_dung', selectedPaymentUser);
+    params.append('phuong_thuc', paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản');
+    fineIds.forEach(id => params.append('danh_sach_ma_phat[]', id));
+
+    fetch('/api/thanh_toan_phi_phat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': window.CSRF_TOKEN || ''
+        },
+        body: params
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            closeAllPopups();
+            showToast('paymentSuccess');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            alert('Thanh toán thất bại: ' + (data.error || 'Lỗi hệ thống'));
+        }
+    })
+    .catch(() => alert('Lỗi kết nối khi thanh toán'));
 }
 
 document.addEventListener('DOMContentLoaded', () => {

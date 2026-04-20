@@ -7,6 +7,8 @@ class PhieuMuon(models.Model):
         ('dang_muon', 'Đang mượn'),
         ('qua_han', 'Quá hạn'),
         ('da_tra', 'Đã trả'),
+        ('dang_xu_ly', 'Đang xử lý'),
+        ('cho_den_sach', 'Chờ đền sách'),
     ]
     ma_phieu_muon = models.CharField(max_length=10, primary_key=True)
 
