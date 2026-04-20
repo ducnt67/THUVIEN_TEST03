@@ -1,6 +1,6 @@
 /* ================================================================
    borrow.js – Quản lý mượn sách
-   Dùng cho: templates/circulation/borrow_list.html
+
 ================================================================ */
 document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('pmOverlay');

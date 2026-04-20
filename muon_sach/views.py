@@ -126,7 +126,6 @@ def api_create_borrow_slip(request):
                 sach_kho.trang_thai_sach = 'borrowed'
                 sach_kho.save()
             
-            # Update final status (it might be 'qua_han' if due date is in the past)
             pm.sync_status()
 
         return JsonResponse({'success': True, 'message': 'Thêm thông tin mượn sách thành công'})
