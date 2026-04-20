@@ -178,7 +178,7 @@ document.getElementById('editBookForm').addEventListener('submit', function(e) {
 /* =========================
    3. VIEW DETAIL
 ========================= */
-window.viewDetail = function(id, title, author, type, pub, year, qty, status = 'CÓ SẴN') {
+window.viewDetail = function(id, title, author, type, pub, year, qty, status = 'Có sẵn') {
     const modal = document.getElementById('detailModal');
     const content = document.getElementById('bookDetailContent');
 

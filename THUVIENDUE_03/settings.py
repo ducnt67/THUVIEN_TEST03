@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-qxy-k)spj4($+y04$-y564fwb&z)&51gidst$or=8=(v^g=!(u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 # Application definition
 
@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'muon_sach',
     'tra_sach',
     'quan_ly_sach',
-    'quan_ly_nguoi_dung',
+    'quan_ly_nguoi_dung.apps.QuanLyNguoiDungConfig',
     'bao_cao',
     'quan_ly_tai_khoan',
     'tong_quan',
@@ -103,6 +103,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Authentication redirects
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/tong-quan/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -121,6 +126,7 @@ USE_TZ = True
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

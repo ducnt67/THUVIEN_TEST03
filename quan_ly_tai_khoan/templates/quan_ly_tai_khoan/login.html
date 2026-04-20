@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=20260419-64">
 </head>
 <body>
 
@@ -20,21 +20,34 @@
     <div class="auth-form-container active" id="loginModal">
         <div class="auth-header">
             <div class="logo lg">
-                <span class="logo-text">DUE</span>
+                <img src="{% static 'images/Logo_DUE.jpg' %}" alt="Logo DUE" style="width: 64px !important; height: 64px !important; object-fit: contain;">
             </div>
             <h2>ĐẠI HỌC ĐÀ NẴNG</h2>
             <p>Thư viện TRƯỜNG ĐẠI HỌC KINH TẾ</p>
         </div>
 
-        <form id="loginForm">
+        {% if error_message or messages %}
+            <div class="message-wrapper auth-message-wrapper">
+                {% if error_message %}
+                    <div class="message-box error">{{ error_message }}</div>
+                {% endif %}
+                {% for message in messages %}
+                    <div class="message-box">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form id="djangoLoginForm" method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next|default:'' }}">
             <div class="form-group">
                 <label>Mã sinh viên / tài khoản</label>
-                <input type="text" id="loginUsername" value="admin" required>
+                <input type="text" id="loginUsername" name="username" value="{{ username_value|default:'' }}" autocomplete="username" required>
             </div>
 
             <div class="form-group">
                 <label>Mật khẩu</label>
-                <input type="password" id="loginPassword" value="password" required>
+                <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
             </div>
 
             <div class="forgot-link">
@@ -54,7 +67,7 @@
     <div class="auth-form-container" id="forgotModal">
         <div class="auth-header">
             <div class="logo lg">
-                <span class="logo-text">DUE</span>
+                <img src="{% static 'images/Logo_DUE.jpg' %}" alt="Logo DUE" style="width: 64px !important; height: 64px !important; object-fit: contain;">
             </div>
             <h2>ĐẠI HỌC ĐÀ NẴNG</h2>
             <p>Thư viện TRƯỜNG ĐẠI HỌC KINH TẾ</p>
@@ -70,7 +83,7 @@
                 Tiếp tục
             </button>
 
-            <div class="forgot-link text-center mt-2">
+            <div class="auth-back-link">
                 <a href="#" onclick="showModal('loginModal'); return false;">Quay lại đăng nhập</a>
             </div>
         </form>
@@ -85,17 +98,14 @@
     <div class="auth-form-container" id="resetModal">
         <div class="auth-header">
             <div class="logo lg">
-                <span class="logo-text">DUE</span>
+                <img src="{% static 'images/Logo_DUE.jpg' %}" alt="Logo DUE" style="width: 64px !important; height: 64px !important; object-fit: contain;">
             </div>
             <h2>ĐẠI HỌC ĐÀ NẴNG</h2>
             <p>Thư viện TRƯỜNG ĐẠI HỌC KINH TẾ</p>
         </div>
 
         <form id="resetForm">
-            <div class="form-group">
-                <label>Mật khẩu cũ</label>
-                <input type="password" id="oldPassword" required>
-            </div>
+
 
             <div class="form-group">
                 <label>Mật khẩu mới</label>
@@ -109,7 +119,7 @@
 
             <button type="submit" class="btn btn-primary btn-block">Đổi mật khẩu</button>
 
-            <div class="forgot-link text-center mt-2">
+            <div class="auth-back-link">
                 <a href="#" onclick="showModal('loginModal'); return false;">Quay lại đăng nhập</a>
             </div>
         </form>

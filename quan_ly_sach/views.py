@@ -1,6 +1,8 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q, F
 from django.shortcuts import get_object_or_404, redirect, render
+import django.shortcuts as shortcuts
 from .models import Sach, SachTrongKho
 
 
@@ -64,6 +66,7 @@ def _build_book_context(request):
     }
 
 
+@login_required
 def book_list_view(request):
     # =========================
     # XỬ LÝ POST (CREATE / UPDATE / DELETE / ADD COPIES)
@@ -77,6 +80,7 @@ def book_list_view(request):
         # 1. Hành động Xóa
         if action == "delete":
             book = get_object_or_404(Sach, ma_sach=book_id)
+
 
             # Lấy các bản sao theo trạng thái
             available_copies = book.sach_trong_kho.filter(trang_thai_sach='available')
@@ -93,6 +97,7 @@ def book_list_view(request):
                     f"Đã xóa {deleted_count} bản có sẵn. "
                     f"Còn {not_available_copies.count()} bản đang được mượn / không thể xóa."
                 )
+          
             else:
                 # Không còn bản nào → xóa luôn sách chính
                 book.delete()
@@ -167,15 +172,15 @@ def book_list_view(request):
     # XỬ LÝ GET (HIỂN THỊ)
     # =========================
     context = _build_book_context(request)
-    return render(request, "book_list.html", context)
+    return shortcuts.render(request, "book_list.html", context)
 
-
-
+=======
+@login_required
 def book_list(request):
     """Entry point cho url 'book_list'"""
     return book_list_view(request)
 
-
+@login_required
 def quan_ly_kho_view(request):
     # Lấy mã sách từ tham số ?ma_sach=MS0002
     ma_sach_tu_url = request.GET.get('ma_sach')
@@ -186,7 +191,7 @@ def quan_ly_kho_view(request):
     # Lấy danh sách các bản sao trong kho của cuốn sách đó
     danh_sach_kho = SachTrongKho.objects.filter(ma_sach=sach_chinh)
 
-    return render(request, 'sachtrongkho.html', {
+    return shortcuts.render(request, 'sachtrongkho.html', {
         'sach': sach_chinh,
         'danh_sach_kho': danh_sach_kho
     })

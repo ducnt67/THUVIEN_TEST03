@@ -1,4 +1,1 @@
-from django.contrib import admin
-from .models import TaiKhoan
-
-admin.site.register(TaiKhoan)
+"""App quan_ly_tai_khoan khong con model de dang ky admin."""

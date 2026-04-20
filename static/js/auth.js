@@ -1,6 +1,6 @@
 /* =========================================================
-   auth.js – Đăng nhập / quên mật khẩu / đổi mật khẩu
-   Dùng cho: templates/auth/login.html
+   auth.js - Quen mat khau / doi mat khau
+   Khong can thiep submit form login Django
 ========================================================= */
 
 function showModal(modalId) {
@@ -18,66 +18,50 @@ function showModal(modalId) {
     }
 }
 
-function handleLogin(event) {
-    if (event) event.preventDefault();
-
-    const username = document.getElementById('loginUsername')?.value.trim();
-    const password = document.getElementById('loginPassword')?.value.trim();
-
-    if (!username || !password) {
-        alert('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
-        return;
-    }
-
-    // Demo đăng nhập front-end
-    // Sau này có thể thay bằng gọi Django auth thật
-    localStorage.setItem('due_logged_in', 'true');
-    localStorage.setItem('due_logged_user', username);
-
-    window.location.href = '/';
-}
-
-function handleLogout() {
-    localStorage.removeItem('due_logged_in');
-    localStorage.removeItem('due_logged_user');
-    window.location.href = '/login/';
-}
-
 function initAuthState() {
-    const isLoggedIn = localStorage.getItem('due_logged_in') === 'true';
-
-    // Nếu đang ở trang login mà đã login thì chuyển về dashboard
-    if (isLoggedIn && window.location.pathname === '/login/') {
-        window.location.href = '/';
-        return;
-    }
-
     showModal('loginModal');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     initAuthState();
 
-    const loginForm = document.getElementById('loginForm');
     const forgotForm = document.getElementById('forgotForm');
     const resetForm = document.getElementById('resetForm');
-
-    if (loginForm) {
-        loginForm.addEventListener('submit', handleLogin);
-    }
 
     if (forgotForm) {
         forgotForm.addEventListener('submit', function (e) {
             e.preventDefault();
-
             const email = document.getElementById('forgotEmail')?.value.trim();
             if (!email) {
                 alert('Vui lòng nhập email.');
                 return;
             }
 
-            alert('Đã xác nhận email. Vui lòng đặt lại mật khẩu.');
-            showModal('resetModal');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            fetch('/forgot-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Lưu email để dùng cho bước reset
+                        window.currentResetEmail = email;
+                        showModal('resetModal');
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                });
         });
     }
 
@@ -85,12 +69,23 @@ document.addEventListener('DOMContentLoaded', () => {
         resetForm.addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const oldPassword = document.getElementById('oldPassword')?.value.trim();
             const newPassword = document.getElementById('newPassword')?.value.trim();
             const confirmPassword = document.getElementById('confirmPassword')?.value.trim();
+            const email = window.currentResetEmail;
 
-            if (!oldPassword || !newPassword || !confirmPassword) {
+            if (!email) {
+                alert('Phiên làm việc hết hạn. Vui lòng bắt đầu lại từ bước Quên mật khẩu.');
+                showModal('forgotModal');
+                return;
+            }
+
+            if (!newPassword || !confirmPassword) {
                 alert('Vui lòng nhập đầy đủ thông tin.');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                alert('Mật khẩu mới phải có ít nhất 8 ký tự.');
                 return;
             }
 
@@ -99,11 +94,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            alert('Đổi mật khẩu thành công!');
-            showModal('loginModal');
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            fetch('/reset-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ 
+                    email: email,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        showModal('loginModal');
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                });
         });
     }
 });
 
 window.showModal = showModal;
-window.handleLogout = handleLogout;
+

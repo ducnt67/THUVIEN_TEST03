@@ -11,117 +11,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!tableBody) return;
 
-    /* ========================
-       DỮ LIỆU MẪU
-    ======================== */
-    let slips = [
-        {
-            id: 1,
-            slipCode: 'TC001',
-            userId: '2051010001',
-            userName: 'Trần Thị Bình',
-            borrowDate: '5/1/2026',
-            dueDate: '19/1/2026',
-            status: 'Quá hạn',
-            statusClass: 'badge badge-orange-solid',
-            books: [
-                { code: 'MS001', title: 'Kinh tế học vi mô', qty: 1 },
-                { code: 'MS002', title: 'Toán cao cấp A1', qty: 2 }
-            ]
-        },
-        {
-            id: 2,
-            slipCode: 'TC002',
-            userId: '2051010002',
-            userName: 'Trần Bình Na',
-            borrowDate: '11/1/2026',
-            dueDate: '19/11/2026',
-            status: 'Đang mượn',
-            statusClass: 'badge badge-blue-solid',
-            books: [
-                { code: 'MS003', title: 'Nguyên lý kế toán', qty: 1 }
-            ]
-        },
-        {
-            id: 3,
-            slipCode: 'MIS3001',
-            userId: '2051010003',
-            userName: 'Hồ Bảo Trần',
-            borrowDate: '5/1/2026',
-            dueDate: '19/11/2025',
-            status: 'Đã trả',
-            statusClass: 'badge badge-green-solid',
-            books: [
-                { code: 'MS004', title: 'Lịch sử Đảng', qty: 1 }
-            ]
-        },
-        {
-            id: 4,
-            slipCode: 'MIS3021',
-            userId: '2051010004',
-            userName: 'Nguyễn Bình',
-            borrowDate: '5/1/2026',
-            dueDate: '29/8/2026',
-            status: 'Đang mượn',
-            statusClass: 'badge badge-blue-solid',
-            books: [
-                { code: 'MS001', title: 'Kinh tế học vi mô', qty: 1 },
-                { code: 'MS005', title: 'Lập trình Python cơ bản', qty: 1 }
-            ]
-        },
-        {
-            id: 5,
-            slipCode: 'MIS3007',
-            userId: '2051010005',
-            userName: 'Nguyễn Khiêm',
-            borrowDate: '14/2/2025',
-            dueDate: '19/11/2025',
-            status: 'Đã trả',
-            statusClass: 'badge badge-green-solid',
-            books: [
-                { code: 'MS006', title: 'Kinh tế vi mô', qty: 1 }
-            ]
-        },
-        {
-            id: 6,
-            slipCode: 'ELC3008',
-            userId: '2051010006',
-            userName: 'Trần Thị Linh',
-            borrowDate: '12/1/2026',
-            dueDate: '9/12/2026',
-            status: 'Đang mượn',
-            statusClass: 'badge badge-blue-solid',
-            books: [
-                { code: 'MS007', title: 'English Communication', qty: 2 }
-            ]
-        },
-        {
-            id: 7,
-            slipCode: 'SMT1006',
-            userId: '2051010007',
-            userName: 'Đoàn Hồ Châu',
-            borrowDate: '6/4/2026',
-            dueDate: '24/3/2026',
-            status: 'Quá hạn',
-            statusClass: 'badge badge-orange-solid',
-            books: [
-                { code: 'MS008', title: 'Quản trị học', qty: 1 }
-            ]
-        },
-        {
-            id: 8,
-            slipCode: 'LAW2001',
-            userId: '2051010008',
-            userName: 'Lê Thị Loan',
-            borrowDate: '18/10/2025',
-            dueDate: '17/5/2026',
-            status: 'Đang mượn',
-            statusClass: 'badge badge-blue-solid',
-            books: [
-                { code: 'MS009', title: 'Pháp luật đại cương', qty: 1 }
-            ]
+    let slips = [];
+
+    async function fetchSlips() {
+        try {
+            const response = await fetch('/api/borrow/list/');
+            if (!response.ok) throw new Error('Network response was not ok');
+            slips = await response.json();
+            renderRows(slips);
+        } catch (error) {
+            console.error('Error fetching slips:', error);
+            safeToast('error', 'Không thể tải danh sách phiếu mượn.');
+            renderRows([]);
         }
-    ];
+    }
 
     let pendingDeleteId = null;
     let extLargeSlipId = null;
@@ -301,13 +204,42 @@ document.addEventListener('DOMContentLoaded', function () {
         const row = document.createElement('div');
         row.className = 'pm-book-row';
         row.innerHTML = `
-            <input class="pm-input" type="text" placeholder="MS001">
-            <input class="pm-input" type="text" placeholder="Tên sách">
-            <input class="pm-input" type="number" min="1" value="1">
+            <input class="pm-input book-code-input" type="text" placeholder="MS001-001">
+            <input class="pm-input book-title-input" type="text" placeholder="Tên sách" readonly>
+            <input class="pm-input" type="number" min="1" value="1" readonly>
             <button class="btn-row-del" type="button" onclick="this.closest('.pm-book-row').remove()">×</button>
         `;
         body.appendChild(row);
     };
+
+    // Book Lookup Integration
+    const addBooksBody = document.getElementById('addBooksBody');
+    if (addBooksBody) {
+        addBooksBody.addEventListener('blur', async function (e) {
+            if (e.target.classList.contains('book-code-input')) {
+                const code = e.target.value.trim();
+                const titleInput = e.target.parentElement.querySelector('.book-title-input');
+                
+                if (!code) {
+                    titleInput.value = '';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/book/info/?ma_sach_trong_kho=${code}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        titleInput.value = data.ten_sach;
+                    } else {
+                        titleInput.value = '';
+                        safeToast('error', data.message);
+                    }
+                } catch (error) {
+                    console.error('Error looking up book:', error);
+                }
+            }
+        }, true); // Capture phase to catch blur on children
+    }
 
     /* ========================
        OPEN ADD POPUP
@@ -322,12 +254,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (addUserId) addUserId.value = '';
             if (addUserName) addUserName.value = '';
-            if (addBorrowDate) addBorrowDate.value = '';
-            if (addDueDate) addDueDate.value = '';
+            
+            // Set default dates
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            if (addBorrowDate) {
+                addBorrowDate.value = todayStr;
+            }
+            
+            const due = new Date();
+            due.setDate(now.getDate() + 30);
+            const dueStr = due.toISOString().split('T')[0];
+            if (addDueDate) {
+                addDueDate.value = dueStr;
+            }
+
             if (addBooksBody) addBooksBody.innerHTML = '';
 
             window.addBookRow();
             openPm('popup-add-borrow');
+        });
+    }
+
+    // Auto-calculate Due Date
+    const addBorrowDateEl = document.getElementById('addBorrowDate');
+    if (addBorrowDateEl) {
+        addBorrowDateEl.addEventListener('change', function() {
+            const bDateStr = this.value;
+            if (bDateStr) {
+                const bDate = new Date(bDateStr);
+                const dDate = new Date(bDate);
+                dDate.setDate(bDate.getDate() + 30);
+                const addDueDate = document.getElementById('addDueDate');
+                if (addDueDate) {
+                    addDueDate.value = dDate.toISOString().split('T')[0];
+                }
+            }
         });
     }
 
@@ -336,15 +298,25 @@ document.addEventListener('DOMContentLoaded', function () {
     ======================== */
     const addUserIdEl = document.getElementById('addUserId');
     if (addUserIdEl) {
-        addUserIdEl.addEventListener('blur', function () {
+        addUserIdEl.addEventListener('blur', async function () {
             const uid = this.value.trim();
-            const found = slips.find(function (s) {
-                return s.userId === uid;
-            });
+            const addUserNameInput = document.getElementById('addUserName');
+            if (!uid) {
+                if (addUserNameInput) addUserNameInput.value = '';
+                return;
+            }
 
-            const addUserName = document.getElementById('addUserName');
-            if (addUserName) {
-                addUserName.value = found ? found.userName : '';
+            try {
+                const response = await fetch(`/api/user/info/?ma_nguoi_dung=${uid}`);
+                const data = await response.json();
+                if (data.success) {
+                    if (addUserNameInput) addUserNameInput.value = data.ho_ten;
+                } else {
+                    if (addUserNameInput) addUserNameInput.value = '';
+                    safeToast('error', data.message);
+                }
+            } catch (error) {
+                console.error('Error looking up user:', error);
             }
         });
     }
@@ -352,11 +324,10 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ========================
        SUBMIT ADD BORROW
     ======================== */
-    window.submitAddBorrow = function (e) {
+    window.submitAddBorrow = async function (e) {
         e.preventDefault();
 
         const userId = document.getElementById('addUserId')?.value.trim() || '';
-        const userName = document.getElementById('addUserName')?.value.trim() || '';
         const borrowDate = document.getElementById('addBorrowDate')?.value || '';
         const dueDate = document.getElementById('addDueDate')?.value || '';
 
@@ -370,37 +341,45 @@ document.addEventListener('DOMContentLoaded', function () {
             const inputs = row.querySelectorAll('input');
             const code = inputs[0] ? inputs[0].value.trim() : '';
             const title = inputs[1] ? inputs[1].value.trim() : '';
-            const qty = inputs[2] ? parseInt(inputs[2].value, 10) || 1 : 1;
 
-            if (code) {
-                books.push({ code, title, qty });
+            if (code && title) {
+                books.push({ code, title });
             }
         });
 
-        const maxId = slips.reduce(function (max, s) {
-            return Math.max(max, s.id);
-        }, 0);
-
-        slips.unshift({
-            id: maxId + 1,
-            slipCode: `PM${String(maxId + 1).padStart(3, '0')}`,
-            userId: userId,
-            userName: userName || userId,
-            borrowDate: toDisplay(borrowDate),
-            dueDate: toDisplay(dueDate),
-            status: 'Đang mượn',
-            statusClass: 'badge badge-blue-solid',
-            books: books
-        });
-
-        renderRows(slips);
-        window.closePm();
-
-        if (searchInput) {
-            searchInput.value = '';
+        if (books.length === 0) {
+            safeToast('error', 'Vui lòng thêm ít nhất một cuốn sách hợp lệ.');
+            return;
         }
 
-        safeToast('success', 'Thêm phiếu mượn thành công.');
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch('/api/borrow/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    userId,
+                    borrowDate,
+                    dueDate,
+                    books
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips(); // Refresh the table
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error creating borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi lưu phiếu mượn.');
+        }
     };
 
     /* ========================
@@ -409,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tableBody.addEventListener('click', function (e) {
         const editBtn = e.target.closest('.btn-edit');
         if (editBtn) {
-            const id = parseInt(editBtn.getAttribute('data-id'), 10);
+            const id = editBtn.getAttribute('data-id');
             const slip = slips.find(function (s) {
                 return s.id === id;
             });
@@ -434,14 +413,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const delBtn = e.target.closest('.btn-del');
         if (delBtn) {
-            pendingDeleteId = parseInt(delBtn.getAttribute('data-id'), 10);
+            pendingDeleteId = delBtn.getAttribute('data-id');
             openPm('popup-delete-confirm');
             return;
         }
 
         const row = e.target.closest('tr[data-id]');
         if (row && !e.target.closest('.btn-edit') && !e.target.closest('.btn-del')) {
-            const rowId = parseInt(row.getAttribute('data-id'), 10);
+            const rowId = row.getAttribute('data-id');
             const slip = slips.find(function (s) {
                 return s.id === rowId;
             });
@@ -514,21 +493,36 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ========================
        CONFIRM DELETE
     ======================== */
-    window.confirmDelete = function () {
+    window.confirmDelete = async function () {
         if (pendingDeleteId === null) return;
 
-        slips = slips.filter(function (s) {
-            return s.id !== pendingDeleteId;
-        });
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch(`/api/borrow/delete/${pendingDeleteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            });
 
-        pendingDeleteId = null;
-        renderRows(slips);
-        window.closePm();
-        safeToast('success', 'Đã xóa phiếu mượn.');
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips(); // Refresh table
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error deleting borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi xóa phiếu mượn.');
+        } finally {
+            pendingDeleteId = null;
+        }
     };
 
     /* ========================
        INITIAL RENDER
     ======================== */
-    renderRows(slips);
+    fetchSlips();
 });

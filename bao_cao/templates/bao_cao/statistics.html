@@ -5,7 +5,7 @@
 {% block nav_reports %}active{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}">
+<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}?v=2.0">
 {% endblock %}
 
 {% block page_title %}<span id="dynamic-title">Báo cáo sách được trả</span>{% endblock %}
@@ -36,21 +36,67 @@
          TAB CONTENT: returned / lending / stock
          Cards + bảng nằm TRONG section này (giống fine tab)
     ══════════════════════════════════════════════════════════════ -->
-    <div id="general-section">
+    <div id="general-section" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
         <!-- Heading tên thống kê -->
         <h3 class="fine-summary-heading" id="general-heading">Thống kê sách đã trả</h3>
 
-        <!-- Stat cards — JS render vào đây -->
+        <!-- Stat cards cố định cho từng tab -->
+        <div id="stat-returned" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <div class="sc-label">Tổng số sách đã trả</div>
+                <div class="sc-value">{{ total_returned }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Trả đúng hạn</div>
+                <div class="sc-value sc-green">{{ on_time }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Trả quá hạn</div>
+                <div class="sc-value sc-red">{{ late }}</div>
+            </div>
+        </div>
+        <div id="stat-lending" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <div class="sc-label">Tổng số sách đang mượn</div>
+                <div class="sc-value">{{ total_lending }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Đang trong hạn</div>
+                <div class="sc-value sc-green">{{ lending_on_time }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Đã quá hạn</div>
+                <div class="sc-value sc-red">{{ lending_late }}</div>
+            </div>
+        </div>
+        <div id="stat-stock" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <div class="sc-label">Tổng số đầu sách</div>
+                <div class="sc-value">{{ total_titles }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Tổng số lượng</div>
+                <div class="sc-value sc-green">{{ total_stock }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-label">Sắp hết hàng</div>
+                <div class="sc-value sc-red">{{ low_stock }}</div>
+            </div>
+        </div>
+
+        <!-- Stat cards sẽ được render bằng JS -->
         <div class="stat-grid" id="summary-section"></div>
 
-        <!-- Bảng dữ liệu -->
+        <!-- Bảng dữ liệu sẽ được render bằng JS -->
         <div class="report-table-container" id="report-table-container">
-            <table class="report-table" id="report-table">
-                <thead>
-                    <tr id="table-header"></tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
+            <div class="data-table-scroll table-wrapper" style="flex: 1 1 auto; min-height: 0;">
+                <table id="reportTable" class="table">
+                    <thead>
+                        <tr id="table-header"></tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -127,6 +173,14 @@
 
     </div><!-- /fine-section -->
 
+    <!-- Dữ liệu JSON statData/reportData từ backend -->
+    <script id="report-data" type="application/json">
+      {{ report_data|safe }}
+    </script>
+    <script id="stat-data" type="application/json">
+      {{ stat_data|safe }}
+    </script>
+
 </div><!-- /reports-container -->
 {% endblock %}
 
@@ -146,65 +200,38 @@
 
         let currentTab = 'returned';
 
-        // ── Tab data ──────────────────────────────────────────────────────────
-        const tabData = {
+        // DỮ LIỆU THỰC: bạn cần truyền các biến JSON từ backend vào đây
+        // Ví dụ:
+        // const reportData = { returned: [...], lending: [...], stock: [...] };
+        // const statData = { returned: [...], lending: [...], stock: [...] };
+        // Nếu backend chưa truyền, bạn cần bổ sung vào context và render ra <script> như hướng dẫn ở các phiên bản trước.
+
+        // Dưới đây là ví dụ dữ liệu mẫu, bạn cần thay bằng dữ liệu thật từ backend
+        const reportData = window.REPORT_DATA || { returned: [], lending: [], stock: [] };
+        const statData = window.STAT_DATA || { returned: [], lending: [], stock: [] };
+
+        // Cấu hình tiêu đề, cột cho từng tab
+        const tabConfig = {
             returned: {
                 title: 'Báo cáo sách được trả',
                 heading: 'Thống kê sách đã trả',
-                stats: [
-                    { label: 'Tổng số sách đã trả', value: '{{ total_returned }}', cls: '' },
-                    { label: 'Trả đúng hạn', value: '{{ on_time }}', cls: 'sc-green' },
-                    { label: 'Trả quá hạn', value: '{{ late }}', cls: 'sc-red' },
-                ],
-                headers: ['Mã phiếu', 'Sách', 'Mã sách trong kho', 'Người mượn', 'Ngày mượn', 'Ngày trả', 'Trạng thái'],
-                rows: [
-                    ['PM001', 'Marketing căn bản', 'MK001', 'Trần Thị Bình', '24/1/2026', '24/1/2026', 'Đúng hạn'],
-                    ['PM002', 'Nhập môn kinh doanh', 'KD001', 'Trần Thị Bình', '19/1/2026', '20/1/2026', 'Quá hạn'],
-                    ['PM003', 'Quản trị Marketing', 'MK002', 'Lê Văn Cường', '26/1/2026', '26/1/2026', 'Đúng hạn'],
-                    ['PM004', 'Thống kê kinh doanh', 'TK002', 'Nguyễn Thị Dung', '18/1/2026', '22/1/2026', 'Quá hạn'],
-                    ['PM005', 'Toán rời rạc', 'TC001', 'Phạm Văn Em', '25/1/2026', '25/1/2026', 'Đúng hạn'],
-                    ['PM006', 'Kinh tế vĩ mô', 'KT003', 'Hoàng Thị Phương', '20/1/2026', '27/1/2026', 'Quá hạn'],
-                ],
+                headers: ['MÃ PHIẾU', 'SÁCH', 'MÃ SÁCH TRONG KHO', 'NGƯỜI MƯỢN', 'NGÀY MƯỢN', 'NGÀY TRẢ', 'TRẠNG THÁI'],
+                rows: reportData.returned || [],
             },
             lending: {
                 title: 'Báo cáo sách đang cho mượn',
                 heading: 'Thống kê sách đang mượn',
-                stats: [
-                    { label: 'Tổng số sách đang mượn', value: '6', cls: '' },
-                    { label: 'Đang trong hạn', value: '4', cls: 'sc-green' },
-                    { label: 'Đã quá hạn', value: '2', cls: 'sc-red' },
-                ],
-                headers: ['Mã phiếu', 'Sách', 'Mã sách trong kho', 'Người mượn', 'Ngày mượn', 'Hạn trả', 'Trạng thái'],
-                rows: [
-                    ['PM001', 'Kinh tế học vi mô', 'KT001', 'Trần Thị Bình', '24/1/2026', '24/1/2026', 'Đang mượn'],
-                    ['PM002', 'Nguyên lý kế toán', 'TC001', 'Trần Thị Bình', '19/1/2026', '20/1/2026', 'Quá hạn'],
-                    ['PM003', 'Quản trị Marketing', 'KT002', 'Lê Văn Cường', '26/1/2026', '26/1/2026', 'Đang mượn'],
-                    ['PM004', 'Phân tích báo cáo tài chính', 'TC002', 'Nguyễn Thị Dung', '18/1/2026', '22/1/2026', 'Quá hạn'],
-                    ['PM005', 'Quản trị nguồn nhân lực', 'QL001', 'Phạm Văn Em', '25/1/2026', '25/1/2026', 'Đang mượn'],
-                    ['PM006', 'Kinh tế lượng cơ bản', 'KT003', 'Hoàng Thị Phương', '20/1/2026', '27/1/2026', 'Quá hạn'],
-                ],
+                headers: ['MÃ PHIẾU', 'SÁCH', 'MÃ SÁCH TRONG KHO', 'NGƯỜI MƯỢN', 'NGÀY MƯỢN', 'HẠN TRẢ', 'TRẠNG THÁI'],
+                rows: reportData.lending || [],
             },
             stock: {
                 title: 'Báo cáo sách còn trong kho',
                 heading: 'Thống kê sách trong kho',
-                stats: [
-                    { label: 'Tổng số đầu sách', value: '6', cls: '' },
-                    { label: 'Tổng số lượng', value: '275', cls: 'sc-green' },
-                    { label: 'Sắp hết hàng', value: '1', cls: 'sc-red' },
-                ],
-                headers: ['Mã sách', 'Tên sách', 'Mã sách trong kho', 'Số lượng', 'Còn lại', 'Trạng thái'],
-                rows: [
-                    ['KT001', 'Kinh tế học vi mô', 'KT001', '30', '23', 'Còn sách'],
-                    ['TC001', 'Nguyên lý kế toán', 'TC001', '40', '32', 'Còn sách'],
-                    ['KT002', 'Quản trị Marketing', 'KT002', '45', '36', 'Còn sách'],
-                    ['TC002', 'Phân tích báo cáo tài chính', 'TC002', '32', '22', 'Còn sách'],
-                    ['QL001', 'Quản trị nguồn nhân lực', 'QL001', '75', '64', 'Còn sách'],
-                    ['KT003', 'Kinh tế lượng cơ bản', 'KT003', '53', '41', 'Còn sách'],
-                ],
+                headers: ['MÃ SÁCH', 'TÊN SÁCH', 'MÃ SÁCH TRONG KHO', 'SỐ LƯỢNG', 'CÒN LẠI', 'TRẠNG THÁI'],
+                rows: reportData.stock || [],
             },
         };
 
-        // ── Helpers ───────────────────────────────────────────────────────────
         function pillClass(s) {
             const status = (s || '').toLowerCase();
             if (status.includes('quá hạn') || status.includes('sắp hết') || status.includes('chưa')) return 'badge-orange-solid';
@@ -213,6 +240,12 @@
         }
 
         function renderStats(stats) {
+            if (!stats || stats.length === 0) {
+                summarySection.style.display = 'none';
+                summarySection.innerHTML = '';
+                return;
+            }
+            summarySection.style.display = 'grid';
             summarySection.innerHTML = stats.map(s =>
                 `<div class="stat-card">
                 <div class="sc-label">${s.label}</div>
@@ -238,36 +271,39 @@
             }).join('');
         }
 
-        function filterFines(q) {
-            document.querySelectorAll('#fine-table-body tr').forEach(tr => {
-                tr.style.display = (!q || tr.textContent.toLowerCase().includes(q)) ? '' : 'none';
-            });
+        // Hiển thị card thống kê cố định đúng theo tab
+        function showStatCards(tab) {
+            document.getElementById('stat-returned').style.display = (tab === 'returned') ? '' : 'none';
+            document.getElementById('stat-lending').style.display = (tab === 'lending') ? '' : 'none';
+            document.getElementById('stat-stock').style.display = (tab === 'stock') ? '' : 'none';
         }
 
-        // ── Switch tab ────────────────────────────────────────────────────────
+        // Gọi khi chuyển tab
         function switchTab(key, filter) {
             currentTab = key;
             if (key === 'fines') {
                 dynamicTitle.textContent = 'Báo cáo phí phạt';
                 generalSection.style.display = 'none';
                 fineSection.style.display = '';
-                filterFines((filter || '').toLowerCase());
+                showStatCards('');
                 return;
             }
             fineSection.style.display = 'none';
             generalSection.style.display = '';
-            const cfg = tabData[key];
+            showStatCards(key);
+            const cfg = tabConfig[key];
             if (!cfg) return;
             dynamicTitle.textContent = cfg.title;
             generalHeading.textContent = cfg.heading;
-            renderStats(cfg.stats);
+            renderStats(statData[key] || []);
             renderTable(cfg, filter);
         }
 
-        // ── Init ──────────────────────────────────────────────────────────────
+        // Khởi tạo
         switchTab('returned', '');
+        showStatCards('returned');
 
-        // ── Events ────────────────────────────────────────────────────────────
+        // Sự kiện chuyển tab
         tabs.forEach(btn => btn.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
@@ -275,14 +311,11 @@
         }));
 
         filterBtn.addEventListener('click', () => switchTab(currentTab, searchInput.value));
-
         searchInput.addEventListener('keypress', e => {
             if (e.key === 'Enter') switchTab(currentTab, searchInput.value);
         });
-
         searchInput.addEventListener('input', () => {
             if (!searchInput.value) switchTab(currentTab, '');
-            else if (currentTab === 'fines') filterFines(searchInput.value.toLowerCase());
         });
     });
 </script>
