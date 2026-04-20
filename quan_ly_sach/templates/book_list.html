@@ -69,7 +69,7 @@
                         <td>{{ book.ten_nha_xuat_ban|default:"-" }}</td>
                         <td>{{ book.nam_xuat_ban }}</td>
                         <td>
-                            <div class="quantity-info" style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="quantity-info" style="display: flex; flex-direction: column; align-items: flex-start;">
                                 <div style="font-size: 15px;">
                                     <b style="{% if book.available_quantity > 0 %}color: #1e293b;{% else %}color: #ef4444;{% endif %}">
                                         {{ book.available_quantity }}
@@ -79,16 +79,6 @@
 
                                     <span style="color: #1e293b; font-weight: 500;">{{ book.total_quantity }}</span>
                                 </div>
-
-                                <small style="font-size: 11px; margin-top: 2px;">
-                                    {% if book.unavailable_quantity > 0 %}
-                                        <span style="color: #f59e0b;" title="Bao gồm: Mượn, Quá hạn, Hỏng...">
-                                             Mượn: {{ book.unavailable_quantity }}
-                                        </span>
-                                    {% else %}
-                                        <span style="color: #94a3b8;">Đầy đủ trên kệ</span>
-                                    {% endif %}
-                                </small>
                             </div>
                         </td>
                         <td>
