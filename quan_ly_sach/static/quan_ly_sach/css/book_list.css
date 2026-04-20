@@ -115,15 +115,33 @@
 }
 
 /* Badge trạng thái "CÓ SẴN" */
-.status-badge {
-    background: #3182ce;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 12px;
+table.status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 22px;
+    border-radius: 999px; /* pill shape */
+    font-size: 13px;
     font-weight: 700;
-    display: inline-block;
-    width: fit-content;
+    letter-spacing: 0.5px;
+
+    color: white;
+    text-transform: uppercase;
+
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+}
+
+/* trạng thái đang mượn */
+
+/* sẵn sàng */
+table .status-badge .status-available {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+/* hết sách */
+table .status-badge.status-unavailable {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
 /* =================================================
@@ -206,24 +224,29 @@
 }
 
 #bookAddBtn{
-    flex: 1.8;
-    height: 42px;
-    background-color: #2563eb;
-    color: white;
-    border-radius: 12px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
+    height: 44px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 184px;
+    border-radius: 10px;
 }
 #bookSearchBtn{
-    flex: 1.8;
-    height: 42px;
-    background-color: #ff5722;
-    color: white;
-    border-radius: 12px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
+    height: 44px;
+    width: 152px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 .btn-white {
     flex: 1;
