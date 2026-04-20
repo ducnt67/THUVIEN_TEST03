@@ -5,7 +5,6 @@
 /**
  * Hiển thị thông báo (Toast)
  * @param {string} type - 'success', 'error', 'info'
- * @param {string} message - Nội dung thông báo
  */
 function showToast(type, message) {
     const container = document.getElementById('toast-container');

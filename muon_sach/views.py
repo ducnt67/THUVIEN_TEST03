@@ -147,7 +147,6 @@ def api_delete_borrow_slip(request, pk):
             if pm.trang_thai == 'qua_han':
                 return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn quá hạn'}, status=200)
 
-            # Revert book status
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
                 sach_kho = ct.ma_sach_trong_kho
