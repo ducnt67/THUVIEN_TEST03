@@ -3,14 +3,41 @@ from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class PhieuMuon(models.Model):
+    TRANG_THAI_MUON_CHOICES = [
+        ('dang_muon', 'Đang mượn'),
+        ('qua_han', 'Quá hạn'),
+        ('da_tra', 'Đã trả'),
+    ]
     ma_phieu_muon = models.CharField(max_length=10, primary_key=True)
+
+    def save(self, *args, **kwargs):
+        if not self.ma_phieu_muon:
+            # Lấy phiếu mượn cuối cùng dựa trên mã
+            last_pm = PhieuMuon.objects.all().order_by('ma_phieu_muon').last()
+
+            if not last_pm:
+                # Nếu chưa có phiếu nào, bắt đầu từ PM0000001
+                self.ma_phieu_muon = 'PM0000001'
+            else:
+                # Cắt chuỗi bỏ 'PM', lấy phần số và tăng thêm 1
+                last_number = int(last_pm.ma_phieu_muon[2:])
+                new_number = last_number + 1
+                # Ghép lại với tiền tố PM và format 7 chữ số (tổng độ dài là 9)
+                self.ma_phieu_muon = 'PM' + str(new_number).zfill(7)
+
+        super(PhieuMuon, self).save(*args, **kwargs)
     ma_nguoi_dung = models.ForeignKey(
         'quan_ly_nguoi_dung.NguoiDung',
         on_delete=models.PROTECT,
         related_name='phieu_muon'
     )
     ngay_muon = models.DateField(default=timezone.now)
-    trang_thai = models.CharField(max_length=50)
+    trang_thai = models.CharField(
+        max_length=20,
+        choices=TRANG_THAI_MUON_CHOICES,
+        default='dang_muon',
+        verbose_name="Trạng thái mượn"
+    )
     nguoi_tao = models.ForeignKey(
         'quan_ly_nguoi_dung.NguoiDung',
         on_delete=models.PROTECT,
@@ -24,7 +51,7 @@ class PhieuMuon(models.Model):
         verbose_name_plural = 'Phiếu mượn'
 
     def __str__(self):
-        return self.ma_phieu_muon
+        return f"{self.ma_phieu_muon}- {self.get_trang_thai_display()}"
 
 
 class ChiTietPhieuMuon(models.Model):
