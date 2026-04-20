@@ -113,7 +113,7 @@
         {% if messages %}
             <div class="message-wrapper">
                 {% for message in messages %}
-                    <div class="message-box">{{ message }}</div>
+                    <div class="message-box django-message {{ message.tags }}">{{ message }}</div>
                 {% endfor %}
             </div>
         {% endif %}

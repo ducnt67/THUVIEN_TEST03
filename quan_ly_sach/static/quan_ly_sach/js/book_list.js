@@ -357,3 +357,70 @@ console.log("✅ Functions ready:", {
     viewDetail: typeof window.viewDetail,
     requestDelete: typeof window.requestDelete
 });
+
+/* =========================
+   TOAST NOTIFICATION SYSTEM
+========================= */
+
+window.showSuccess = function(message) {
+    // 1. Tạo hoặc lấy container
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        document.body.appendChild(container);
+    }
+
+    // 2. Tạo element toast
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+
+    // Cấu trúc chuẩn icon check trong vòng tròn
+    toast.innerHTML = `
+        <div class="toast-content">
+            <div class="toast-icon-circle">
+                <i class='bx bx-check'></i>
+            </div>
+            <span class="toast-msg">${message}</span>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // 3. Tự động xóa sau 3 giây
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => {
+            toast.remove();
+        }, 500);
+    }, 3000);
+};
+
+/* =================================================
+   8. SEARCH SYSTEM (JS ONLY)
+==================================================== */
+window.searchBook = function() {
+    // 1. Lấy giá trị từ ô nhập liệu
+    let input = document.getElementById("searchInput");
+    if (!input) return;
+
+    let filter = input.value.toLowerCase();
+
+    // 2. Lấy tất cả các dòng trong bảng (Tìm thẻ tbody tr để tránh lấy dòng tiêu đề)
+    let table = document.querySelector("table tbody");
+    if (!table) return;
+
+    let tr = table.getElementsByTagName("tr");
+
+    // 3. Lặp qua từng dòng để kiểm tra nội dung
+    for (let i = 0; i < tr.length; i++) {
+        let textContent = tr[i].textContent.toLowerCase();
+
+        // Nếu dòng chứa từ khóa thì hiện, ngược lại thì ẩn
+        if (textContent.includes(filter)) {
+            tr[i].style.display = "";
+        } else {
+            tr[i].style.display = "none";
+        }
+    }
+};

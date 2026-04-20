@@ -77,11 +77,26 @@ def book_list_view(request):
         # 1. Hành động Xóa
         if action == "delete":
             book = get_object_or_404(Sach, ma_sach=book_id)
-            if book.sach_trong_kho.exists():
-                messages.error(request, f"Không thể xóa sách '{book.ten_sach}' đang có trong kho.")
+
+            # Lấy các bản sao theo trạng thái
+            available_copies = book.sach_trong_kho.filter(trang_thai_sach='available')
+            not_available_copies = book.sach_trong_kho.exclude(trang_thai_sach='available')
+
+            # Xóa chỉ các bản available
+            deleted_count = available_copies.count()
+            available_copies.delete()
+
+            # Nếu vẫn còn bản đang mượn / quá hạn
+            if not_available_copies.exists():
+                messages.warning(
+                    request,
+                    f"Đã xóa {deleted_count} bản có sẵn. "
+                    f"Còn {not_available_copies.count()} bản đang được mượn / không thể xóa."
+                )
             else:
+                # Không còn bản nào → xóa luôn sách chính
                 book.delete()
-                messages.success(request, "Xóa sách thành công.")
+
             return redirect("book_list")
 
         # 2. Hành động Thêm bản sao (Modal riêng)
@@ -129,7 +144,7 @@ def book_list_view(request):
                     the_loai=category or None, ten_nha_xuat_ban=publisher or None,
                     nam_xuat_ban=year, so_luong=quantity
                 )
-                messages.success(request, "Thêm sách mới thành công.")
+
 
         # 4. Thực hiện Cập nhật
         elif action == "update":
@@ -145,7 +160,6 @@ def book_list_view(request):
                 book.nam_xuat_ban = year
                 book.so_luong = quantity
                 book.save()
-                messages.success(request, "Cập nhật thành công.")
 
         return redirect("book_list")
 

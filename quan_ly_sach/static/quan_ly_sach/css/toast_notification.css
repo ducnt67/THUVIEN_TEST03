@@ -1,169 +1,76 @@
-/* =================================================
-   TOAST NOTIFICATION SYSTEM
-==================================================== */
-
-/* 1. Container chính - Góc trên bên trái */
 #toastContainer {
     position: fixed;
-    top: 20px;
-    left: 20px;
-    z-index: 999999;
-    max-width: 400px;
-    pointer-events: none; /* Cho phép click qua container */
+    bottom: 30px;
+    right: 30px; /* Đã chuyển sang bên phải */
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Khoảng cách giữa các toast */
 }
 
-/* 2. Toast item - Hiên trôi lên */
-.toast {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #10b981; /* Màu xanh lá cho thành công */
+.toast-notification {
+    width: max-content;
+    min-width: 320px;
+    background-color: #ecfdf5;
+    border: 2px solid #d1fae5; /* Viền dày hơn tí cho rõ */
+    padding: 18px 25px; /* Tăng Height bằng cách tăng padding */
+    border-radius: 16px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-height: 60px;
-    pointer-events: auto; /* Cho phép click vào toast */
-    opacity: 0;
-    transform: translateX(-100%) translateY(-20px);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: toastInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-/* 3. Icon */
-.toast-icon {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: #10b981;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-/* 4. Content */
 .toast-content {
-    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.toast-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-    margin: 0 0 4px 0;
-    line-height: 1.3;
-}
-
-.toast-message {
-    font-size: 13px;
-    color: #64748b;
-    margin: 0;
-    line-height: 1.4;
-}
-
-/* 5. Nút close */
-.toast-close {
-    flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    background: none;
-    border: none;
-    color: #94a3b8;
-    cursor: pointer;
-    font-size: 16px;
-    line-height: 1;
-    padding: 0;
+/* Icon vòng tròn check - IN ĐẬM */
+.toast-icon-circle {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #059669; /* Tăng độ dày viền icon */
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s;
+    color: #059669;
+    font-size: 18px;
+    font-weight: 900; /* Icon in đậm */
+    flex-shrink: 0;
 }
 
-.toast-close:hover {
-    background: #f1f5f9;
-    color: #475569;
+/* Dấu tích bên trong - Làm đậm nét vẽ */
+.toast-icon-circle i {
+    font-size: 18px;
+    /* Đây là "phép thuật" để làm đậm icon nét mảnh */
+    -webkit-text-stroke: 2px #059669;
+    font-weight: 900;
+}
+/* Chữ thông báo - IN ĐẬM */
+.toast-msg {
+    color: #047857;
+    font-size: 16px;
+    font-weight: 700; /* Chữ in đậm (Bold) */
+    letter-spacing: 0.3px;
 }
 
-/* 6. Progress bar - Tùy ý */
-.toast-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    background: #10b981;
-    width: 100%;
-    transform-origin: left;
-    transition: transform 3s linear;
+/* Hiệu ứng trượt từ phải vào */
+@keyframes toastInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
-/* 7. States */
-.toast.show {
-    opacity: 1;
-    transform: translateX(0) translateY(0);
-}
-
-.toast.hide {
+.toast-notification.hide {
     opacity: 0;
-    transform: translateX(-100%) translateY(-20px);
-}
-
-/* 8. Variants */
-.toast.success {
-    border-left-color: #10b981;
-}
-
-.toast.success .toast-icon {
-    background: #10b981;
-}
-
-.toast.error {
-    border-left-color: #ef4444;
-}
-
-.toast.error .toast-icon {
-    background: #ef4444;
-}
-
-.toast.warning {
-    border-left-color: #f59e0b;
-}
-
-.toast.warning .toast-icon {
-    background: #f59e0b;
-}
-
-.toast.info {
-    border-left-color: #3b82f6;
-}
-
-.toast.info .toast-icon {
-    background: #3b82f6;
-}
-
-/* 9. Responsive */
-@media (max-width: 640px) {
-    #toastContainer {
-        left: 10px;
-        right: 10px;
-        max-width: none;
-    }
-    
-    .toast {
-        padding: 14px 16px;
-    }
-    
-    .toast-title {
-        font-size: 13px;
-    }
-    
-    .toast-message {
-        font-size: 12px;
-    }
+    transform: translateX(50px);
+    transition: all 0.3s ease;
 }
