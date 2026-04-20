@@ -25,22 +25,8 @@ def api_get_borrow_list(request):
     today = timezone.now().date()
     
     for s in slips:
-        chi_tiet = s.chi_tiet_phieu_muon.all()
-        
-        if not chi_tiet.exists():
-            status = 'dang_muon'
-        else:
-            all_returned = all(ct.ngay_tra is not None for ct in chi_tiet)
-            any_overdue = any(ct.ngay_tra is None and ct.han_tra < today for ct in chi_tiet)
-            
-            if all_returned:
-                status = 'da_tra'
-            elif any_overdue:
-                status = 'qua_han'
-            else:
-                status = 'dang_muon'
-
-        status_display = dict(PhieuMuon.TRANG_THAI_MUON_CHOICES).get(status, 'Đang mượn')
+        status = s.sync_status()
+        status_display = s.get_trang_thai_display()
         status_class = {
             'dang_muon': 'badge badge-blue-solid',
             'qua_han': 'badge badge-orange-solid',
@@ -53,12 +39,12 @@ def api_get_borrow_list(request):
             'userId': s.ma_nguoi_dung.ma_nguoi_dung,
             'userName': s.ma_nguoi_dung.ho_ten,
             'borrowDate': s.ngay_muon.strftime('%d/%m/%Y'),
-            'dueDate': chi_tiet[0].han_tra.strftime('%d/%m/%Y') if chi_tiet.exists() else '',
+            'dueDate': s.chi_tiet_phieu_muon.first().han_tra.strftime('%d/%m/%Y') if s.chi_tiet_phieu_muon.exists() else '',
             'status': status_display,
             'statusClass': status_class,
             'books': [
                 {'code': ct.ma_sach_trong_kho.ma_sach_trong_kho, 'title': ct.ma_sach_trong_kho.ma_sach.ten_sach, 'qty': 1}
-                for ct in chi_tiet
+                for ct in s.chi_tiet_phieu_muon.all()
             ]
         })
     return JsonResponse(data, safe=False)
@@ -69,7 +55,7 @@ def api_get_user_info(request):
     ma_nguoi_dung = request.GET.get('ma_nguoi_dung')
     try:
         user = NguoiDung.objects.get(ma_nguoi_dung=ma_nguoi_dung)
-        if user.loai_nguoi_dung != 'doc_gia':
+        if user.loai_nguoi_dung != 'doc_gia' or user.trang_thai_tot_nghiep:
             return JsonResponse({'success': False, 'message': 'Người dùng này không thể mượn sách'}, status=200)
         return JsonResponse({
             'success': True,
@@ -88,7 +74,7 @@ def api_get_book_info(request):
         if book.trang_thai_sach != 'available':
             return JsonResponse({
                 'success': False, 
-                'message': 'Mã sách không hợp lệ'
+                'message': 'Mã sách đã được mượn'
             }, status=200)
             
         return JsonResponse({
@@ -96,7 +82,7 @@ def api_get_book_info(request):
             'ten_sach': book.ma_sach.ten_sach
         })
     except SachTrongKho.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Mã sách không hợp lệ'}, status=200)
+        return JsonResponse({'success': False, 'message': 'Không tìm thấy sách'}, status=200)
 
 @login_required
 @require_POST
@@ -139,6 +125,9 @@ def api_create_borrow_slip(request):
                 )
                 sach_kho.trang_thai_sach = 'borrowed'
                 sach_kho.save()
+            
+            # Update final status (it might be 'qua_han' if due date is in the past)
+            pm.sync_status()
 
         return JsonResponse({'success': True, 'message': 'Thêm phiếu mượn thành công'})
     except Exception as e:
@@ -152,6 +141,10 @@ def api_delete_borrow_slip(request, pk):
     try:
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
+            
+            if pm.trang_thai == 'qua_han':
+                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn đã quá hạn'}, status=200)
+
             # Revert book status
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
@@ -160,7 +153,32 @@ def api_delete_borrow_slip(request, pk):
                 sach_kho.save()
             
             pm.delete()
-        return JsonResponse({'success': True, 'message': 'Đã xóa phiếu mượn thành công'})
+        return JsonResponse({'success': True, 'message': 'Xóa phiếu mượn thành công'})
+    except PhieuMuon.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
+@login_required
+@require_POST
+def api_extend_borrow_slip(request, pk):
+    try:
+        data = json.loads(request.body)
+        new_due_date = data.get('newDueDate')
+        
+        if not new_due_date:
+            return JsonResponse({'success': False, 'message': 'Thiếu ngày gia hạn mới'}, status=400)
+            
+        with transaction.atomic():
+            pm = PhieuMuon.objects.get(pk=pk)
+            
+            # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
+            pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(han_tra=new_due_date)
+            
+            # Cập nhật lại trạng thái (có thể từ Quá hạn sang Đang mượn)
+            pm.sync_status()
+            
+        return JsonResponse({'success': True, 'message': 'Gia hạn thành công'})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
     except Exception as e:

@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/book/info/', views.api_get_book_info, name='api_get_book_info'),
     path('api/borrow/create/', views.api_create_borrow_slip, name='api_create_borrow_slip'),
     path('api/borrow/delete/<str:pk>/', views.api_delete_borrow_slip, name='api_delete_borrow_slip'),
+    path('api/borrow/extend/<str:pk>/', views.api_extend_borrow_slip, name='api_extend_borrow_slip'),
 ]
