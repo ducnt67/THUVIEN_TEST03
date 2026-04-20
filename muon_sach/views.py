@@ -126,10 +126,9 @@ def api_create_borrow_slip(request):
                 sach_kho.trang_thai_sach = 'borrowed'
                 sach_kho.save()
             
-            # Update final status (it might be 'qua_han' if due date is in the past)
             pm.sync_status()
 
-        return JsonResponse({'success': True, 'message': 'Thêm phiếu mượn thành công'})
+        return JsonResponse({'success': True, 'message': 'Thêm thông tin mượn sách thành công'})
     except Exception as e:
         # Nếu lỗi là 'Mã sách không hợp lệ' thì giữ nguyên, không thì str(e)
         msg = str(e) if str(e) == 'Mã sách không hợp lệ' else f'Lỗi: {str(e)}'
@@ -142,10 +141,11 @@ def api_delete_borrow_slip(request, pk):
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
             
-            if pm.trang_thai == 'qua_han':
-                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn đã quá hạn'}, status=200)
+            if pm.trang_thai == 'dang_muon':
+                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn đang mượn'}, status=200)
 
-            # Revert book status
+            if pm.trang_thai == 'qua_han':
+                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn quá hạn'}, status=200)
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
                 sach_kho = ct.ma_sach_trong_kho

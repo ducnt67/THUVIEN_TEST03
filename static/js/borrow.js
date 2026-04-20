@@ -1,6 +1,7 @@
 /* ================================================================
    borrow.js – Quản lý mượn sách
-   Dùng cho: templates/circulation/borrow_list.html
+
+
 ================================================================ */
 document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('pmOverlay');
@@ -8,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchBtn = document.getElementById('borrowSearchBtn');
     const addBtn = document.getElementById('addBorrowBtn');
     const tableBody = document.getElementById('borrowTableBody');
-
     if (!tableBody) return;
 
     let slips = [];
@@ -143,21 +143,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const filtered = slips.filter(function (s) {
+            const hasKeywordInBooks = (s.books || []).some(function (b) {
+                return (b.code || '').toLowerCase().includes(keyword) ||
+                    (b.title || '').toLowerCase().includes(keyword);
+            });
+
             return (
-                s.slipCode.toLowerCase().includes(keyword) ||
-                s.userId.toLowerCase().includes(keyword) ||
-                s.userName.toLowerCase().includes(keyword)
+                (s.slipCode || '').toLowerCase().includes(keyword) ||
+                (s.userId || '').toLowerCase().includes(keyword) ||
+                (s.userName || '').toLowerCase().includes(keyword) ||
+                (s.status || '').toLowerCase().includes(keyword) ||
+                hasKeywordInBooks
             );
         });
 
         renderRows(filtered);
 
-        safeToast(
-            filtered.length ? 'success' : 'error',
-            filtered.length
-                ? `Tìm thấy ${filtered.length} phiếu mượn.`
-                : 'Không tìm thấy phiếu mượn phù hợp.'
-        );
+        if (filtered.length === 0) {
+            safeToast('error', 'Không tìm thấy phiếu mượn');
+        }
     }
 
     if (searchBtn) {
@@ -220,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.target.classList.contains('book-code-input')) {
                 const code = e.target.value.trim();
                 const titleInput = e.target.parentElement.querySelector('.book-title-input');
-                
+
                 if (!code) {
                     titleInput.value = '';
                     return;
@@ -255,14 +259,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (addUserId) addUserId.value = '';
             if (addUserName) addUserName.value = '';
-            
+
             // Set default dates
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
             if (addBorrowDate) {
                 addBorrowDate.value = todayStr;
             }
-            
+
             const due = new Date();
             due.setDate(now.getDate() + 30);
             const dueStr = due.toISOString().split('T')[0];
@@ -280,7 +284,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Auto-calculate Due Date
     const addBorrowDateEl = document.getElementById('addBorrowDate');
     if (addBorrowDateEl) {
-        addBorrowDateEl.addEventListener('change', function() {
+        addBorrowDateEl.addEventListener('change', function () {
             const bDateStr = this.value;
             if (bDateStr) {
                 const bDate = new Date(bDateStr);
