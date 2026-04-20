@@ -86,11 +86,31 @@ def return_list_view(request):
             'trang_thai': pm.trang_thai,
         })
 
+    # Lấy tất cả chính sách phạt hư hỏng từ CSDL
+    chinh_sach_hu_hong = ChinhSachPhat.objects.filter(muc_phat_hu_hong__isnull=False).order_by('muc_phat_hu_hong')
+    import json
+    damage_fines_dict = {}
+    for cs in chinh_sach_hu_hong:
+        if 'nhẹ' in cs.loai_phat.lower():
+            damage_fines_dict['light'] = float(cs.muc_phat_hu_hong)
+        elif 'vừa' in cs.loai_phat.lower():
+            damage_fines_dict['medium'] = float(cs.muc_phat_hu_hong)
+        elif 'nặng' in cs.loai_phat.lower():
+            damage_fines_dict['severe'] = float(cs.muc_phat_hu_hong)
+    damage_fines_json = json.dumps(damage_fines_dict)
+    
+    # Lấy mức phạt trễ hạn
+    chinh_sach_tre_han = ChinhSachPhat.objects.filter(loai_phat__icontains='Trễ hạn').first()
+    overdue_rate = float(chinh_sach_tre_han.muc_phat_moi_ngay) if chinh_sach_tre_han and chinh_sach_tre_han.muc_phat_moi_ngay else 0
+
     context = {
         'tab1_data': tab1_data,
         'tab2_data': tab2_data,
         'tab3_data': tab3_data,
         'tab4_data': tab4_data,
+        'damage_fines': damage_fines_json,
+        'chinh_sach_hu_hong': chinh_sach_hu_hong,
+        'overdue_rate': overdue_rate,
     }
     return render(request, 'tra_sach/return_list.html', context)
 
@@ -110,6 +130,7 @@ def api_xac_nhan_tra_sach(request):
         ma_sach_trong_kho = request.POST.get('ma_sach_trong_kho')
         tinh_trang = request.POST.get('tinh_trang_khi_tra')
         mo_ta_hu_hong = request.POST.get('mo_ta_hu_hong', '')
+        damage_level = request.POST.get('damage_level', '')  # nhận mức độ hư hỏng
         nguoi_xac_nhan = request.user
         if not (ma_phieu_muon and ma_sach_trong_kho and tinh_trang):
             return HttpResponseBadRequest('Thiếu thông tin bắt buộc')
@@ -162,7 +183,8 @@ def api_xac_nhan_tra_sach(request):
                 )
             # Xử lý phạt hư hỏng
             if tinh_trang == 'hu_hong':
-                chinh_sach_hu_hong = ChinhSachPhat.objects.filter(loai_phat__icontains='Hư hỏng').first()
+                # Lấy đúng chính sách phạt theo mã loại phạt truyền từ frontend
+                chinh_sach_hu_hong = ChinhSachPhat.objects.filter(ma_loai_phat=damage_level).first()
                 if chinh_sach_hu_hong:
                     so_tien_hu_hong = Decimal(chinh_sach_hu_hong.muc_phat_hu_hong or 0)
                     KhoanPhat.objects.create(
@@ -174,7 +196,7 @@ def api_xac_nhan_tra_sach(request):
                         so_tien=so_tien_hu_hong,
                         ngay_tao=timezone.now(),
                         trang_thai_tt='Chưa thanh toán',
-                        ly_do=f'Hư hỏng: {mo_ta_hu_hong}',
+                        ly_do=f'Hư hỏng mức độ {damage_level}: {mo_ta_hu_hong}',
                         nguoi_tao=nguoi_xac_nhan
                     )
             return JsonResponse({'success': True})

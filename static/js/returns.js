@@ -129,10 +129,14 @@ function resetReturnFormState() {
 }
 
 function updateReturnFeeSummary() {
-    const isDamaged = getSelectedRadioValue('returnCondition') === 'damaged';
-    const selectedDamageLevel = getSelectedRadioValue('damageLevel');
-    const damageFeeMap = { light: 30000, medium: 70000, severe: 120000 };
-    const damageFee = isDamaged ? (damageFeeMap[selectedDamageLevel] || 0) : 0;
+    const condition = getSelectedRadioValue('returnCondition');
+    const isDamaged = condition === 'damaged';
+    const checkedDamage = document.querySelector('input[name="damageLevel"]:checked');
+    
+    let damageFee = 0;
+    if (isDamaged && checkedDamage) {
+        damageFee = parseInt(checkedDamage.dataset.fee) || 0;
+    }
     const totalFine = overdueFineValue + damageFee;
 
     const setText = (id, value) => {
@@ -220,26 +224,46 @@ function submitReturnConfirm() {
     }
     markReturnConditionError(false);
 
-    try {
-        if (!selectedReturnRow) throw new Error('Missing row');
+    // Lấy các giá trị cần gửi
+    const damageLevel = getSelectedRadioValue('damageLevel');
+    const damageDescription = document.getElementById('damageDescription')?.value || '';
+    // Lấy thông tin từ selectedReturnRow
+    const ma_phieu_muon = selectedReturnRow?.dataset.loanId || '';
+    const ma_sach_trong_kho = selectedReturnRow?.dataset.bookCode || '';
 
-        selectedReturnRow.dataset.status = 'Đã trả';
-        selectedReturnRow.dataset.overdueDays = '0';
-        selectedReturnRow.classList.remove('row-overdue');
-
-        const statusCell = selectedReturnRow.querySelector('td:nth-child(7)');
-        const actionCell = selectedReturnRow.querySelector('td:nth-child(8)');
-        if (!statusCell || !actionCell) throw new Error('Invalid cells');
-
-        statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả</span>';
-        actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
-
-        closeAllPopups();
-        resetReturnFormState();
-        showToast('returnSuccess');
-    } catch (err) {
-        showToast('returnError');
-    }
+    // Gửi request xác nhận trả sách
+    fetch('/tra_sach/api/xac_nhan_tra_sach/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': window.CSRF_TOKEN || ''
+        },
+        body: new URLSearchParams({
+            ma_phieu_muon,
+            ma_sach_trong_kho,
+            tinh_trang_khi_tra: condition === 'damaged' ? 'hu_hong' : 'tot',
+            mo_ta_hu_hong: damageDescription,
+            damage_level: condition === 'damaged' ? damageLevel : ''
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            selectedReturnRow.dataset.status = 'Đã trả';
+            selectedReturnRow.dataset.overdueDays = '0';
+            selectedReturnRow.classList.remove('row-overdue');
+            const statusCell = selectedReturnRow.querySelector('td:nth-child(7)');
+            const actionCell = selectedReturnRow.querySelector('td:nth-child(8)');
+            if (statusCell) statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả</span>';
+            if (actionCell) actionCell.innerHTML = '<span class="action-disabled">Không khả dụng</span>';
+            closeAllPopups();
+            resetReturnFormState();
+            showToast('returnSuccess');
+        } else {
+            showToast('returnError', data.error || 'Xác nhận trả sách thất bại');
+        }
+    })
+    .catch(() => showToast('returnError'));
 }
 
 function markLostDateError(showError) {
