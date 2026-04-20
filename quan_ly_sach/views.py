@@ -68,9 +68,7 @@ def _build_book_context(request):
 
 @login_required
 def book_list_view(request):
-    # =========================
-    # XỬ LÝ POST (CREATE / UPDATE / DELETE / ADD COPIES)
-    # =========================
+    # XỬ LÝ POST (CREATE / UPDATE / DELETE / ADD COPIES
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
         book_id = request.POST.get("book_id", "").strip()
@@ -174,7 +172,7 @@ def book_list_view(request):
     context = _build_book_context(request)
     return shortcuts.render(request, "book_list.html", context)
 
-=======
+
 @login_required
 def book_list(request):
     """Entry point cho url 'book_list'"""
