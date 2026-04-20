@@ -15,12 +15,12 @@
 
 .data-table-scroll,
 .table-wrapper {
-    flex: 1;
-    min-height: 0;
     overflow: auto;
+    max-height: 480px; /* Chiều cao tối đa trước khi xuất hiện thanh cuộn */
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     background: #fff;
+    width: 100%;
 }
 
 .col-wrap {
@@ -586,17 +586,11 @@ table.table tbody tr:hover td {
 }
 
 .tab-content {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+    display: block; /* Chuyển sang block để co giãn theo nội dung */
 }
 
 .tab-pane {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
+    display: block;
 }
 
 .tab-pane-fixed {
@@ -606,7 +600,7 @@ table.table tbody tr:hover td {
     flex-direction: column;
 }
 
-.tab-pane-fixed > .data-table-scroll.table-wrapper {
+.tab-pane-fixed>.data-table-scroll.table-wrapper {
     flex: 1;
     min-height: 0;
 }
@@ -839,6 +833,7 @@ table.table tbody tr:hover td {
         transform: translateX(100%);
         opacity: 0;
     }
+
     to {
         transform: translateX(0);
         opacity: 1;
@@ -849,6 +844,7 @@ table.table tbody tr:hover td {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }

@@ -6,16 +6,19 @@
     background: var(--white);
     padding: 28px 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,.05);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
     border: 1px solid var(--border-color);
-    height: calc(100vh - 120px); /* Cố định chiều cao, trừ header và padding */
+    height: calc(100vh - 120px);
+    /* Cố định chiều cao, trừ header và padding */
     min-height: 600px;
     display: flex;
     flex-direction: column;
 }
 
 /* ── Search ─────────────────────────────────────────────────── */
-.search-group { margin-bottom: 30px; }
+.search-group {
+    margin-bottom: 30px;
+}
 
 .search-input-wrapper {
     position: relative;
@@ -35,7 +38,8 @@
 
 .search-input-wrapper input {
     flex: 1;
-    height: 44px; /* Chuẩn hóa 44px */
+    height: 44px;
+    /* Chuẩn hóa 44px */
     padding: 0 16px 0 40px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
@@ -43,9 +47,10 @@
     outline: none;
     transition: border-color .2s, box-shadow .2s;
 }
+
 .search-input-wrapper input:focus {
     border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
 }
 
 /* Nút Lọc cạnh thanh search */
@@ -53,7 +58,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    height: 44px; /* Chuẩn hóa 44px */
+    height: 44px;
+    /* Chuẩn hóa 44px */
     padding: 0 18px;
     background: #fff;
     border: 1px solid #e2e8f0;
@@ -65,8 +71,16 @@
     white-space: nowrap;
     transition: background .2s, border-color .2s;
 }
-.btn-filter:hover { background: #f8fafc; border-color: #cbd5e1; }
-.btn-filter i { font-size: 16px; color: #64748b; }
+
+.btn-filter:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.btn-filter i {
+    font-size: 16px;
+    color: #64748b;
+}
 
 /* ── Summary cards (dùng chung cho cả 4 tab) ──────────────── */
 .stat-grid {
@@ -101,10 +115,21 @@
     line-height: 1.2;
 }
 
-.sc-green { color: #10b981; }
-.sc-red   { color: #ef4444; }
-.text-green { color: #10b981; }
-.text-red   { color: #ef4444; }
+.sc-green {
+    color: #10b981;
+}
+
+.sc-red {
+    color: #ef4444;
+}
+
+.text-green {
+    color: #10b981;
+}
+
+.text-red {
+    color: #ef4444;
+}
 
 /* ── Tab buttons ────────────────────────────────────────────── */
 .report-tabs {
@@ -135,12 +160,15 @@
     transition: all 0.2s;
 }
 
-.sub-pill:hover { background: #e2e8f0; }
+.sub-pill:hover {
+    background: #e2e8f0;
+}
+
 .sub-pill.active {
     background: #fff;
     color: #1e293b;
     border-color: #1e293b;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .tab-btn {
@@ -154,8 +182,17 @@
     cursor: pointer;
     transition: all .2s;
 }
-.tab-btn:hover  { background: #f8fafc; }
-.tab-btn.active { border-color: #1e293b; background: #fff; color: #1e293b; font-weight: 700; }
+
+.tab-btn:hover {
+    background: #f8fafc;
+}
+
+.tab-btn.active {
+    border-color: #1e293b;
+    background: #fff;
+    color: #1e293b;
+    font-weight: 700;
+}
 
 /* ── Table shared ───────────────────────────────────────────── */
 .report-table-container {
@@ -163,7 +200,8 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: auto;
-    max-height: 420px; /* Giới hạn chiều cao bảng, chỉ scroll phần tbody */
+    max-height: 420px;
+    /* Giới hạn chiều cao bảng, chỉ scroll phần tbody */
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #fff;
@@ -182,13 +220,12 @@
     z-index: 2;
     background: #f8fafc;
     text-align: left;
-    padding: 11px 14px;
-    font-size: 11px; /* Slightly smaller for uppercase */
+    padding: 16px 14px;
+    font-size: 12px;
     font-weight: 700;
-    color: #64748b;
-    border-bottom: 2px solid #f1f5f9;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
     white-space: nowrap;
-    letter-spacing: .5px;
     text-transform: uppercase;
 }
 
@@ -199,16 +236,28 @@
     vertical-align: middle;
 }
 
-.report-table tr:last-child td { border-bottom: none; }
-.report-table tbody tr:hover   { background: #fafafa; }
+.report-table tr:last-child td {
+    border-bottom: none;
+}
+
+.report-table tbody tr:hover {
+    background: #fafafa;
+}
 
 /* Status pills removed - replaced by global badge system */
 
 /* ── Badges (fine table) ────────────────────────────────────── */
-.fine-table .badge-late { background: #fee2e2; color: #dc2626; }
+.fine-table .badge-late {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
 /* Solid badges are inherited from style.css */
 
-.fine-amount { font-weight: 700; color: #1e293b; }
+.fine-amount {
+    font-weight: 700;
+    color: #1e293b;
+}
 
 /* ── Heading trước fine cards ──────────────────────────────── */
 .fine-summary-heading {
@@ -227,33 +276,55 @@
 }
 
 /* ── Fade-in row animation ──────────────────────────────────── */
-.fade-in { animation: fadeIn .25s ease; }
+.fade-in {
+    animation: fadeIn .25s ease;
+}
+
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ── Responsive stat-grid ───────────────────────────────────── */
 @media (max-width: 1100px) {
+
     /* 4-col fine grid → 2 cols */
-    #fine-section .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    #fine-section .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
+
 @media (max-width: 700px) {
-    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
+
 @media (max-width: 480px) {
-    .stat-grid { grid-template-columns: 1fr !important; }
+    .stat-grid {
+        grid-template-columns: 1fr !important;
+    }
 }
+
 @media (max-width: 900px) {
     .reports-container {
         height: auto;
         min-height: 0;
         padding: 16px 4px;
     }
+
     .report-table-container {
         max-height: 320px;
     }
 }
+
 @media (max-width: 600px) {
     .report-table-container {
         max-height: 220px;

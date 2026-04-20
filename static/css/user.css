@@ -18,12 +18,9 @@
 }
 
 .user-table-section {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 120px);
-    min-height: 600px;
+    display: block; /* Để card co giãn theo nội dung bảng */
+    height: auto;
+    margin-bottom: 30px;
 }
 
 /* ===== Tiêu đề section đồng bộ book.css ===== */
@@ -139,28 +136,38 @@
 .table-container {
     border: 1px solid #edf2f7;
     border-radius: 8px;
-    overflow-x: hidden;
     margin-top: 10px;
-    flex: 1;
-    min-height: 0;
-    overflow-y: hidden;
-    height: auto;
-    max-height: none;
-    scrollbar-gutter: stable;
+    overflow: auto; /* Mở khóa cuộn */
+    max-height: 550px; /* Giới hạn chiều cao để không bị tràn màn hình */
     background: #fff;
 }
 
-/* Chi bat scroll khi so dong >= 5 */
-.table-container.has-scroll {
-    overflow-y: auto;
-    max-height: min(320px, calc(100vh - 430px));
+/* Custom Scrollbar cho trang Người dùng */
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
 #userTable {
     margin-top: 0;
-    min-width: 100%;
+    min-width: 1100px; /* Ép bảng rộng để không bị khuất dữ liệu */
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate; /* Cần cho sticky header */
+    border-spacing: 0;
     table-layout: fixed;
     font-size: 14px;
 }
