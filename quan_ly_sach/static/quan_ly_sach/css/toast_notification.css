@@ -1,0 +1,76 @@
+#toastContainer {
+    position: fixed;
+    bottom: 30px;
+    right: 30px; /* Đã chuyển sang bên phải */
+    z-index: 100000;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Khoảng cách giữa các toast */
+}
+
+.toast-notification {
+    width: max-content;
+    min-width: 320px;
+    background-color: #ecfdf5;
+    border: 2px solid #d1fae5; /* Viền dày hơn tí cho rõ */
+    padding: 18px 25px; /* Tăng Height bằng cách tăng padding */
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    animation: toastInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Icon vòng tròn check - IN ĐẬM */
+.toast-icon-circle {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #059669; /* Tăng độ dày viền icon */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #059669;
+    font-size: 18px;
+    font-weight: 900; /* Icon in đậm */
+    flex-shrink: 0;
+}
+
+/* Dấu tích bên trong - Làm đậm nét vẽ */
+.toast-icon-circle i {
+    font-size: 18px;
+    /* Đây là "phép thuật" để làm đậm icon nét mảnh */
+    -webkit-text-stroke: 2px #059669;
+    font-weight: 900;
+}
+/* Chữ thông báo - IN ĐẬM */
+.toast-msg {
+    color: #047857;
+    font-size: 16px;
+    font-weight: 700; /* Chữ in đậm (Bold) */
+    letter-spacing: 0.3px;
+}
+
+/* Hiệu ứng trượt từ phải vào */
+@keyframes toastInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast-notification.hide {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.3s ease;
+}

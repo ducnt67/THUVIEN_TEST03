@@ -152,7 +152,13 @@
     font-size: 30px !important;
 }
 
-
+#editBookModal .error-msg {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+        min-height: 15px;
+    }
 /* 7. ANIMATION */
 @keyframes modalPopUpEdit {
     from { opacity: 0; transform: scale(0.95) translateY(10px); }

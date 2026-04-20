@@ -4,38 +4,45 @@
         <h2>Thêm sách mới</h2>
         <p class="modal-subtitle">Nhập đầy đủ thông tin sách cần thêm vào thư viện</p>
 
-        <form id="addBookForm" method="POST">
+        <form id="addBookForm" action="{% url 'book_list' %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="action" value="create">
             <div class="form-grid">
+                <input type="hidden" id="addBookId" name="book_id" placeholder="Ví dụ: MS0001" required>
                 <div class="form-group">
                     <label>Tên sách <span style="color: red;">*</span></label>
                     <input type="text" id="addBookTitle" name="title">
+                    <span class="error-msg" id="err-title"></span>
                 </div>
                 <div class="form-group">
                     <label>Tác giả <span style="color: red;">*</span></label>
                     <input type="text" id="addBookAuthor" name="author">
+                    <span class="error-msg" id="err-author"></span>
                 </div>
                 <div class="form-group">
                     <label>Thể loại <span style="color: red;">*</span></label>
                     <input type="text" id="addBookType" name="category">
+                    <span class="error-msg" id="err-type"></span>
                 </div>
                 <div class="form-group">
                     <label>Nhà xuất bản <span style="color: red;">*</span></label>
                     <input type="text" id="addBookPublisher" name="publisher">
+                    <span class="error-msg" id="err-publisher"></span>
                 </div>
                 <div class="form-group">
                     <label>Năm xuất bản <span style="color: red;">*</span></label>
                     <input type="number" id="addBookYear" name="year">
+                    <span class="error-msg" id="err-year"></span>
                 </div>
                 <div class="form-group">
                     <label>Số lượng <span style="color: red;">*</span></label>
                     <input type="number" id="addBookQty" name="quantity">
+                    <span class="error-msg" id="err-qty"></span>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" onclick="openCancelModal()">Hủy</button>
-                <button type="submit" class="btn-save">Lưu</button>
+                <button type="submit" class="btn-save" onclick="showSuccess('Thêm thông tin sách thành công')">Lưu</button>
             </div>
         </form>
     </div>
