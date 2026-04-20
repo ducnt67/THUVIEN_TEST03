@@ -4,6 +4,7 @@
     </div>
     <div class="pm-body">
         <form id="borrowForm" onsubmit="submitAddBorrow(event)">
+            {% csrf_token %}
             <div class="pm-grid-4">
                 <div class="pm-field">
                     <label class="pm-label">Mã người dùng <span class="req">*</span></label>

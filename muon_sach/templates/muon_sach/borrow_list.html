@@ -16,7 +16,7 @@
         <div class="input-with-icon">
             <i class='bx bx-search'></i>
             <input id="borrowSearchInput" type="text" aria-label="Tìm phiếu mượn"
-                   placeholder="Nhập thông tin để tìm kiếm">
+                placeholder="Nhập thông tin để tìm kiếm">
         </div>
         <button id="borrowSearchBtn" class="btn btn-primary btn-orange" type="button">
             <i class='bx bx-search'></i> Tìm kiếm
@@ -41,15 +41,15 @@
                 <col style="width:13%">
             </colgroup>
             <thead>
-            <tr>
-                <th>Mã phiếu mượn</th>
-                <th>Mã người dùng</th>
-                <th>Tên người dùng</th>
-                <th>Ngày mượn</th>
-                <th>Ngày đến hạn</th>
-                <th>Tình trạng</th>
-                <th class="col-action">Thao tác</th>
-            </tr>
+                <tr>
+                    <th>Mã phiếu mượn</th>
+                    <th>Mã người dùng</th>
+                    <th>Tên người dùng</th>
+                    <th>Ngày mượn</th>
+                    <th>Ngày đến hạn</th>
+                    <th>Tình trạng</th>
+                    <th class="col-action">Thao tác</th>
+                </tr>
             </thead>
             <tbody id="borrowTableBody"></tbody>
         </table>
@@ -61,7 +61,6 @@
 <div id="pmOverlay" class="pm-overlay">
 
     {% include 'muon_sach/them_phieu_muon.html' %}
-
 
 
     {% include 'muon_sach/gia_han_muon_sach.html' %}
