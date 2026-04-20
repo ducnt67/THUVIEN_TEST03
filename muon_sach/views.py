@@ -84,12 +84,19 @@ def api_get_book_info(request):
     ma_sach_trong_kho = request.GET.get('ma_sach_trong_kho')
     try:
         book = SachTrongKho.objects.get(ma_sach_trong_kho=ma_sach_trong_kho)
+        # Kiểm tra trạng thái sách - chỉ cho mượn nếu 'available'
+        if book.trang_thai_sach != 'available':
+            return JsonResponse({
+                'success': False, 
+                'message': 'Mã sách không hợp lệ'
+            }, status=200)
+            
         return JsonResponse({
             'success': True,
             'ten_sach': book.ma_sach.ten_sach
         })
     except SachTrongKho.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Không tìm thấy sách trong kho'}, status=200)
+        return JsonResponse({'success': False, 'message': 'Mã sách không hợp lệ'}, status=200)
 
 @login_required
 @require_POST
@@ -120,6 +127,11 @@ def api_create_borrow_slip(request):
 
             for b in books:
                 sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
+                
+                # Backend validation: check status again in case of concurrent requests
+                if sach_kho.trang_thai_sach != 'available':
+                    raise Exception('Mã sách không hợp lệ')
+
                 ChiTietPhieuMuon.objects.create(
                     ma_phieu_muon=pm,
                     ma_sach_trong_kho=sach_kho,
@@ -129,5 +141,27 @@ def api_create_borrow_slip(request):
                 sach_kho.save()
 
         return JsonResponse({'success': True, 'message': 'Thêm phiếu mượn thành công'})
+    except Exception as e:
+        # Nếu lỗi là 'Mã sách không hợp lệ' thì giữ nguyên, không thì str(e)
+        msg = str(e) if str(e) == 'Mã sách không hợp lệ' else f'Lỗi: {str(e)}'
+        return JsonResponse({'success': False, 'message': msg}, status=400)
+
+@login_required
+@require_POST
+def api_delete_borrow_slip(request, pk):
+    try:
+        with transaction.atomic():
+            pm = PhieuMuon.objects.get(pk=pk)
+            # Revert book status
+            chi_tiet = pm.chi_tiet_phieu_muon.all()
+            for ct in chi_tiet:
+                sach_kho = ct.ma_sach_trong_kho
+                sach_kho.trang_thai_sach = 'available'
+                sach_kho.save()
+            
+            pm.delete()
+        return JsonResponse({'success': True, 'message': 'Đã xóa phiếu mượn thành công'})
+    except PhieuMuon.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)

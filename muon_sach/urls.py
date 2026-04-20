@@ -7,4 +7,5 @@ urlpatterns = [
     path('api/user/info/', views.api_get_user_info, name='api_get_user_info'),
     path('api/book/info/', views.api_get_book_info, name='api_get_book_info'),
     path('api/borrow/create/', views.api_create_borrow_slip, name='api_create_borrow_slip'),
+    path('api/borrow/delete/<str:pk>/', views.api_delete_borrow_slip, name='api_delete_borrow_slip'),
 ]

@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function () {
     tableBody.addEventListener('click', function (e) {
         const editBtn = e.target.closest('.btn-edit');
         if (editBtn) {
-            const id = parseInt(editBtn.getAttribute('data-id'), 10);
+            const id = editBtn.getAttribute('data-id');
             const slip = slips.find(function (s) {
                 return s.id === id;
             });
@@ -413,14 +413,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const delBtn = e.target.closest('.btn-del');
         if (delBtn) {
-            pendingDeleteId = parseInt(delBtn.getAttribute('data-id'), 10);
+            pendingDeleteId = delBtn.getAttribute('data-id');
             openPm('popup-delete-confirm');
             return;
         }
 
         const row = e.target.closest('tr[data-id]');
         if (row && !e.target.closest('.btn-edit') && !e.target.closest('.btn-del')) {
-            const rowId = parseInt(row.getAttribute('data-id'), 10);
+            const rowId = row.getAttribute('data-id');
             const slip = slips.find(function (s) {
                 return s.id === rowId;
             });
@@ -493,17 +493,32 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ========================
        CONFIRM DELETE
     ======================== */
-    window.confirmDelete = function () {
+    window.confirmDelete = async function () {
         if (pendingDeleteId === null) return;
 
-        slips = slips.filter(function (s) {
-            return s.id !== pendingDeleteId;
-        });
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const response = await fetch(`/api/borrow/delete/${pendingDeleteId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken
+                }
+            });
 
-        pendingDeleteId = null;
-        renderRows(slips);
-        window.closePm();
-        safeToast('success', 'Đã xóa phiếu mượn.');
+            const data = await response.json();
+            if (data.success) {
+                safeToast('success', data.message);
+                window.closePm();
+                fetchSlips(); // Refresh table
+            } else {
+                safeToast('error', data.message);
+            }
+        } catch (error) {
+            console.error('Error deleting borrow slip:', error);
+            safeToast('error', 'Lỗi hệ thống khi xóa phiếu mượn.');
+        } finally {
+            pendingDeleteId = null;
+        }
     };
 
     /* ========================
