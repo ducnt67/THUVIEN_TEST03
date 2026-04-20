@@ -174,7 +174,6 @@ def book_list_view(request):
     context = _build_book_context(request)
     return shortcuts.render(request, "book_list.html", context)
 
-=======
 @login_required
 def book_list(request):
     """Entry point cho url 'book_list'"""
