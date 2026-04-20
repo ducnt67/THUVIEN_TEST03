@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchBtn = document.getElementById('borrowSearchBtn');
     const addBtn = document.getElementById('addBorrowBtn');
     const tableBody = document.getElementById('borrowTableBody');
-
     if (!tableBody) return;
 
     let slips = [];
