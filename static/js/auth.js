@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const newPassword = document.getElementById('newPassword')?.value.trim();
             const confirmPassword = document.getElementById('confirmPassword')?.value.trim();
+            const otp = document.getElementById('resetOTP')?.value.trim();
             const email = window.currentResetEmail;
 
             if (!email) {
@@ -79,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (!newPassword || !confirmPassword) {
-                alert('Vui lòng nhập đầy đủ thông tin.');
+            if (!otp || !newPassword || !confirmPassword) {
+                alert('Vui lòng nhập đầy đủ thông tin (bao gồm mã OTP).');
                 return;
             }
 
@@ -104,6 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ 
                     email: email,
+                    otp: otp,
                     new_password: newPassword,
                     confirm_password: confirmPassword
                 })
