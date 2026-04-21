@@ -106,7 +106,7 @@ def forgot_password_view(request):
                 'message': f'Lỗi khi gửi email: {str(e)}'
             })
     else:
-        return JsonResponse({'success': False, 'message': 'Email không tồn tại trong hệ thống.'})
+        return JsonResponse({'success': False, 'message': 'Không tìm thấy tài khoản'})
 
 
 @require_POST
@@ -139,10 +139,10 @@ def reset_password_view(request):
     print(f"DEBUG: Session OTP: '{session_otp}', Input OTP: '{input_otp}'")
     
     if not session_otp or not session_email or session_email.lower() != email.lower():
-        return JsonResponse({'success': False, 'message': 'Phiên làm việc đã hết hạn hoặc không hợp lệ.'})
+        return JsonResponse({'success': False, 'message': 'Mã xác thực không hợp lệ hoặc đã hết hạn.'})
     
     if input_otp != session_otp:
-        return JsonResponse({'success': False, 'message': 'Mã xác thực (OTP) không chính xác.'})
+        return JsonResponse({'success': False, 'message': 'Mã xác thực không hợp lệ hoặc đã hết hạn.'})
 
     user = User.objects.filter(email__iexact=email).first()
     if not user:
@@ -156,8 +156,8 @@ def reset_password_view(request):
         user.save()
         
         # Xóa OTP sau khi đổi thành công
-        del request.session['reset_otp']
-        del request.session['reset_email']
+        request.session.pop('reset_otp', None)
+        request.session.pop('reset_email', None)
         
         return JsonResponse({'success': True, 'message': 'Đặt lại mật khẩu thành công.'})
     else:
