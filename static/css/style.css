@@ -257,6 +257,18 @@ img {
     margin-bottom: 10px;
 }
 
+.message-box.error, .message-box.danger {
+    border-left-color: var(--red);
+    background-color: #fef2f2;
+    color: #991b1b;
+}
+
+.message-box.success {
+    border-left-color: var(--green);
+    background-color: #f0fdf4;
+    color: #166534;
+}
+
 /* ===== DASHBOARD ===== */
 .overview-cards {
     display: grid;

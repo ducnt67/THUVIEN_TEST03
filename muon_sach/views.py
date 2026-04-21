@@ -1,11 +1,13 @@
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import permission_required
-from django.shortcuts import render
 from django.http import JsonResponse
+from django.contrib import messages
 from django.views.decorators.http import require_POST, require_GET
 from django.db import transaction
 from django.utils import timezone
 import json
+from datetime import datetime
 from .models import PhieuMuon, ChiTietPhieuMuon
 from quan_ly_nguoi_dung.models import NguoiDung
 from quan_ly_sach.models import SachTrongKho
@@ -157,11 +159,16 @@ def api_create_borrow_slip(request):
             )
 
             for b in books:
-                sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
+                try:
+                    sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
+                except SachTrongKho.DoesNotExist:
+                    raise Exception("Không tìm thấy sách")
                 
                 # Backend validation: check status again in case of concurrent requests
-                if sach_kho.trang_thai_sach != 'available':
-                    raise Exception('Mã sách không hợp lệ')
+                if sach_kho.trang_thai_sach == 'borrowed':
+                    raise Exception("Mã sách đã được mượn")
+                elif sach_kho.trang_thai_sach != 'available':
+                    raise Exception(f"Sách đang ở trạng thái '{sach_kho.get_trang_thai_sach_display()}', không thể mượn.")
 
                 ChiTietPhieuMuon.objects.create(
                     ma_phieu_muon=pm,
@@ -175,9 +182,7 @@ def api_create_borrow_slip(request):
 
         return JsonResponse({'success': True, 'message': 'Thêm thông tin mượn sách thành công'})
     except Exception as e:
-        # Nếu lỗi là 'Mã sách không hợp lệ' thì giữ nguyên, không thì str(e)
-        msg = str(e) if str(e) == 'Mã sách không hợp lệ' else f'Lỗi: {str(e)}'
-        return JsonResponse({'success': False, 'message': msg}, status=400)
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 @login_required
 @require_POST
@@ -188,10 +193,12 @@ def api_delete_borrow_slip(request, pk):
             pm = PhieuMuon.objects.get(pk=pk)
             
             if pm.trang_thai == 'dang_muon':
-                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn đang mượn'}, status=200)
+                messages.error(request, 'Không thể xóa phiếu mượn đang mượn')
+                return JsonResponse({'success': False, 'action': 'reload'})
 
             if pm.trang_thai == 'qua_han':
-                return JsonResponse({'success': False, 'message': 'Không thể xóa phiếu mượn quá hạn'}, status=200)
+                messages.error(request, 'Không thể xóa phiếu mượn quá hạn')
+                return JsonResponse({'success': False, 'action': 'reload'})
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
                 sach_kho = ct.ma_sach_trong_kho
@@ -219,6 +226,14 @@ def api_extend_borrow_slip(request, pk):
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
             
+            # Validation: New due date cannot be earlier than borrow date
+            try:
+                new_date_obj = datetime.strptime(new_due_date, '%Y-%m-%d').date()
+                if new_date_obj < pm.ngay_muon:
+                    return JsonResponse({'success': False, 'message': 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn'}, status=200)
+            except ValueError:
+                return JsonResponse({'success': False, 'message': 'Định dạng ngày không hợp lệ'}, status=200)
+
             # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
             pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(han_tra=new_due_date)
             
