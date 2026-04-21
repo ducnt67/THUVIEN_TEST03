@@ -125,7 +125,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
+
+    const resendOTPLink = document.getElementById('resendOTPLink');
+    if (resendOTPLink) {
+        resendOTPLink.addEventListener('click', function (e) {
+            e.preventDefault();
+            const email = window.currentResetEmail;
+            if (!email) {
+                alert('Phiên làm việc hết hạn. Vui lòng bắt đầu lại từ bước Quên mật khẩu.');
+                showModal('forgotModal');
+                return;
+            }
+
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            fetch('/forgot-password/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ email: email })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                });
+        });
+    }
 });
 
 window.showModal = showModal;
-
