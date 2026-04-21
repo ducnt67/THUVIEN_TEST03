@@ -554,9 +554,15 @@ document.addEventListener('DOMContentLoaded', function () {
     ======================== */
     window.saveDetailChanges = async function () {
         const newDate = document.getElementById('detDueDate')?.value || '';
+        const borrowDate = document.getElementById('detBorrowDate')?.value || '';
 
         if (!newDate) {
             safeToast('error', 'Vui lòng chọn ngày đến hạn mới.');
+            return;
+        }
+
+        if (borrowDate && newDate < borrowDate) {
+            safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
             return;
         }
 
@@ -596,6 +602,15 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const slip = slips.find(s => s.id == extSmallSlipId);
+        if (slip) {
+            const bDate = toIso(slip.borrowDate);
+            if (bDate && newDate < bDate) {
+                safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+                return;
+            }
+        }
+
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
             const response = await fetch(`/api/borrow/extend/${extSmallSlipId}/`, {
@@ -630,6 +645,15 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!newDate) {
             safeToast('error', 'Vui lòng chọn ngày đến hạn mới.');
             return;
+        }
+
+        const slip = slips.find(s => s.id == extLargeSlipId);
+        if (slip) {
+            const bDate = toIso(slip.borrowDate);
+            if (bDate && newDate < bDate) {
+                safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+                return;
+            }
         }
 
         try {
@@ -672,7 +696,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
+            if (response.redirected) {
+                console.log('Redirecting to:', response.url);
+                const currentUrl = new URL(window.location.href);
+                const targetUrl = new URL(response.url);
+                
+                // If redirecting to the same page, we need to force reload to show messages
+                if (currentUrl.pathname === targetUrl.pathname) {
+                    window.location.reload();
+                } else {
+                    window.location.href = response.url;
+                }
+                return;
+            }
+
             const data = await response.json();
+            if (data.action === 'reload') {
+                window.location.reload();
+                return;
+            }
+
             if (data.success) {
                 safeToast('success', data.message);
                 window.closePm();
