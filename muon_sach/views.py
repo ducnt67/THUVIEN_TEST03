@@ -157,11 +157,16 @@ def api_create_borrow_slip(request):
             )
 
             for b in books:
-                sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
+                try:
+                    sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
+                except SachTrongKho.DoesNotExist:
+                    raise Exception("Không tìm thấy sách")
                 
                 # Backend validation: check status again in case of concurrent requests
-                if sach_kho.trang_thai_sach != 'available':
-                    raise Exception('Mã sách không hợp lệ')
+                if sach_kho.trang_thai_sach == 'borrowed':
+                    raise Exception("Mã sách đã được mượn")
+                elif sach_kho.trang_thai_sach != 'available':
+                    raise Exception(f"Sách đang ở trạng thái '{sach_kho.get_trang_thai_sach_display()}', không thể mượn.")
 
                 ChiTietPhieuMuon.objects.create(
                     ma_phieu_muon=pm,
@@ -175,9 +180,7 @@ def api_create_borrow_slip(request):
 
         return JsonResponse({'success': True, 'message': 'Thêm thông tin mượn sách thành công'})
     except Exception as e:
-        # Nếu lỗi là 'Mã sách không hợp lệ' thì giữ nguyên, không thì str(e)
-        msg = str(e) if str(e) == 'Mã sách không hợp lệ' else f'Lỗi: {str(e)}'
-        return JsonResponse({'success': False, 'message': msg}, status=400)
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
 
 @login_required
 @require_POST
