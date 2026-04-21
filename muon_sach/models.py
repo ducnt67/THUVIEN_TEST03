@@ -7,6 +7,8 @@ class PhieuMuon(models.Model):
         ('dang_muon', 'Đang mượn'),
         ('qua_han', 'Quá hạn'),
         ('da_tra', 'Đã trả'),
+        ('dang_xu_ly', 'Đang xử lý'),
+        ('cho_den_sach', 'Chờ đền sách'),
     ]
     ma_phieu_muon = models.CharField(max_length=10, primary_key=True)
 
@@ -49,6 +51,9 @@ class PhieuMuon(models.Model):
         ordering = ['-ngay_muon']
         verbose_name = 'Phiếu mượn'
         verbose_name_plural = 'Phiếu mượn'
+        permissions = [
+            ('extend_phieumuon', 'Can extend borrow slip'),
+        ]
 
     def __str__(self):
         return f"{self.ma_phieu_muon}- {self.get_trang_thai_display()}"

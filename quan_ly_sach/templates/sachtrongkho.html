@@ -45,10 +45,15 @@
         </p>
     </div>
 
-    <div class="card table-section" style="background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; flex: 1; min-height: 0;">
-        <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 20px;">Kho sách</h2>
+    <div class="card table-section" style="background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+
+    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 20px;">
+        Kho sách
+    </h2>
+        <div style="max-height: 420px; overflow-y: auto; border-radius: 8px;">
 
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid #ddd;">
+
             <thead>
                 <tr>
                     <th style="padding: 12px; text-align: center; background: #007bff; color: #fff; border: 1px solid #ddd; font-weight: 600;">Mã sách trong kho</th>
@@ -90,6 +95,7 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
     </div>
 </div>
 

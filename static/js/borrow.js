@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const tableBody = document.getElementById('borrowTableBody');
     if (!tableBody) return;
 
+    const borrowPermissions = window.borrowPermissions || {};
+    const canDelete = !!borrowPermissions.canDelete;
+    const canExtend = !!borrowPermissions.canExtend;
+
     let slips = [];
 
     async function fetchSlips() {
@@ -107,6 +111,22 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         tableBody.innerHTML = rows.map(function (s) {
+            const actionButtons = [];
+            if (canExtend) {
+                actionButtons.push(`
+                    <button class="icon-btn edit btn-edit" data-id="${s.id}" title="Gia hạn">
+                        <i class="bx bx-calendar"></i>
+                    </button>
+                `);
+            }
+            if (canDelete) {
+                actionButtons.push(`
+                    <button class="icon-btn del btn-del" data-id="${s.id}" title="Xóa">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                `);
+            }
+
             return `
                 <tr data-id="${s.id}">
                     <td>${s.slipCode}</td>
@@ -118,13 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="${s.statusClass}">${s.status}</span>
                     </td>
                     <td class="col-action">
-                        <button class="icon-btn edit btn-edit" data-id="${s.id}" title="Gia hạn">
-                            <i class="bx bx-calendar"></i>
-                        </button>
-                        &nbsp;
-                        <button class="icon-btn del btn-del" data-id="${s.id}" title="Xóa">
-                            <i class="bx bx-trash"></i>
-                        </button>
+                        ${actionButtons.length ? actionButtons.join('&nbsp;') : '<span style="color:#9ca3af;">-</span>'}
                     </td>
                 </tr>
             `;
