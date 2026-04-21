@@ -21,9 +21,11 @@
         <button id="borrowSearchBtn" class="btn btn-primary btn-orange" type="button">
             <i class='bx bx-search'></i> Tìm kiếm
         </button>
-        <button id="addBorrowBtn" class="btn btn-primary btn-blue" type="button">
-            <i class='bx bx-plus'></i> Thêm phiếu mượn
-        </button>
+        {% if perms.muon_sach.add_phieumuon %}
+            <button id="addBorrowBtn" class="btn btn-primary btn-blue" type="button">
+                <i class='bx bx-plus'></i> Thêm phiếu mượn
+            </button>
+        {% endif %}
     </div>
 </section>
 
@@ -72,5 +74,11 @@
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    window.borrowPermissions = {
+        canDelete: {{ perms.muon_sach.delete_phieumuon|yesno:'true,false' }},
+        canExtend: {{ perms.muon_sach.extend_phieumuon|yesno:'true,false' }}
+    };
+</script>
 <script src="{% static 'js/borrow.js' %}"></script>
 {% endblock %}

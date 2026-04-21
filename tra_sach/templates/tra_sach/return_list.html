@@ -13,6 +13,129 @@
         text-align: left !important;
         padding-right: 16px !important;
     }
+
+    .table tr.row-group-start {
+        border-top: 2px solid #edf2f7 !important;
+    }
+
+    .table td[rowspan] {
+        vertical-align: middle !important;
+        background-color: #fcfdfe;
+        border-right: 1px solid #edf2f7 !important;
+        font-weight: 600;
+        color: #4a5568;
+    }
+
+    .table tr:hover td[rowspan] {
+        background-color: #f8fafc;
+    }
+
+    /* Tinh chỉnh thanh cuộn để tinh tế hơn */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Custom Modern Radio Buttons */
+    input[type="radio"] {
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        max-width: 18px !important;
+        max-height: 18px !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 50% !important;
+        background-color: #fff !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        outline: none !important;
+        vertical-align: middle !important;
+        position: relative !important;
+        transition: all 0.2s ease !important;
+    }
+
+    input[type="radio"]:checked {
+        border-color: #f97316 !important;
+    }
+
+    input[type="radio"]::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 10px !important;
+        height: 10px !important;
+        border-radius: 50% !important;
+        background-color: #f97316 !important;
+        display: none !important;
+    }
+
+    input[type="radio"]:checked::after {
+        display: block !important;
+    }
+
+
+    /* Text color change when checked */
+    label:has(input[type="radio"]:checked) span,
+    .selection-item:has(input[type="radio"]:checked) span {
+        color: #f97316 !important;
+        font-weight: 600 !important;
+    }
+
+
+    /* Selection states for radio groups */
+    .selection-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .selection-item:has(input:checked) {
+        background-color: #fff7ed !important;
+        border-color: #f97316 !important;
+    }
+
+    .selection-item:has(input:checked) span {
+        color: #f97316 !important;
+        font-weight: 600 !important;
+    }
+
+
+    /* Firefox fallback or older browsers might not support :has, but it's 2024+ target here */
+
+    /* Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -22,7 +145,8 @@
         <div class="search-bar">
             <div class="input-with-icon">
                 <i class='bx bx-search'></i>
-                <input id="searchInput" type="text" placeholder="Nhập thông tin để tìm kiếm" oninput="performSearch()" onkeyup="if(event.key === 'Enter') performSearch()">
+                <input id="searchInput" type="text" placeholder="Nhập thông tin để tìm kiếm" oninput="performSearch()"
+                    onkeyup="if(event.key === 'Enter') performSearch()">
             </div>
             <button class="btn btn-primary btn-orange" type="button" onclick="performSearch()">
                 <i class='bx bx-search'></i> Tìm kiếm
@@ -43,50 +167,57 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">Mã phiếu mượn</th>
-                            <th style="width: 15%;">Mã sách trong kho</th>
-                            <th style="width: 20%;">Tên sách</th>
+                            <th style="width: 12%;">Mã phiếu</th>
                             <th style="width: 15%;">Người mượn</th>
-                            <th style="width: 12%;">Ngày mượn</th>
-                            <th style="width: 12%;">Hạn trả</th>
+                            <th style="width: 10%;">Ngày mượn</th>
+                            <th style="width: 12%;">Mã sách</th>
+                            <th style="width: 18%;">Tên sách</th>
+                            <th style="width: 10%;">Hạn trả</th>
                             <th style="width: 10%;">Trạng thái</th>
-                            <th class="col-action"></th>
+                            <th class="col-action" style="width: 13%;"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in tab1_data %}
-                        <tr class="return-record {% if item.is_overdue %}row-overdue{% endif %}"
-                            data-loan-id="{{ item.ma_phieu_muon }}"
-                            data-book-code="{{ item.ma_sach_trong_kho }}"
-                            data-book-title="{{ item.ten_sach }}"
-                            data-borrower="{{ item.nguoi_muon }}"
-                            data-due-date="{{ item.han_tra|date:'d/m/Y' }}"
-                            data-status="{{ item.trang_thai }}"
-                            data-overdue-days="{{ item.so_ngay_qua_han }}"
-                            data-overdue-rate="{{ overdue_rate }}">
-                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
-                            <td>{{ item.ma_sach_trong_kho }}</td>
-                            <td class="col-wrap">{{ item.ten_sach }}</td>
-                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
-                            <td>{{ item.ngay_muon|date:'d/m/Y' }}</td>
-                            <td>{{ item.han_tra|date:'d/m/Y' }}</td>
-                            <td>
-                                {% if item.trang_thai == 'Đã trả' %}
-                                    <span class="badge-outline-blue">Đã trả</span>
-                                {% elif item.is_overdue %}
-                                    <span class="badge badge-orange-solid">Quá hạn</span>
+                        {% with slip_len=item.sach_list|length %}
+                        {% for book in item.sach_list %}
+                        <tr class="return-record {% if book.is_overdue %}row-overdue{% endif %} {% if forloop.first %}row-group-start{% endif %}"
+                            data-loan-id="{{ item.ma_phieu_muon }}" data-book-code="{{ book.ma_sach_trong_kho }}"
+                            data-book-title="{{ book.ten_sach }}" data-borrower="{{ item.nguoi_muon }}"
+                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}"
+                            data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}"
+                            data-lost-fee="{{ lost_fee }}">
+                            {% if forloop.first %}
+                            <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
+                            <td rowspan="{{ slip_len }}">{{ item.ngay_muon|date:'d/m/Y' }}</td>
+                            {% endif %}
+                            <td>{{ book.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ book.ten_sach }}</td>
+                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td class="col-status">
+                                {% if book.is_lost %}
+                                <span class="badge badge-red-solid">Đã mất</span>
+                                {% elif book.is_returned %}
+                                <span class="badge badge-green-solid">Đã trả</span>
+                                {% elif book.is_overdue %}
+                                <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
-                                    <span class="badge badge-blue-solid">Đang mượn</span>
+                                <span class="badge badge-blue-solid">Đang mượn</span>
                                 {% endif %}
                             </td>
                             <td class="col-action">
-                                {% if item.trang_thai == 'Đã trả' %}
-                                    <span class="action-disabled">Không khả dụng</span>
-                                {% else %}
-                                    <button class="btn-red return-confirm-trigger">Xác nhận trả</button>
-                                {% endif %}
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if not book.is_returned and not book.is_lost %}
+                                    <button class="btn-red return-confirm-trigger"
+                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Xác
+                                        nhận trả</button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
+                        {% endfor %}
+                        {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -101,7 +232,7 @@
                         <tr>
                             <th style="width: 15%;">Mã phạt</th>
                             <th style="width: 25%;">Người dùng</th>
-                            <th style="width: 20%;">Mã SV/GV</th>
+                            <th style="width: 20%;">Mã người dùng</th>
                             <th style="width: 30%;">Tổng tiền phạt chưa thanh toán</th>
                             <th class="col-action"></th>
                         </tr>
@@ -109,12 +240,20 @@
                     <tbody>
                         {% for item in tab2_data %}
                         <tr>
-                            <td><strong>{{ item.ma_nguoi_dung }}</strong></td>
+                            <td><strong>{{ forloop.counter }}</strong></td>
                             <td class="col-wrap">{{ item.ho_ten }}</td>
                             <td>{{ item.ma_nguoi_dung }}</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
+                            <td><span style="color: #ea580c; font-weight: 700;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
                             <td class="col-action">
-                                <button class="btn-blue-dark">Thanh toán</button>
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if item.tong_tien > 0 %}
+                                    <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Thanh toán</button>
+                                    {% else %}
+                                    <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Xem chi tiết</button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -129,40 +268,52 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">Mã phiếu mượn</th>
+                            <th style="width: 12%;">Mã phiếu</th>
+                            <th style="width: 20%;">Người mượn</th>
+                            <th style="width: 12%;">Mã sách</th>
                             <th style="width: 25%;">Tên sách</th>
-                            <th style="width: 15%;">Mã sách trong kho</th>
-                            <th style="width: 15%;">Người mượn</th>
-                            <th style="width: 10%;">Hạn trả</th>
+                            <th style="width: 12%;">Hạn trả</th>
                             <th style="width: 10%;">Trạng thái</th>
-                            <th class="col-action"></th>
+                            <th class="col-action" style="width: 12%;"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in tab3_data %}
-                        <tr class="lost-record"
-                            data-loan-id="{{ item.ma_phieu_muon }}"
-                            data-book-title="{{ item.ten_sach }}"
-                            data-book-code="{{ item.ma_sach_trong_kho }}"
-                            data-borrower="{{ item.nguoi_muon }}"
-                            data-due-date="{{ item.han_tra|date:'d/m/Y' }}"
-                            data-status="{{ item.trang_thai }}">
-                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
-                            <td class="col-wrap">{{ item.ten_sach }}</td>
-                            <td>{{ item.ma_sach_trong_kho }}</td>
-                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
-                            <td>{{ item.han_tra|date:'d/m/Y' }}</td>
-                            <td>
-                                {% if item.trang_thai == 'Đã trả' %}
-                                    <span class="badge badge-green-solid">Đã trả</span>
-                                {% elif item.trang_thai == 'Quá hạn' %}
-                                    <span class="badge badge-orange-solid">Quá hạn</span>
+                        {% with slip_len=item.sach_list|length %}
+                        {% for book in item.sach_list %}
+                        <tr class="lost-record {% if forloop.first %}row-group-start{% endif %}"
+                            data-loan-id="{{ item.ma_phieu_muon }}" data-book-title="{{ book.ten_sach }}"
+                            data-book-code="{{ book.ma_sach_trong_kho }}" data-borrower="{{ item.nguoi_muon }}"
+                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}" 
+                            data-lost-fee="{{ lost_fee }}" data-processing-fee="0">
+                            {% if forloop.first %}
+                            <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
+                            {% endif %}
+                            <td>{{ book.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ book.ten_sach }}</td>
+                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td class="col-status">
+                                {% if book.is_lost %}
+                                <span class="badge badge-red-solid">Đã mất</span>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:"d/m/Y" }}</div>
+                                {% elif book.is_overdue %}
+                                <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
-                                    <span class="badge badge-blue-solid">Đang mượn</span>
+                                <span class="badge badge-blue-solid">Đang mượn</span>
                                 {% endif %}
                             </td>
-                            <td class="col-action"><button class="btn-red lost-report-trigger" type="button">Báo mất</button></td>
+                            <td class="col-action col-action-lost">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if not book.is_lost %}
+                                    <button class="btn-red lost-report-trigger"
+                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Báo mất</button>
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
+                        {% endfor %}
+                        {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -175,43 +326,48 @@
                 <table class="table">
                     <thead>
                         <tr>
-                            <th style="width: 15%;">Mã hồ sơ</th>
-                            <th style="width: 25%;">Sách cần đền</th>
-                            <th style="width: 15%;">Mã sách</th>
+                            <th style="width: 15%;">Mã phiếu</th>
                             <th style="width: 20%;">Người đền</th>
+                            <th style="width: 15%;">Mã sách</th>
+                            <th style="width: 25%;">Sách cần đền</th>
                             <th style="width: 15%;">Ngày báo mất</th>
                             <th class="col-action">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
                         {% for item in tab4_data %}
-                        <tr class="compensate-record"
-                            data-record-id="{{ item.ma_phieu_muon }}"
-                            data-book-title="{{ item.ten_sach }}"
-                            data-book-code="{{ item.ma_sach_trong_kho }}"
-                            data-compensator="{{ item.nguoi_muon }}"
-                            data-report-date="{{ item.ngay_khai_bao_mat|date:'d/m/Y' }}"
-                            data-status="{{ item.trang_thai }}">
-                            <td><strong>{{ item.ma_phieu_muon }}</strong></td>
-                            <td class="col-wrap">{{ item.ten_sach }}</td>
-                            <td>{{ item.ma_sach_trong_kho }}</td>
-                            <td class="col-wrap">{{ item.nguoi_muon }}</td>
-                            <td>{{ item.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
-                            <td class="col-action">
-                                {% if item.trang_thai == 'Chờ đền sách' %}
-                                    <span class="badge badge-red-solid compensate-confirm-trigger" style="cursor:pointer;">Chờ đền sách</span>
+                        {% with slip_len=item.sach_list|length %}
+                        {% for book in item.sach_list %}
+                        <tr class="compensate-record {% if forloop.first %}row-group-start{% endif %}"
+                            data-record-id="{{ item.ma_phieu_muon }}" data-book-title="{{ book.ten_sach }}"
+                            data-book-code="{{ book.ma_sach_trong_kho }}" data-compensator="{{ item.nguoi_muon }}"
+                            data-report-date="{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}"
+                            data-status="{{ item.trang_thai }}"
+                            data-lost-fee="{{ lost_fee }}">
+                            {% if forloop.first %}
+                            <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
+                            <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
+                            {% endif %}
+                            <td>{{ book.ma_sach_trong_kho }}</td>
+                            <td class="col-wrap">{{ book.ten_sach }}</td>
+                            <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
+                            <td class="col-action col-status">
+                                {% if not book.is_completed %}
+                                    <span class="badge badge-red-solid compensate-confirm-trigger"
+                                        style="cursor:pointer;">Chờ đền sách</span>
                                 {% else %}
-                                    <span class="badge badge-green-solid">Đã xử lý</span>
+                                    <span class="badge badge-green-solid">Đã hoàn thành</span>
                                 {% endif %}
                             </td>
                         </tr>
+                        {% endfor %}
+                        {% endwith %}
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
 {% block popup %}
 <div class="popup-overlay" id="popupOverlay">
@@ -223,21 +379,39 @@
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div class="popup-content" style="padding:20px 24px 24px;">
-            <div class="info-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#f8f9fa; padding:20px 24px; border-radius:10px; border:1px solid #e5e7eb; margin-bottom:24px; row-gap:24px;">
-                <div style="min-width:0;"><div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Mã sách</div><strong id="returnBookCode">-</strong></div>
-                <div style="min-width:0;"><div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Tên sách</div><strong id="returnBookTitle">-</strong></div>
-                <div style="min-width:0;"><div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Người mượn</div><strong id="returnBorrower">-</strong></div>
-                <div style="min-width:0;"><div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Hạn trả</div><strong id="returnDueDate">-</strong></div>
+            <div class="info-grid"
+                style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#f8f9fa; padding:20px 24px; border-radius:10px; border:1px solid #e5e7eb; margin-bottom:24px; row-gap:24px;">
+                <div style="min-width:0;">
+                    <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Mã sách</div><strong
+                        id="returnBookCode">-</strong>
+                </div>
+                <div style="min-width:0;">
+                    <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Tên sách</div>
+                    <strong id="returnBookTitle">-</strong>
+                </div>
+                <div style="min-width:0;">
+                    <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Người mượn</div>
+                    <strong id="returnBorrower">-</strong>
+                </div>
+                <div style="min-width:0;">
+                    <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Hạn trả</div><strong
+                        id="returnDueDate">-</strong>
+                </div>
             </div>
             <div class="form-group mb-0" style="margin-bottom:20px;">
-                <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Tình trạng sách khi trả <span style="color:#ef4444;">*</span></div>
-                <div class="radio-group return-condition-group" id="returnConditionGroup" style="display:flex; flex-direction:column; gap:14px;">
-                    <label class="radio-label" style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
-                        <input type="radio" name="returnCondition" value="good" style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
+                <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Tình trạng sách khi trả
+                    <span style="color:#ef4444;">*</span>
+                </div>
+                <div class="radio-group return-condition-group" id="returnConditionGroup"
+                    style="display:flex; flex-direction:column; gap:14px;">
+                    <label class="radio-label"
+                        style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
+                        <input type="radio" name="returnCondition" value="good">
                         <span>Tốt</span>
                     </label>
-                    <label class="radio-label" style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
-                        <input type="radio" name="returnCondition" value="damaged" style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
+                    <label class="radio-label"
+                        style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
+                        <input type="radio" name="returnCondition" value="damaged">
                         <span>Hư hỏng</span>
                     </label>
                 </div>
@@ -247,40 +421,52 @@
                 <div class="section-title"><i class='bx bx-error-circle'></i> Thông tin hư hỏng</div>
                 <div class="form-group">
                     <label>Mức độ hư hỏng <span style="color:#ef4444;">*</span></label>
-                    <div class="radio-group" style="display:flex; gap:24px; flex-wrap:nowrap; align-items:center; white-space:nowrap;">
+                    <div class="radio-group"
+                        style="display:flex; gap:24px; flex-wrap:nowrap; align-items:center; white-space:nowrap;">
                         {% for cs in chinh_sach_hu_hong %}
                         <label class="radio-label" style="display:flex; align-items:center; gap:6px; margin:0;">
-                            <input type="radio" name="damageLevel" value="{{ cs.ma_loai_phat }}" data-fee="{{ cs.muc_phat_hu_hong|floatformat:0 }}" onchange="updateReturnFeeSummary()"> {{ cs.loai_phat }}
+                            <input type="radio" name="damageLevel" value="{{ cs.ma_loai_phat }}"
+                                data-fee="{{ cs.muc_phat_hu_hong|floatformat:0 }}" onchange="updateReturnFeeSummary()">
+                            {{ cs.loai_phat }}
                         </label>
                         {% empty %}
-                        <p style="font-size: 13px; color: #6b7280; font-style: italic;">Chưa cấu hình mức phạt hư hỏng.</p>
+                        <p style="font-size: 13px; color: #6b7280; font-style: italic;">Chưa cấu hình mức phạt hư hỏng.
+                        </p>
                         {% endfor %}
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="damageDescription">Mô tả tình trạng hư hỏng</label>
-                    <textarea id="damageDescription" class="form-input" rows="3" placeholder="Nhập mô tả tình trạng sách khi trả"></textarea>
+                    <textarea id="damageDescription" class="form-input" rows="3"
+                        placeholder="Nhập mô tả tình trạng sách khi trả"></textarea>
                 </div>
-                <div class="summary-row read-only-row"><span>Phí phạt hư hỏng tạm tính</span><strong id="damageFeeValue">0đ</strong></div>
+                <div class="summary-row read-only-row"><span>Phí phạt hư hỏng tạm tính</span><strong
+                        id="damageFeeValue">0đ</strong></div>
             </div>
             <div class="return-extra-section hidden" id="overdueSection">
                 <div class="section-title">Thông tin phạt trễ hạn</div>
                 <div class="summary-row"><span>Số ngày quá hạn</span><strong id="overdueDaysValue">0 ngày</strong></div>
                 <div class="summary-row"><span>Mức phạt mỗi ngày</span><strong id="overdueRateValue">0đ</strong></div>
-                <div class="summary-row read-only-row"><span>Phí phạt trễ hạn tạm tính</span><strong id="overdueFeeValue">0đ</strong></div>
+                <div class="summary-row read-only-row"><span>Phí phạt trễ hạn tạm tính</span><strong
+                        id="overdueFeeValue">0đ</strong></div>
             </div>
             <div class="return-summary-box">
                 <div class="section-title">Tổng hợp phí phạt tạm tính</div>
-                <div class="summary-row hidden" id="overdueSummaryRow"><span>Phí phạt trễ hạn</span><strong id="overdueSummaryValue">0đ</strong></div>
-                <div class="summary-row hidden" id="damageSummaryRow"><span>Phí phạt hư hỏng</span><strong id="damageSummaryValue">0đ</strong></div>
-                <div class="summary-row summary-total"><span>Tổng phí phạt</span><strong id="totalFineValue">0đ</strong></div>
+                <div class="summary-row hidden" id="overdueSummaryRow"><span>Phí phạt trễ hạn</span><strong
+                        id="overdueSummaryValue">0đ</strong></div>
+                <div class="summary-row hidden" id="damageSummaryRow"><span>Phí phạt hư hỏng</span><strong
+                        id="damageSummaryValue">0đ</strong></div>
+                <div class="summary-row summary-total"><span>Tổng phí phạt</span><strong id="totalFineValue">0đ</strong>
+                </div>
             </div>
         </div>
-        <div class="popup-footer" style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
+        <div class="popup-footer"
+            style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
             <button class="btn btn-outline" type="button" onclick="requestCloseReturnPopup()"
                 style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none;">Hủy</button>
             <button class="btn btn-orange" type="button" onclick="submitReturnConfirm()"
-                style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác nhận</button>
+                style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác
+                nhận</button>
         </div>
     </div>
     <div id="popup-return-cancel-confirm" class="popup-modal"
@@ -291,9 +477,11 @@
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div class="popup-content" style="padding:20px 24px 24px;">
-            <p class="confirm-message">Bạn có chắc muốn hủy thao tác trả sách không? Các thông tin đã nhập sẽ không được lưu.</p>
+            <p class="confirm-message">Bạn có chắc muốn hủy thao tác trả sách không? Các thông tin đã nhập sẽ không được
+                lưu.</p>
         </div>
-        <div class="popup-footer" style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
+        <div class="popup-footer"
+            style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
             <button class="btn btn-outline" type="button" onclick="backToReturnPopup()">Quay lại</button>
             <button class="btn btn-orange" type="button" onclick="confirmCancelReturnPopup()">Xác nhận hủy</button>
         </div>
@@ -306,45 +494,60 @@
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div class="popup-content" style="padding:20px 24px 24px;">
-            <div class="info-grid" style="display:flex; flex-direction:column; gap:20px; background:#f8f9fa; padding:24px; border-radius:12px; border:1px solid #e5e7eb; margin-bottom:10px;">
+            <div class="info-grid"
+                style="display:flex; flex-direction:column; gap:20px; background:#f8f9fa; padding:24px; border-radius:12px; border:1px solid #e5e7eb; margin-bottom:10px;">
                 <div style="border-bottom:1px solid #e5e7eb; padding-bottom:20px;">
                     <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Mã hồ sơ</div>
                     <strong id="compRecordId" style="font-size:18px; color:#111827;">-</strong>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px 20px;">
                     <div style="min-width:0;">
-                        <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Sách cần đền</div>
-                        <strong id="compBookTitle" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                        <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Sách cần đền
+                        </div>
+                        <strong id="compBookTitle"
+                            style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                     </div>
                     <div style="min-width:0;">
                         <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Mã sách</div>
-                        <strong id="compBookCode" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                        <strong id="compBookCode"
+                            style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                     </div>
                     <div style="min-width:0;">
                         <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Người đền</div>
-                        <strong id="compBorrower" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                        <strong id="compBorrower"
+                            style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                     </div>
                     <div style="min-width:0;">
-                        <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Ngày báo mất</div>
-                        <strong id="compReportDate" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                        <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Ngày báo mất
+                        </div>
+                        <strong id="compReportDate"
+                            style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                     </div>
                 </div>
             </div>
             <div class="form-group" style="margin-top:16px;">
-                <label style="font-weight:700; font-size:13px; margin-bottom:10px; display:flex; align-items:center; gap:4px; color:#111827; white-space:nowrap;">Tình trạng sách đền <span style="color:#ef4444;">*</span></label>
-                <div id="compInspectionGroup" class="radio-group" style="display:flex; gap:14px; flex-wrap:nowrap; align-items:center;">
-                    <label class="radio-label" style="display:inline-flex; align-items:center; gap:8px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; background:#fff; white-space:nowrap; flex:0 0 auto;">
+                <label
+                    style="font-weight:700; font-size:13px; margin-bottom:10px; display:flex; align-items:center; gap:4px; color:#111827; white-space:nowrap;">Tình
+                    trạng sách đền <span style="color:#ef4444;">*</span></label>
+                <div id="compInspectionGroup" class="radio-group"
+                    style="display:flex; gap:14px; flex-wrap:nowrap; align-items:center;">
+                    <label class="radio-label"
+                        style="display:inline-flex; align-items:center; gap:8px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; background:#fff; white-space:nowrap; flex:0 0 auto;">
                         <input type="radio" name="compInspectionResult" value="pass"> Đạt yêu cầu
                     </label>
-                    <label class="radio-label" style="display:inline-flex; align-items:center; gap:8px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; background:#fff; white-space:nowrap; flex:0 0 auto;">
+                    <label class="radio-label"
+                        style="display:inline-flex; align-items:center; gap:8px; border:1px solid #e5e7eb; border-radius:8px; padding:10px 12px; background:#fff; white-space:nowrap; flex:0 0 auto;">
                         <input type="radio" name="compInspectionResult" value="fail"> Không đạt yêu cầu
                     </label>
                 </div>
                 <p id="compInspectionError" class="field-error hidden">Vui lòng chọn kết quả kiểm tra sách đền.</p>
             </div>
             <div class="form-group" style="margin-top:14px;">
-                <label for="compInspectionNote" style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ghi chú kiểm tra</label>
-                <textarea id="compInspectionNote" class="form-input" rows="3" placeholder="Nhập ghi chú kiểm tra nếu cần"></textarea>
+                <label for="compInspectionNote"
+                    style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ghi chú
+                    kiểm tra</label>
+                <textarea id="compInspectionNote" class="form-input" rows="3"
+                    placeholder="Nhập ghi chú kiểm tra nếu cần"></textarea>
             </div>
             <div class="return-summary-box" style="margin-top:14px;">
                 <div class="section-title">Kết quả sau xác nhận</div>
@@ -352,9 +555,13 @@
                 <div class="summary-row"><span>Trạng thái sách nhập kho</span><strong>Sẵn sàng</strong></div>
             </div>
         </div>
-        <div class="popup-footer" style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f0f0f0; padding:16px 20px;">
-            <button class="btn btn-outline" type="button" onclick="closeAllPopups()" style="padding:10px 28px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none;">Hủy</button>
-            <button class="btn btn-red" type="button" onclick="submitCompensateConfirm()" style="padding:10px 28px; background:#ff5722; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác nhận</button>
+        <div class="popup-footer"
+            style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f0f0f0; padding:16px 20px;">
+            <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                style="padding:10px 28px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none;">Hủy</button>
+            <button class="btn btn-red" type="button" onclick="submitCompensateConfirm()"
+                style="padding:10px 28px; background:#ff5722; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác
+                nhận</button>
         </div>
     </div>
     <div id="popup-lost-book" class="popup-modal"
@@ -365,154 +572,254 @@
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div class="popup-content" style="padding:20px 24px 24px;">
-            <div class="info-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#f8f9fa; padding:20px 24px; border-radius:10px; border:1px solid #e5e7eb; margin-bottom:24px;">
+            <div class="info-grid"
+                style="display:grid; grid-template-columns:1fr 1fr; gap:20px; background:#f8f9fa; padding:20px 24px; border-radius:10px; border:1px solid #e5e7eb; margin-bottom:24px;">
                 <div style="min-width:0;">
                     <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Tên sách</div>
-                    <strong id="lostBookTitle" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                    <strong id="lostBookTitle"
+                        style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                 </div>
                 <div style="min-width:0;">
                     <div style="color:#6b7280; font-size:12px; margin-bottom:6px; font-weight:600;">Người dùng</div>
-                    <strong id="lostBorrowerName" style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
+                    <strong id="lostBorrowerName"
+                        style="font-size:15px; color:#111827; display:block; word-break:break-word;">-</strong>
                 </div>
             </div>
             <div class="form-group" style="margin-bottom:22px;">
-                <label style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ngày khai báo mất <span style="color:#ef4444;">*</span></label>
+                <label style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ngày
+                    khai báo mất <span style="color:#ef4444;">*</span></label>
                 <div style="position:relative; display:flex; align-items:center;">
                     <input type="date" id="lostReportDate" class="form-input" placeholder="Chọn ngày"
                         style="width:100%; padding:12px 12px 12px 16px; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-size:14px; box-sizing:border-box;">
-                    <i class='bx bx-calendar' style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:#6b7280; pointer-events:none;"></i>
+                    <i class='bx bx-calendar'
+                        style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:#6b7280; pointer-events:none;"></i>
                 </div>
                 <p id="lostDateError" class="field-error hidden">Vui lòng chọn ngày hợp lệ</p>
             </div>
             <div class="form-group" style="margin-bottom:22px;">
-                <label style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ghi chú</label>
+                <label style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ghi
+                    chú</label>
                 <textarea id="lostNote" class="form-input" placeholder="Nhập ghi chú (tùy chọn)"
                     style="width:100%; padding:12px 16px; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-family:inherit; resize:none; height:100px; font-size:14px; box-sizing:border-box;"></textarea>
             </div>
             <div class="form-group mb-0" style="margin-bottom:20px;">
-                <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Phương án bồi hoàn <span style="color:#ef4444;">*</span></div>
-                <div class="radio-group" id="lostCompensateGroup" style="display:flex; flex-direction:column; gap:14px;">
-                    <label class="radio-label" style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e5e7eb; transition:all 0.2s;">
-                        <input type="radio" name="compensateMethod" value="money" style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
-                        <span style="flex:1;">Bồi thường tiền</span>
+                <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Phương án bồi hoàn
+                    <span style="color:#ef4444;">*</span>
+                </div>
+                <div class="radio-group" id="lostCompensateGroup"
+                    style="display:flex; flex-direction:column; gap:10px;">
+                    <label class="selection-item" style="margin-bottom:0;">
+                        <input type="radio" name="compensateMethod" value="money">
+                        <span style="flex:1; font-size:14px;">Bồi thường tiền</span>
                     </label>
-                    <label class="radio-label" style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e5e7eb; transition:all 0.2s;">
-                        <input type="radio" name="compensateMethod" value="book" style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
-                        <span>Đền sách mới</span>
+                    <label class="selection-item" style="margin-bottom:0;">
+                        <input type="radio" name="compensateMethod" value="book">
+                        <span style="flex:1; font-size:14px;">Đền sách mới</span>
                     </label>
                 </div>
                 <p id="lostMethodError" class="field-error hidden">Vui lòng chọn phương án bồi hoàn.</p>
             </div>
             <div class="return-summary-box" id="lostOutcomeBox">
                 <div class="section-title">Kết quả xử lý và phí phát sinh</div>
-                <div class="summary-row"><span>Khoản phạt phát sinh</span><strong id="lostFineCreation">Chưa xác định</strong></div>
+                <div class="summary-row"><span>Khoản phạt phát sinh</span><strong id="lostFineCreation">Chưa xác
+                        định</strong></div>
                 <div class="summary-row"><span>Loại phạt</span><strong id="lostFineType">-</strong></div>
                 <div class="summary-row"><span>Trạng thái khoản phạt</span><strong id="lostFineStatus">-</strong></div>
-                <div class="summary-row"><span>Phí xử lý</span><strong id="lostProcessingFee">0đ</strong></div>
-                <div class="summary-row"><span>Trạng thái bản ghi sau xử lý</span><strong id="lostRecordNextStatus">-</strong></div>
-                <div class="summary-row summary-total"><span>Tổng số tiền phải thu</span><strong id="lostTotalAmount">0đ</strong></div>
+                <div class="summary-row"><span>Giá trị đền bù</span><strong id="lostProcessingFee">0đ</strong></div>
+                <div class="summary-row"><span>Trạng thái bản ghi sau xử lý</span><strong
+                        id="lostRecordNextStatus">-</strong></div>
+                <div class="summary-row summary-total"><span>Tổng số tiền phải thu</span><strong
+                        id="lostTotalAmount">0đ</strong></div>
             </div>
-            <p id="lostOutcomeHint" class="section-label" style="font-size:12px; color:#64748b; margin-top:10px; margin-bottom:0;">Chọn phương án bồi hoàn để xem kết quả nghiệp vụ.</p>
+            <p id="lostOutcomeHint" class="section-label"
+                style="font-size:12px; color:#64748b; margin-top:10px; margin-bottom:0;">Chọn phương án bồi hoàn để xem
+                kết quả nghiệp vụ.</p>
         </div>
-        <div class="popup-footer" style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
+        <div class="popup-footer"
+            style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
             <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
                 style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none;">Hủy</button>
             <button class="btn btn-orange" type="button" onclick="submitLostBookReport()"
-                style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác nhận</button>
+                style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác
+                nhận</button>
+        </div>
+    </div>
+    <div id="popup-compensate-confirm" class="popup-modal"
+        style="display:none; width:min(680px, 96vw); background:#fff; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.15); max-height:90vh; overflow:hidden; flex-direction:column;">
+        <div class="popup-header" style="position:relative; padding:28px 24px 12px 24px;">
+            <h3 style="font-weight:700; font-size:24px; width:100%; text-align:center; margin:0; color:#111827;">Xác
+                nhận đền sách</h3>
+            <button class="popup-close" type="button" onclick="closeAllPopups()"
+                style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:24px; top:24px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+        <div class="popup-content" style="padding:10px 32px 32px;">
+            <div class="info-card"
+                style="background:#fff; padding:28px; border-radius:16px; border:1px solid #f1f5f9; margin-bottom:24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <div style="margin-bottom:24px;">
+                    <div
+                        style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                        Mã hồ sơ</div>
+                    <strong id="compRecordId" style="font-size:20px; color:#111827; font-weight:800;">-</strong>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px 40px;">
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Sách cần đền</div>
+                        <strong id="compBookTitle"
+                            style="font-size:17px; color:#111827; font-weight:700; line-height:1.4;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Mã sách</div>
+                        <strong id="compBookCode" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Người đền</div>
+                        <strong id="compBorrower" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Ngày khai báo</div>
+                        <strong id="compReportDate" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="font-weight:700; font-size:14px; margin-bottom:12px; display:block; color:#111827;">Kết
+                    quả kiểm tra sách mới <span style="color:#ef4444;">*</span></label>
+                <div class="radio-group" id="compInspectionGroup"
+                    style="display:flex; flex-direction:column; gap:12px;">
+                    <label class="selection-item" style="margin-bottom:0; padding:14px 18px;">
+                        <input type="radio" name="compInspectionResult" value="pass">
+                        <span style="flex:1; font-size:14px; font-weight:500;">Đạt yêu cầu (Sách mới, đúng tiêu
+                            chuẩn)</span>
+                    </label>
+                    <label class="selection-item" style="margin-bottom:0; padding:14px 18px;">
+                        <input type="radio" name="compInspectionResult" value="fail">
+                        <span style="flex:1; font-size:14px; font-weight:500;">Không đạt yêu cầu (Sách cũ, hư hại, sai
+                            đầu sách)</span>
+                    </label>
+                </div>
+                <p id="compInspectionError" class="field-error hidden" style="margin-top:8px;">Vui lòng xác nhận kết quả
+                    kiểm tra trước khi hoàn tất.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="compInspectionNote"
+                    style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Ghi chú
+                    bổ sung</label>
+                <textarea id="compInspectionNote" class="form-input"
+                    placeholder="Nhập mã vạch sách mới hoặc ghi chú tình trạng (nếu có)"
+                    style="width:100%; padding:14px 18px; border:1px solid #f1f5f9; background:#fcfdfe; border-radius:10px; outline:none; font-family:inherit; resize:none; height:90px; font-size:14px; box-sizing:border-box; transition:all 0.2s;"></textarea>
+            </div>
+        </div>
+        <div class="popup-footer"
+            style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f8fafc; padding:24px 32px; background:#fff;">
+            <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                style="padding:12px 40px; border:1px solid #e5e7eb; background:#fff; border-radius:10px; font-weight:600; cursor:pointer; color:#475569; outline:none; transition:all 0.2s;">Hủy</button>
+            <button class="btn btn-orange" type="button" onclick="submitCompensateConfirm()"
+                style="padding:12px 40px; background:#f97316; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.2); transition:all 0.2s;">Xác
+                nhận hoàn tất</button>
         </div>
     </div>
     <div id="popup-payment" class="popup-modal popup-payment"
         style="display:none; flex-direction:column; width:920px; max-width:96vw; background:#fff; border-radius:16px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.15); max-height:90vh; overflow:hidden;">
-        <div style="flex-shrink:0; position:relative; background:#fff; border-bottom:1px solid #f0f0f0; padding:20px 28px 16px 28px; border-radius:16px 16px 0 0;">
-            <h3 style="font-weight:700; font-size:20px; text-align:center; margin:0; color:#111827;">Thanh toán phí phạt</h3>
-            <button type="button" onclick="document.getElementById('popupOverlay').style.display='none'; document.getElementById('popup-payment').style.display='none';"
+        <div
+            style="flex-shrink:0; position:relative; background:#fff; border-bottom:1px solid #f0f0f0; padding:20px 28px 16px 28px; border-radius:16px 16px 0 0;">
+            <h3 style="font-weight:700; font-size:20px; text-align:center; margin:0; color:#111827;">Thanh toán phí phạt
+            </h3>
+            <button type="button"
+                onclick="document.getElementById('popupOverlay').style.display='none'; document.getElementById('popup-payment').style.display='none';"
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:50%; transform:translateY(-50%); color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div style="flex:1; overflow-y:auto; padding:20px 28px 4px 28px;">
-            <div style="border:1px solid #e5e7eb; padding:14px 20px; border-radius:10px; margin-bottom:18px;">
+            <div style="border:1px solid #f1f5f9; padding:14px 20px; border-radius:10px; margin-bottom:18px;">
                 <div style="color:#f97316; font-size:12px; font-weight:600; margin-bottom:4px;">Người dùng</div>
-                <strong style="font-size:16px; color:#111827; font-weight:700;">Trần Thị Bình</strong>
+                <strong id="payUserName" style="font-size:16px; color:#111827; font-weight:700;">-</strong>
             </div>
-            <div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; margin-bottom:18px;">
+            <div style="border:1px solid #f1f5f9; border-radius:10px; overflow:hidden; margin-bottom:18px;">
                 <div style="overflow-x:auto;">
                     <table style="width:100%; border-collapse:collapse; text-align:left; min-width:750px;">
                         <thead>
                             <tr style="background:#f9fafb;">
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Mã sách trong kho</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Tên sách</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Loại phạt</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Lý do</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Số Tiền</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Ngày tạo</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Mã phiếu mượn</th>
-                                <th style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">Trạng thái</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Mã sách trong kho</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Tên sách</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Loại phạt</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Lý do</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Số Tiền</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Ngày tạo</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Mã phiếu mượn</th>
+                                <th
+                                    style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
+                                    Trạng thái</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr style="border-bottom:1px solid #f3f4f6;">
-                                <td style="padding:14px; font-size:13px; font-weight:500; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Kinh tế học vi mô</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-orange-solid">Trễ hạn</span></td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Quá hạn 5 ngày</td>
-                                <td style="padding:14px; font-size:13px; font-weight:700; color:#f97316; white-space:nowrap;">50.000đ</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">18/1/2026</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-orange-solid">Chưa thanh toán</span></td>
-                            </tr>
-                            <tr style="border-bottom:1px solid #f3f4f6;">
-                                <td style="padding:14px; font-size:13px; font-weight:500; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Kinh tế học vi mô</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-orange-solid">Hư hỏng</span></td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Rách bìa sách</td>
-                                <td style="padding:14px; font-size:13px; font-weight:700; color:#f97316; white-space:nowrap;">80.000đ</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">18/1/2026</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-orange-solid">Chưa thanh toán</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding:14px; font-size:13px; font-weight:500; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Kinh tế học vi mô</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-red-solid">Đền sách</span></td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">Mất sách</td>
-                                <td style="padding:14px; font-size:13px; font-weight:700; color:#f97316; white-space:nowrap;">500.000đ</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">18/1/2026</td>
-                                <td style="padding:14px; font-size:13px; color:#374151; white-space:nowrap;">KT001</td>
-                                <td style="padding:14px; white-space:nowrap;"><span class="badge badge-orange-solid">Chưa thanh toán</span></td>
-                            </tr>
+                        <tbody id="paymentTableBody">
+                            <!-- Sẽ được điền bằng JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div style="margin-bottom:14px;">
-                <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức thanh toán</div>
-                <div id="pm-cash-label"
-                    style="display:flex; align-items:center; gap:12px; background:#fff; border:2px solid #ff5722; padding:12px 16px; border-radius:8px; cursor:pointer; margin-bottom:8px;"
-                    onclick="document.getElementById('radio-cash').checked=true; document.getElementById('pm-cash-label').style.borderColor='#ff5722'; document.getElementById('pm-transfer-label').style.borderColor='#e5e7eb';">
-                    <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked style="accent-color:#ff5722; width:18px; height:18px; pointer-events:none;">
-                    <span style="font-size:14px; font-weight:500; color:#111827;">Tiền mặt</span>
+            <div id="paymentControls">
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức thanh
+                        toán</div>
+                    <div class="selection-item"
+                        onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked
+                            style="pointer-events:none;">
+                        <span style="font-size:14px;">Tiền mặt</span>
+                    </div>
+                    <div class="selection-item"
+                        onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer"
+                            style="pointer-events:none;">
+                        <span style="font-size:14px;">Chuyển khoản</span>
+                    </div>
                 </div>
-                <div id="pm-transfer-label"
-                    style="display:flex; align-items:center; gap:12px; background:#fff; border:2px solid #e5e7eb; padding:12px 16px; border-radius:8px; cursor:pointer;"
-                    onclick="document.getElementById('radio-transfer').checked=true; document.getElementById('pm-transfer-label').style.borderColor='#ff5722'; document.getElementById('pm-cash-label').style.borderColor='#e5e7eb';">
-                    <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer" style="accent-color:#ff5722; width:18px; height:18px; pointer-events:none;">
-                    <span style="font-size:14px; font-weight:500; color:#111827;">Chuyển khoản</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 20px 0;">
+                    <span style="font-size:15px; font-weight:700; color:#111827;">Tổng tiền</span>
+                    <span id="payTotalAmount" style="font-size:22px; font-weight:800; color:#f97316;">0đ</span>
+                </div>
+                <div
+                    style="flex-shrink:0; display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 0 10px 0;">
+                    <button type="button"
+                        onclick="document.getElementById('popup-payment').style.display='none'; document.getElementById('popupOverlay').style.display='none';"
+                        style="padding:10px 40px; border:1px solid #d1d5db; background:#fff; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; color:#374151; outline:none;">Hủy</button>
+                    <button type="button" onclick="submitPayment();"
+                        style="padding:10px 40px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.25);">Xác
+                        nhận thanh toán</button>
                 </div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 6px 0;">
-                <span style="font-size:15px; font-weight:700; color:#111827;">Tổng tiền</span>
-                <span style="font-size:22px; font-weight:800; color:#f97316;">630.000đ</span>
-            </div>
-        </div>
-        <div style="flex-shrink:0; display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:16px 28px 20px 28px;">
-            <button type="button" onclick="document.getElementById('popupOverlay').style.display='none'; document.getElementById('popup-payment').style.display='none';"
-                style="padding:10px 40px; border:1px solid #d1d5db; background:#fff; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; color:#374151; outline:none;">Hủy</button>
-            <button type="button" onclick="document.getElementById('popupOverlay').style.display='none'; document.getElementById('popup-payment').style.display='none'; showToast('paymentSuccess');"
-                style="padding:10px 40px; background:#ff5722; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; outline:none; box-shadow:0 2px 8px rgba(255,87,34,0.35);">Xác nhận</button>
         </div>
     </div>
 </div>
 <div id="toast-container" class="toast-container"></div>
 {% endblock %}
 {% block extra_js %}
-<script src="{% static 'js/returns.js' %}?v=99"></script>
+<script>
+    window.CSRF_TOKEN = '{{ csrf_token }}';
+</script>
+<script src="{% static 'js/returns.js' %}?v=102"></script>
 {% endblock %}

@@ -206,24 +206,28 @@
 }
 
 #bookAddBtn{
-    flex: 1.8;
-    height: 42px;
-    background-color: #2563eb;
-    color: white;
-    border-radius: 12px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
+    height: 44px;
+   width: 152px;
+   font-family: 'Inter', sans-serif;
+   font-size: 14px;
+   font-weight: 600;
+   line-height: 1;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
 }
 #bookSearchBtn{
-    flex: 1.8;
-    height: 42px;
-    background-color: #ff5722;
-    color: white;
-    border-radius: 12px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
+    height: 44px;
+   width: 152px;
+   font-family: 'Inter', sans-serif;
+   font-size: 14px;
+   font-weight: 600;
+   line-height: 1;
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+   gap: 6px;
 }
 .btn-white {
     flex: 1;
