@@ -4,7 +4,10 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
 import json
+import random
+import string
 
 
 User = get_user_model()
@@ -78,7 +81,30 @@ def forgot_password_view(request):
             user = nguoi_dung.user
 
     if user:
-        return JsonResponse({'success': True, 'message': 'Xác nhận email thành công.'})
+        # Tạo mã OTP 6 số
+        otp = ''.join(random.choices(string.digits, k=6))
+        
+        # Lưu vào session
+        request.session['reset_otp'] = otp
+        request.session['reset_email'] = email
+        request.session.set_expiry(300)  # Hết hạn sau 5 phút
+        
+        # Gui email (hien o terminal)
+        subject = '[DUE] Ma xac thuc doi mat khau'
+        message = f'Ma xac thuc cua ban la: {otp}. Ma nay co hieu luc trong 5 phut.'
+        from_email = 'noreply@due.edu.vn'
+        
+        try:
+            send_mail(subject, message, from_email, [email])
+            return JsonResponse({
+                'success': True, 
+                'message': 'Mã xác thực đã được gửi đến email của bạn. Vui lòng kiểm tra.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Lỗi khi gửi email: {str(e)}'
+            })
     else:
         return JsonResponse({'success': False, 'message': 'Email không tồn tại trong hệ thống.'})
 
@@ -102,6 +128,22 @@ def reset_password_view(request):
     if len(new_password) < 8:
         return JsonResponse({'success': False, 'message': 'Mật khẩu mới phải có ít nhất 8 ký tự.'})
 
+    # Kiểm tra OTP từ session
+    session_otp = request.session.get('reset_otp')
+    session_email = request.session.get('reset_email')
+    
+    input_otp = data.get('otp', '').strip()
+    
+    # DEBUG: In ra để kiểm tra tại sao không khớp
+    print(f"DEBUG: Session Email: {session_email}, Input Email: {email}")
+    print(f"DEBUG: Session OTP: '{session_otp}', Input OTP: '{input_otp}'")
+    
+    if not session_otp or not session_email or session_email.lower() != email.lower():
+        return JsonResponse({'success': False, 'message': 'Phiên làm việc đã hết hạn hoặc không hợp lệ.'})
+    
+    if input_otp != session_otp:
+        return JsonResponse({'success': False, 'message': 'Mã xác thực (OTP) không chính xác.'})
+
     user = User.objects.filter(email__iexact=email).first()
     if not user:
         from quan_ly_nguoi_dung.models import NguoiDung
@@ -112,6 +154,11 @@ def reset_password_view(request):
     if user:
         user.set_password(new_password)
         user.save()
+        
+        # Xóa OTP sau khi đổi thành công
+        del request.session['reset_otp']
+        del request.session['reset_email']
+        
         return JsonResponse({'success': True, 'message': 'Cập nhật mật khẩu thành công.'})
     else:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy tài khoản để cập nhật.'})
