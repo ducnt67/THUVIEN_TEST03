@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (borrowDate && newDate < borrowDate) {
-            safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+            safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
             return;
         }
 
@@ -606,7 +606,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (slip) {
             const bDate = toIso(slip.borrowDate);
             if (bDate && newDate < bDate) {
-                safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+                safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
                 return;
             }
         }
@@ -651,7 +651,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (slip) {
             const bDate = toIso(slip.borrowDate);
             if (bDate && newDate < bDate) {
-                safeToast('error', 'ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+                safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
                 return;
             }
         }
