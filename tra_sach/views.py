@@ -45,7 +45,7 @@ def return_list_view(request):
     tab1_data = list(tab1_grouped.values())
 
     # Tab 2: Danh sách người dùng nợ phí phạt (Chỉ hiện nợ thực tế, nhưng lưu vết tất cả)
-    khoan_phat_all = KhoanPhat.objects.all().select_related('ma_nguoi_dung')
+    khoan_phat_all = KhoanPhat.objects.all().select_related('ma_nguoi_dung', 'ma_loai_phat')
     tab2_data = {}
     for kp in khoan_phat_all:
         nd = kp.ma_nguoi_dung
@@ -54,9 +54,17 @@ def return_list_view(request):
                 'ma_nguoi_dung': nd.ma_nguoi_dung,
                 'ho_ten': nd.ho_ten,
                 'tong_tien': 0,
+                'ly_do_phat': []
             }
         if kp.trang_thai_tt == 'Chưa thanh toán':
             tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
+            loai_phat = kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác'
+            tab2_data[nd.ma_nguoi_dung]['ly_do_phat'].append(f"{loai_phat}")
+            
+    # Lọc lại lý do để tránh trùng lặp
+    for k, v in tab2_data.items():
+        v['ly_do_phat'] = list(set(v['ly_do_phat']))
+        
     tab2_data = list(tab2_data.values())
 
     # Tab 3: Danh sách báo mất (Hiện các trường hợp ĐÃ báo mất HOẶC đang mượn/quá hạn để báo mất)

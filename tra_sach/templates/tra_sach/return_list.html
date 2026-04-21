@@ -51,41 +51,58 @@
         background: #94a3b8;
     }
 
-    /* Custom Radio Buttons */
+    /* Custom Modern Radio Buttons */
     input[type="radio"] {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 18px;
-        height: 18px;
-        border: 2px solid #cbd5e1;
-        border-radius: 50%;
-        background-color: #fff;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-        transition: all 0.2s ease;
+        appearance: none !important;
+        -webkit-appearance: none !important;
+        width: 18px !important;
+        height: 18px !important;
+        min-width: 18px !important;
+        min-height: 18px !important;
+        max-width: 18px !important;
+        max-height: 18px !important;
+        border: 2px solid #cbd5e1 !important;
+        border-radius: 50% !important;
+        background-color: #fff !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+        margin: 0 !important;
+        padding: 0 !important;
         outline: none !important;
+        vertical-align: middle !important;
+        position: relative !important;
+        transition: all 0.2s ease !important;
     }
 
     input[type="radio"]:checked {
-        border-color: #f97316;
+        border-color: #f97316 !important;
     }
 
-    input[type="radio"]::before {
-        content: "";
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background-color: #f97316;
-        transform: scale(0);
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    input[type="radio"]::after {
+        content: "" !important;
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 10px !important;
+        height: 10px !important;
+        border-radius: 50% !important;
+        background-color: #f97316 !important;
+        display: none !important;
     }
 
-    input[type="radio"]:checked::before {
-        transform: scale(1);
+    input[type="radio"]:checked::after {
+        display: block !important;
     }
+
+
+    /* Text color change when checked */
+    label:has(input[type="radio"]:checked) span,
+    .selection-item:has(input[type="radio"]:checked) span {
+        color: #f97316 !important;
+        font-weight: 600 !important;
+    }
+
 
     /* Selection states for radio groups */
     .selection-item {
@@ -110,6 +127,7 @@
         color: #f97316 !important;
         font-weight: 600 !important;
     }
+
 
     /* Firefox fallback or older browsers might not support :has, but it's 2024+ target here */
 
@@ -167,7 +185,8 @@
                             data-loan-id="{{ item.ma_phieu_muon }}" data-book-code="{{ book.ma_sach_trong_kho }}"
                             data-book-title="{{ book.ten_sach }}" data-borrower="{{ item.nguoi_muon }}"
                             data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}"
-                            data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}" data-lost-fee="{{ lost_fee }}">
+                            data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}"
+                            data-lost-fee="{{ lost_fee }}">
                             {% if forloop.first %}
                             <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
                             <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
@@ -191,7 +210,8 @@
                                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                                     {% if not book.is_returned and not book.is_lost %}
                                     <button class="btn-red return-confirm-trigger"
-                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Xác nhận trả</button>
+                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Xác
+                                        nhận trả</button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -212,7 +232,7 @@
                         <tr>
                             <th style="width: 15%;">Mã phạt</th>
                             <th style="width: 25%;">Người dùng</th>
-                            <th style="width: 20%;">Mã SV/GV</th>
+                            <th style="width: 20%;">Mã người dùng</th>
                             <th style="width: 30%;">Tổng tiền phạt chưa thanh toán</th>
                             <th class="col-action"></th>
                         </tr>
@@ -220,18 +240,18 @@
                     <tbody>
                         {% for item in tab2_data %}
                         <tr>
-                            <td><strong>{{ item.ma_nguoi_dung }}</strong></td>
+                            <td><strong>{{ forloop.counter }}</strong></td>
                             <td class="col-wrap">{{ item.ho_ten }}</td>
                             <td>{{ item.ma_nguoi_dung }}</td>
-                            <td><span class="text-red-bold" style="font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
+                            <td><span style="color: #ea580c; font-weight: 700;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
                             <td class="col-action">
                                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                                     {% if item.tong_tien > 0 %}
-                                    <button class="btn btn-orange" style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Thanh toán</button>
+                                    <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Thanh toán</button>
                                     {% else %}
                                     <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Xem chi tiết</button>
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Xem chi tiết</button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -347,10 +367,7 @@
                 </table>
             </div>
         </div>
-        </div>
     </div>
-</div>
-</div>
 {% endblock %}
 {% block popup %}
 <div class="popup-overlay" id="popupOverlay">
@@ -383,19 +400,18 @@
             </div>
             <div class="form-group mb-0" style="margin-bottom:20px;">
                 <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Tình trạng sách khi trả
-                    <span style="color:#ef4444;">*</span></div>
+                    <span style="color:#ef4444;">*</span>
+                </div>
                 <div class="radio-group return-condition-group" id="returnConditionGroup"
                     style="display:flex; flex-direction:column; gap:14px;">
                     <label class="radio-label"
                         style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
-                        <input type="radio" name="returnCondition" value="good"
-                            style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
+                        <input type="radio" name="returnCondition" value="good">
                         <span>Tốt</span>
                     </label>
                     <label class="radio-label"
                         style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0;">
-                        <input type="radio" name="returnCondition" value="damaged"
-                            style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
+                        <input type="radio" name="returnCondition" value="damaged">
                         <span>Hư hỏng</span>
                     </label>
                 </div>
@@ -588,7 +604,8 @@
             </div>
             <div class="form-group mb-0" style="margin-bottom:20px;">
                 <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Phương án bồi hoàn
-                    <span style="color:#ef4444;">*</span></div>
+                    <span style="color:#ef4444;">*</span>
+                </div>
                 <div class="radio-group" id="lostCompensateGroup"
                     style="display:flex; flex-direction:column; gap:10px;">
                     <label class="selection-item" style="margin-bottom:0;">
@@ -625,6 +642,91 @@
             <button class="btn btn-orange" type="button" onclick="submitLostBookReport()"
                 style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none;">Xác
                 nhận</button>
+        </div>
+    </div>
+    <div id="popup-compensate-confirm" class="popup-modal"
+        style="display:none; width:min(680px, 96vw); background:#fff; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.15); max-height:90vh; overflow:hidden; flex-direction:column;">
+        <div class="popup-header" style="position:relative; padding:28px 24px 12px 24px;">
+            <h3 style="font-weight:700; font-size:24px; width:100%; text-align:center; margin:0; color:#111827;">Xác
+                nhận đền sách</h3>
+            <button class="popup-close" type="button" onclick="closeAllPopups()"
+                style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:24px; top:24px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
+        </div>
+        <div class="popup-content" style="padding:10px 32px 32px;">
+            <div class="info-card"
+                style="background:#fff; padding:28px; border-radius:16px; border:1px solid #f1f5f9; margin-bottom:24px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
+                <div style="margin-bottom:24px;">
+                    <div
+                        style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                        Mã hồ sơ</div>
+                    <strong id="compRecordId" style="font-size:20px; color:#111827; font-weight:800;">-</strong>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:32px 40px;">
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Sách cần đền</div>
+                        <strong id="compBookTitle"
+                            style="font-size:17px; color:#111827; font-weight:700; line-height:1.4;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Mã sách</div>
+                        <strong id="compBookCode" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Người đền</div>
+                        <strong id="compBorrower" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                    <div>
+                        <div
+                            style="color:#94a3b8; font-size:13px; margin-bottom:8px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em;">
+                            Ngày khai báo</div>
+                        <strong id="compReportDate" style="font-size:17px; color:#111827; font-weight:700;">-</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label style="font-weight:700; font-size:14px; margin-bottom:12px; display:block; color:#111827;">Kết
+                    quả kiểm tra sách mới <span style="color:#ef4444;">*</span></label>
+                <div class="radio-group" id="compInspectionGroup"
+                    style="display:flex; flex-direction:column; gap:12px;">
+                    <label class="selection-item" style="margin-bottom:0; padding:14px 18px;">
+                        <input type="radio" name="compInspectionResult" value="pass">
+                        <span style="flex:1; font-size:14px; font-weight:500;">Đạt yêu cầu (Sách mới, đúng tiêu
+                            chuẩn)</span>
+                    </label>
+                    <label class="selection-item" style="margin-bottom:0; padding:14px 18px;">
+                        <input type="radio" name="compInspectionResult" value="fail">
+                        <span style="flex:1; font-size:14px; font-weight:500;">Không đạt yêu cầu (Sách cũ, hư hại, sai
+                            đầu sách)</span>
+                    </label>
+                </div>
+                <p id="compInspectionError" class="field-error hidden" style="margin-top:8px;">Vui lòng xác nhận kết quả
+                    kiểm tra trước khi hoàn tất.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="compInspectionNote"
+                    style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Ghi chú
+                    bổ sung</label>
+                <textarea id="compInspectionNote" class="form-input"
+                    placeholder="Nhập mã vạch sách mới hoặc ghi chú tình trạng (nếu có)"
+                    style="width:100%; padding:14px 18px; border:1px solid #f1f5f9; background:#fcfdfe; border-radius:10px; outline:none; font-family:inherit; resize:none; height:90px; font-size:14px; box-sizing:border-box; transition:all 0.2s;"></textarea>
+            </div>
+        </div>
+        <div class="popup-footer"
+            style="display:flex; justify-content:flex-end; gap:16px; border-top:1px solid #f8fafc; padding:24px 32px; background:#fff;">
+            <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                style="padding:12px 40px; border:1px solid #e5e7eb; background:#fff; border-radius:10px; font-weight:600; cursor:pointer; color:#475569; outline:none; transition:all 0.2s;">Hủy</button>
+            <button class="btn btn-orange" type="button" onclick="submitCompensateConfirm()"
+                style="padding:12px 40px; background:#f97316; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.2); transition:all 0.2s;">Xác
+                nhận hoàn tất</button>
         </div>
     </div>
     <div id="popup-payment" class="popup-modal popup-payment"
@@ -681,13 +783,18 @@
             </div>
             <div id="paymentControls">
                 <div style="margin-bottom:14px;">
-                    <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức thanh toán</div>
-                    <div class="selection-item" onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
-                        <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked style="pointer-events:none;">
+                    <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức thanh
+                        toán</div>
+                    <div class="selection-item"
+                        onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked
+                            style="pointer-events:none;">
                         <span style="font-size:14px;">Tiền mặt</span>
                     </div>
-                    <div class="selection-item" onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
-                        <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer" style="pointer-events:none;">
+                    <div class="selection-item"
+                        onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer"
+                            style="pointer-events:none;">
                         <span style="font-size:14px;">Chuyển khoản</span>
                     </div>
                 </div>
@@ -695,11 +802,14 @@
                     <span style="font-size:15px; font-weight:700; color:#111827;">Tổng tiền</span>
                     <span id="payTotalAmount" style="font-size:22px; font-weight:800; color:#f97316;">0đ</span>
                 </div>
-                <div style="flex-shrink:0; display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 0 10px 0;">
-                    <button type="button" onclick="document.getElementById('popup-payment').style.display='none'; document.getElementById('popupOverlay').style.display='none';"
+                <div
+                    style="flex-shrink:0; display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 0 10px 0;">
+                    <button type="button"
+                        onclick="document.getElementById('popup-payment').style.display='none'; document.getElementById('popupOverlay').style.display='none';"
                         style="padding:10px 40px; border:1px solid #d1d5db; background:#fff; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; color:#374151; outline:none;">Hủy</button>
                     <button type="button" onclick="submitPayment();"
-                        style="padding:10px 40px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.25);">Xác nhận thanh toán</button>
+                        style="padding:10px 40px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.25);">Xác
+                        nhận thanh toán</button>
                 </div>
             </div>
         </div>

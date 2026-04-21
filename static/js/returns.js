@@ -560,16 +560,27 @@ function submitCompensateConfirm() {
 }
 
 function initCompensateFlow() {
-    document.querySelectorAll('.compensate-confirm-trigger').forEach((trigger) => {
-        trigger.addEventListener('click', () => openCompensateConfirm(trigger));
-    });
-
+    // Cho phép click vào cả dòng để hiện popup xác nhận
     document.querySelectorAll('tr.compensate-record').forEach((row) => {
+        row.addEventListener('click', () => {
+            const trigger = row.querySelector('.compensate-confirm-trigger');
+            if (trigger) openCompensateConfirm(trigger);
+        });
+
+        // Tinh chỉnh hiển thị trigger dựa trên trạng thái
         const status = row.dataset.status || '';
         const trigger = row.querySelector('.compensate-confirm-trigger');
         if (!isCompensateEligibleStatus(status) && trigger) {
-            trigger.outerHTML = '';
+            trigger.classList.add('hidden');
         }
+    });
+
+    // Sự kiện riêng cho trigger (ngăn sủi bọt)
+    document.querySelectorAll('.compensate-confirm-trigger').forEach((trigger) => {
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openCompensateConfirm(trigger);
+        });
     });
 
     document.querySelectorAll('input[name="compInspectionResult"]').forEach((input) => {
