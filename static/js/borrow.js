@@ -209,7 +209,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const row = document.createElement('div');
         row.className = 'pm-book-row';
         row.innerHTML = `
-            <input class="pm-input book-code-input" type="text" placeholder="MS001-001">
+            <div class="pm-input-wrapper">
+                <input class="pm-input book-code-input" type="text" placeholder="MS001-001" autocomplete="off">
+                <div class="suggestion-box"></div>
+            </div>
             <input class="pm-input book-title-input" type="text" placeholder="Tên sách" readonly>
             <input class="pm-input" type="number" min="1" value="1" readonly>
             <button class="btn-row-del" type="button" onclick="this.closest('.pm-book-row').remove()">×</button>
@@ -217,33 +220,131 @@ document.addEventListener('DOMContentLoaded', function () {
         body.appendChild(row);
     };
 
-    // Book Lookup Integration
+    // Book Autocomplete & Lookup Integration
     const addBooksBody = document.getElementById('addBooksBody');
     if (addBooksBody) {
-        addBooksBody.addEventListener('blur', async function (e) {
+        // Clear suggestions and title when input is empty
+        addBooksBody.addEventListener('input', async function (e) {
             if (e.target.classList.contains('book-code-input')) {
-                const code = e.target.value.trim();
-                const titleInput = e.target.parentElement.querySelector('.book-title-input');
+                const input = e.target;
+                const query = input.value.trim();
+                const wrapper = input.closest('.pm-input-wrapper');
+                const suggestBox = wrapper.querySelector('.suggestion-box');
+                const row = input.closest('.pm-book-row');
+                const titleInput = row.querySelector('.book-title-input');
 
-                if (!code) {
+                if (!query) {
+                    suggestBox.style.display = 'none';
+                    suggestBox.innerHTML = '';
                     titleInput.value = '';
                     return;
                 }
 
                 try {
-                    const response = await fetch(`/api/book/info/?ma_sach_trong_kho=${code}`);
+                    const response = await fetch(`/api/book/search/?q=${query}`);
                     const data = await response.json();
-                    if (data.success) {
-                        titleInput.value = data.ten_sach;
+                    
+                    if (data.length > 0) {
+                        suggestBox.innerHTML = data.map(item => `
+                            <div class="suggestion-item" data-code="${item.code}" data-title="${item.title}">
+                                <span>${item.code}</span>
+                                <span class="s-title">${item.title}</span>
+                            </div>
+                        `).join('');
+                        suggestBox.style.display = 'block';
                     } else {
-                        titleInput.value = '';
-                        safeToast('error', data.message);
+                        suggestBox.style.display = 'none';
                     }
                 } catch (error) {
-                    console.error('Error looking up book:', error);
+                    console.error('Error fetching suggestions:', error);
                 }
             }
-        }, true); // Capture phase to catch blur on children
+        });
+
+        // Show suggestions on focus if there's text
+        addBooksBody.addEventListener('focusin', function (e) {
+            if (e.target.classList.contains('book-code-input')) {
+                // Trigger the input event logic
+                e.target.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+
+        // Click selection
+        addBooksBody.addEventListener('mousedown', function (e) {
+            const item = e.target.closest('.suggestion-item');
+            if (item) {
+                const code = item.getAttribute('data-code');
+                const title = item.getAttribute('data-title');
+                const wrapper = item.closest('.pm-input-wrapper');
+                const input = wrapper.querySelector('.book-code-input');
+                const row = input.closest('.pm-book-row');
+                const titleInput = row.querySelector('.book-title-input');
+
+                input.value = code;
+                titleInput.value = title;
+                wrapper.querySelector('.suggestion-box').style.display = 'none';
+            }
+        });
+
+        // Hide suggestions on blur
+        addBooksBody.addEventListener('focusout', function (e) {
+            if (e.target.classList.contains('book-code-input')) {
+                setTimeout(() => {
+                    const wrapper = e.target.closest('.pm-input-wrapper');
+                    if (wrapper) {
+                        const suggestBox = wrapper.querySelector('.suggestion-box');
+                        if (suggestBox) suggestBox.style.display = 'none';
+                    }
+                }, 200);
+            }
+        });
+
+        // Keyboard navigation
+        addBooksBody.addEventListener('keydown', function (e) {
+            if (e.target.classList.contains('book-code-input')) {
+                const wrapper = e.target.closest('.pm-input-wrapper');
+                const suggestBox = wrapper.querySelector('.suggestion-box');
+                
+                if (suggestBox.style.display === 'block') {
+                    const items = suggestBox.querySelectorAll('.suggestion-item');
+                    let activeIndex = Array.from(items).findIndex(i => i.classList.contains('active'));
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        if (activeIndex < items.length - 1) {
+                            if (activeIndex >= 0) items[activeIndex].classList.remove('active');
+                            items[activeIndex + 1].classList.add('active');
+                            items[activeIndex + 1].scrollIntoView({ block: 'nearest' });
+                        } else if (activeIndex === -1 && items.length > 0) {
+                            items[0].classList.add('active');
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        if (activeIndex > 0) {
+                            items[activeIndex].classList.remove('active');
+                            items[activeIndex - 1].classList.add('active');
+                            items[activeIndex - 1].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter') {
+                        if (activeIndex >= 0) {
+                            e.preventDefault();
+                            const item = items[activeIndex];
+                            const code = item.getAttribute('data-code');
+                            const title = item.getAttribute('data-title');
+                            const input = wrapper.querySelector('.book-code-input');
+                            const row = input.closest('.pm-book-row');
+                            const titleInput = row.querySelector('.book-title-input');
+
+                            input.value = code;
+                            titleInput.value = title;
+                            suggestBox.style.display = 'none';
+                        }
+                    } else if (e.key === 'Escape') {
+                        suggestBox.style.display = 'none';
+                    }
+                }
+            }
+        });
     }
 
     /* ========================

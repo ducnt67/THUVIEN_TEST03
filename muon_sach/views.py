@@ -85,6 +85,29 @@ def api_get_book_info(request):
         return JsonResponse({'success': False, 'message': 'Không tìm thấy sách'}, status=200)
 
 @login_required
+@require_GET
+def api_search_books(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse([], safe=False)
+    
+    # Tìm sách trong kho có trạng thái 'available' và mã chứa query
+    books = SachTrongKho.objects.filter(
+        ma_sach_trong_kho__icontains=query,
+        trang_thai_sach='available'
+    ).select_related('ma_sach')[:10]  # Giới hạn 10 kết quả
+    
+    results = [
+        {
+            'code': b.ma_sach_trong_kho,
+            'title': b.ma_sach.ten_sach
+        }
+        for b in books
+    ]
+    return JsonResponse(results, safe=False)
+
+
+@login_required
 @require_POST
 def api_create_borrow_slip(request):
     try:
