@@ -159,6 +159,6 @@ def reset_password_view(request):
         del request.session['reset_otp']
         del request.session['reset_email']
         
-        return JsonResponse({'success': True, 'message': 'Cập nhật mật khẩu thành công.'})
+        return JsonResponse({'success': True, 'message': 'Đặt lại mật khẩu thành công.'})
     else:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy tài khoản để cập nhật.'})
