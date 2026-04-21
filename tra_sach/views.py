@@ -59,9 +59,9 @@ def return_list_view(request):
             tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
     tab2_data = list(tab2_data.values())
 
-    # Tab 3: Danh sách báo mất (Chỉ hiện các trường hợp ĐÃ báo mất)
+    # Tab 3: Danh sách báo mất (Hiện các trường hợp ĐÃ báo mất HOẶC đang mượn/quá hạn để báo mất)
     lost_qs = ChiTietPhieuMuon.objects.filter(
-        ngay_khai_bao_mat__isnull=False
+        Q(ngay_khai_bao_mat__isnull=False) | Q(ngay_tra__isnull=True)
     ).select_related('ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach')
     
     tab3_grouped = {}
@@ -77,18 +77,24 @@ def return_list_view(request):
             }
         sach_trong_kho = ct.ma_sach_trong_kho
         sach = sach_trong_kho.ma_sach
+        is_lost = ct.ngay_khai_bao_mat is not None
+        is_overdue = ct.han_tra < timezone.now().date() if not ct.ngay_tra else ct.han_tra < ct.ngay_tra
+        
         tab3_grouped[key]['sach_list'].append({
             'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
             'ten_sach': sach.ten_sach,
             'han_tra': ct.han_tra,
-            'is_lost': ct.ngay_khai_bao_mat is not None,
-            'ngay_mat': ct.ngay_khai_bao_mat
+            'is_lost': is_lost,
+            'is_overdue': is_overdue,
+            'ngay_mat': ct.ngay_khai_bao_mat,
+            'so_ngay_qua_han': (timezone.now().date() - ct.han_tra).days if is_overdue and not ct.ngay_tra else 0,
         })
     tab3_data = list(tab3_grouped.values())
 
-    # Tab 4: Danh sách hồ sơ chờ xác nhận đền sách (Tất cả hồ sơ đền bù)
+    # Tab 4: Danh sách hồ sơ chờ xác nhận đền sách (Chỉ các trường hợp chọn đền sách mới)
     comp_qs = ChiTietPhieuMuon.objects.filter(
-        ngay_khai_bao_mat__isnull=False
+        ngay_khai_bao_mat__isnull=False,
+        phuong_an_boi_thuong='den_sach_moi'
     ).select_related('ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach')
     
     tab4_grouped = {}

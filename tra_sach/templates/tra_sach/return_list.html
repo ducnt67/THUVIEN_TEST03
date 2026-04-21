@@ -29,6 +29,95 @@
     .table tr:hover td[rowspan] {
         background-color: #f8fafc;
     }
+
+    /* Tinh chỉnh thanh cuộn để tinh tế hơn */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f8fafc;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* Custom Radio Buttons */
+    input[type="radio"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border: 2px solid #cbd5e1;
+        border-radius: 50%;
+        background-color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        transition: all 0.2s ease;
+        outline: none !important;
+    }
+
+    input[type="radio"]:checked {
+        border-color: #f97316;
+    }
+
+    input[type="radio"]::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #f97316;
+        transform: scale(0);
+        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    input[type="radio"]:checked::before {
+        transform: scale(1);
+    }
+
+    /* Selection states for radio groups */
+    .selection-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #fff;
+        border: 1px solid #f1f5f9;
+        padding: 12px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 8px;
+    }
+
+    .selection-item:has(input:checked) {
+        background-color: #fff7ed !important;
+        border-color: #f97316 !important;
+    }
+
+    .selection-item:has(input:checked) span {
+        color: #f97316 !important;
+        font-weight: 600 !important;
+    }
+
+    /* Firefox fallback or older browsers might not support :has, but it's 2024+ target here */
+
+    /* Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f8fafc;
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -98,13 +187,13 @@
                                 <span class="badge badge-blue-solid">Đang mượn</span>
                                 {% endif %}
                             </td>
-                            <td class="col-action" style="display: flex; gap: 8px; justify-content: flex-end;">
-                                {% if not book.is_returned and not book.is_lost %}
-                                <button class="btn-red return-confirm-trigger"
-                                    style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Xác nhận trả</button>
-                                <button class="btn-outline lost-report-trigger"
-                                    style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px; border: 1px solid #ef4444; color: #ef4444; background: #fff;">Báo mất</button>
-                                {% endif %}
+                            <td class="col-action">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if not book.is_returned and not book.is_lost %}
+                                    <button class="btn-red return-confirm-trigger"
+                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Xác nhận trả</button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -136,11 +225,15 @@
                             <td>{{ item.ma_nguoi_dung }}</td>
                             <td><span class="text-red-bold" style="font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
                             <td class="col-action">
-                                {% if item.tong_tien > 0 %}
-                                <button class="btn btn-orange" onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Thanh toán</button>
-                                {% else %}
-                                <button class="btn btn-primary" style="background-color: #3b82f6;" onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Xem chi tiết</button>
-                                {% endif %}
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if item.tong_tien > 0 %}
+                                    <button class="btn btn-orange" style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Thanh toán</button>
+                                    {% else %}
+                                    <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten }}', '{{ item.tong_tien|floatformat:0 }}')">Xem chi tiết</button>
+                                    {% endif %}
+                                </div>
                             </td>
                         </tr>
                         {% endfor %}
@@ -171,7 +264,8 @@
                         <tr class="lost-record {% if forloop.first %}row-group-start{% endif %}"
                             data-loan-id="{{ item.ma_phieu_muon }}" data-book-title="{{ book.ten_sach }}"
                             data-book-code="{{ book.ma_sach_trong_kho }}" data-borrower="{{ item.nguoi_muon }}"
-                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}" data-lost-fee="{{ lost_fee }}">
+                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}" 
+                            data-lost-fee="{{ lost_fee }}" data-processing-fee="0">
                             {% if forloop.first %}
                             <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
                             <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
@@ -180,10 +274,23 @@
                             <td class="col-wrap">{{ book.ten_sach }}</td>
                             <td>{{ book.han_tra|date:'d/m/Y' }}</td>
                             <td class="col-status">
+                                {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
                                 <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:"d/m/Y" }}</div>
+                                {% elif book.is_overdue %}
+                                <span class="badge badge-orange-solid">Quá hạn</span>
+                                {% else %}
+                                <span class="badge badge-blue-solid">Đang mượn</span>
+                                {% endif %}
                             </td>
-                            <td class="col-action col-action-lost"></td>
+                            <td class="col-action col-action-lost">
+                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                    {% if not book.is_lost %}
+                                    <button class="btn-red lost-report-trigger"
+                                        style="padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;">Báo mất</button>
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                         {% endwith %}
@@ -226,12 +333,10 @@
                             <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
                             <td class="col-action col-status">
                                 {% if not book.is_completed %}
-                                    {% if item.trang_thai == 'Chờ đền sách' %}
                                     <span class="badge badge-red-solid compensate-confirm-trigger"
                                         style="cursor:pointer;">Chờ đền sách</span>
-                                    {% else %}
-                                    <span class="badge badge-orange-solid">Đang xử lý</span>
-                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-green-solid">Đã hoàn thành</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -485,18 +590,14 @@
                 <div style="font-weight:700; font-size:13px; margin-bottom:14px; color:#111827;">Phương án bồi hoàn
                     <span style="color:#ef4444;">*</span></div>
                 <div class="radio-group" id="lostCompensateGroup"
-                    style="display:flex; flex-direction:column; gap:14px;">
-                    <label class="radio-label"
-                        style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e5e7eb; transition:all 0.2s;">
-                        <input type="radio" name="compensateMethod" value="money"
-                            style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
-                        <span style="flex:1;">Bồi thường tiền</span>
+                    style="display:flex; flex-direction:column; gap:10px;">
+                    <label class="selection-item" style="margin-bottom:0;">
+                        <input type="radio" name="compensateMethod" value="money">
+                        <span style="flex:1; font-size:14px;">Bồi thường tiền</span>
                     </label>
-                    <label class="radio-label"
-                        style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer; color:#111827; margin:0; padding:12px; background:#f8f9fa; border-radius:8px; border:1px solid #e5e7eb; transition:all 0.2s;">
-                        <input type="radio" name="compensateMethod" value="book"
-                            style="width:18px; height:18px; accent-color:#3b82f6; cursor:pointer;">
-                        <span>Đền sách mới</span>
+                    <label class="selection-item" style="margin-bottom:0;">
+                        <input type="radio" name="compensateMethod" value="book">
+                        <span style="flex:1; font-size:14px;">Đền sách mới</span>
                     </label>
                 </div>
                 <p id="lostMethodError" class="field-error hidden">Vui lòng chọn phương án bồi hoàn.</p>
@@ -537,11 +638,11 @@
                 style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:50%; transform:translateY(-50%); color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
         </div>
         <div style="flex:1; overflow-y:auto; padding:20px 28px 4px 28px;">
-            <div style="border:1px solid #e5e7eb; padding:14px 20px; border-radius:10px; margin-bottom:18px;">
+            <div style="border:1px solid #f1f5f9; padding:14px 20px; border-radius:10px; margin-bottom:18px;">
                 <div style="color:#f97316; font-size:12px; font-weight:600; margin-bottom:4px;">Người dùng</div>
                 <strong id="payUserName" style="font-size:16px; color:#111827; font-weight:700;">-</strong>
             </div>
-            <div style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; margin-bottom:18px;">
+            <div style="border:1px solid #f1f5f9; border-radius:10px; overflow:hidden; margin-bottom:18px;">
                 <div style="overflow-x:auto;">
                     <table style="width:100%; border-collapse:collapse; text-align:left; min-width:750px;">
                         <thead>
@@ -581,17 +682,13 @@
             <div id="paymentControls">
                 <div style="margin-bottom:14px;">
                     <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức thanh toán</div>
-                    <div id="pm-cash-label"
-                        style="display:flex; align-items:center; gap:12px; background:#fff; border:2px solid #f97316; padding:12px 16px; border-radius:8px; cursor:pointer; margin-bottom:8px;"
-                        onclick="document.getElementById('radio-cash').checked=true; document.getElementById('pm-cash-label').style.borderColor='#f97316'; document.getElementById('pm-transfer-label').style.borderColor='#e5e7eb';">
-                        <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked style="accent-color:#f97316; width:18px; height:18px; pointer-events:none;">
-                        <span style="font-size:14px; font-weight:500; color:#111827;">Tiền mặt</span>
+                    <div class="selection-item" onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash" checked style="pointer-events:none;">
+                        <span style="font-size:14px;">Tiền mặt</span>
                     </div>
-                    <div id="pm-transfer-label"
-                        style="display:flex; align-items:center; gap:12px; background:#fff; border:1px solid #e5e7eb; padding:12px 16px; border-radius:8px; cursor:pointer;"
-                        onclick="document.getElementById('radio-transfer').checked=true; document.getElementById('pm-transfer-label').style.borderColor='#f97316'; document.getElementById('pm-cash-label').style.borderColor='#e5e7eb';">
-                        <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer" style="accent-color:#f97316; width:18px; height:18px; pointer-events:none;">
-                        <span style="font-size:14px; font-weight:500; color:#111827;">Chuyển khoản</span>
+                    <div class="selection-item" onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
+                        <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer" style="pointer-events:none;">
+                        <span style="font-size:14px;">Chuyển khoản</span>
                     </div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 20px 0;">
