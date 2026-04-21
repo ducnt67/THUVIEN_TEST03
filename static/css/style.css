@@ -337,7 +337,7 @@ img {
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(240px, 0.9fr);
     gap: 20px;
 }
 
@@ -381,18 +381,46 @@ img {
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
+    z-index: 2;
+    pointer-events: none;
+    width: 92px;
 }
 
 .donut-inner .num {
     display: block;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--text-main);
+    line-height: 1;
+    margin-bottom: 2px;
 }
 
 .donut-inner span {
-    font-size: 10px;
+    font-size: 12px;
     color: var(--text-muted);
+    line-height: 1.2;
+}
+
+/* Căn chỉnh riêng biểu đồ Độc giả để số ở giữa không bị to/lệch */
+.donut-inner-readers {
+    width: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    transform: translate(-50%, -44%);
+}
+
+.donut-inner-readers .num {
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 0;
+}
+
+.donut-inner-readers span:not(.num) {
+    font-size: 11px;
+    line-height: 1.2;
 }
 
 .progress-section {
@@ -406,6 +434,36 @@ img {
     justify-content: space-between;
     font-size: 12px;
     margin-bottom: 5px;
+}
+
+.chart-card-fines {
+    min-width: 0;
+}
+
+.progress-section-fines {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+    gap: 14px;
+}
+
+.progress-section-fines .prog-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-section-fines .prog-label span {
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.progress-section-fines .prog-label strong {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.2;
 }
 
 .progress-item strong {
@@ -435,6 +493,8 @@ img {
 .target-desc {
     font-size: 11px;
     color: var(--text-muted);
+    margin-top: auto;
+    padding-top: 10px;
 }
 
 .legend-inline {
@@ -458,6 +518,10 @@ img {
 
 .dot-gray {
     background: #e0e0e0;
+}
+
+.dot-blue {
+    background: var(--primary-blue);
 }
 
 /* ===== BUTTON ===== */
@@ -1252,3 +1316,5 @@ img {
         grid-template-columns: 1fr;
     }
 }
+
+/* Độc giả dùng legend mặc định của Chart.js để đồng bộ với Trạng thái sách */

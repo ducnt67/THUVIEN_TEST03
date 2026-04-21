@@ -632,12 +632,12 @@ function initReturnFlow() {
 
 let selectedPaymentUser = null;
 
-function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
+function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
     selectedPaymentUser = maNguoiDung;
     const nameEl = document.getElementById('payUserName');
     const totalEl = document.getElementById('payTotalAmount');
-    if (nameEl) nameEl.innerText = hoTen;
-    if (totalEl) totalEl.innerText = formatCurrency(tongTien);
+    if (nameEl) nameEl.innerText = hoTen || '-';
+    if (totalEl) totalEl.innerText = formatCurrency(Number(tongTien) || 0);
 
     // Xóa nội dung bảng cũ và hiện loading
     const tableBody = document.getElementById('paymentTableBody');
@@ -649,11 +649,19 @@ function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
     fetch(`/api/get_user_fines/?ma_nguoi_dung=${maNguoiDung}`)
     .then(res => res.json())
     .then(data => {
-        window.currentFineIds = []; // Reset danh sách mã phạt
+        window.currentFineIds = []; // Chi luu ma phat chua thanh toan
+        let unpaidTotal = 0;
         if (data.success && data.fines.length > 0) {
             tableBody.innerHTML = '';
             data.fines.forEach(fine => {
-                window.currentFineIds.push(fine.ma_phat);
+                const fineAmount = Number(fine.so_tien) || 0;
+                const isUnpaid = fine.trang_thai === 'Chưa thanh toán';
+
+                if (isUnpaid) {
+                    window.currentFineIds.push(fine.ma_phat);
+                    unpaidTotal += fineAmount;
+                }
+
                 const row = document.createElement('tr');
                 row.style.borderBottom = '1px solid #f3f4f6';
                 row.innerHTML = `
@@ -661,7 +669,7 @@ function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ten_sach}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.loai_phat}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ly_do}</td>
-                    <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316;">${formatCurrency(fine.so_tien)}</td>
+                    <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316;">${formatCurrency(fineAmount)}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ngay_tao}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_phieu_muon}</td>
                     <td style="padding:12px 14px;">
@@ -673,6 +681,10 @@ function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
                 tableBody.appendChild(row);
             });
 
+            if (totalEl) {
+                totalEl.innerText = formatCurrency(unpaidTotal);
+            }
+
             // Ẩn/Hiện bộ điều khiển thanh toán tùy vào còn nợ hay không
             const paymentControls = document.getElementById('paymentControls');
             const hasUnpaid = data.fines.some(f => f.trang_thai === 'Chưa thanh toán');
@@ -681,6 +693,7 @@ function openPaymentPopup(maNguoiDung, hoTen, tongTien) {
             }
         } else {
             tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">Không có lịch sử phí phạt.</td></tr>';
+            if (totalEl) totalEl.innerText = formatCurrency(0);
             const paymentControls = document.getElementById('paymentControls');
             if (paymentControls) paymentControls.style.display = 'none';
         }
