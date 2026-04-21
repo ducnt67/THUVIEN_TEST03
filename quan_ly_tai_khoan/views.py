@@ -41,6 +41,8 @@ def login_view(request):
             login(request, user)
             messages.success(request, 'Đăng nhập thành công.')
             next_url = request.POST.get('next') or request.GET.get('next')
+            if not next_url and hasattr(user, 'nguoi_dung') and user.nguoi_dung.loai_nguoi_dung == 'doc_gia':
+                return redirect('borrow_list')
             return redirect(next_url or 'dashboard')
 
         error_message = 'Tài khoản hoặc mật khẩu không đúng.'

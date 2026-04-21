@@ -1,4 +1,5 @@
 {% load static %}
+{% load user_role_tags %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -28,12 +29,14 @@
             </div>
 
             <ul class="nav-links">
-                <li class="{% block nav_dashboard %}{% endblock %}">
-                    <a href="{% url 'dashboard' %}">
-                        <i class='bx bxs-grid-alt'></i>
-                        <span>Tổng quan</span>
-                    </a>
-                </li>
+                {% if perms.muon_sach.add_phieumuon or request.user.is_superuser %}
+                    <li class="{% block nav_dashboard %}{% endblock %}">
+                        <a href="{% url 'dashboard' %}">
+                            <i class='bx bxs-grid-alt'></i>
+                            <span>Tổng quan</span>
+                        </a>
+                    </li>
+                {% endif %}
 
                 <li class="{% block nav_borrow %}{% endblock %}">
                     <a href="{% url 'borrow_list' %}">
@@ -42,33 +45,41 @@
                     </a>
                 </li>
 
-                <li class="{% block nav_return %}{% endblock %}">
-                    <a href="{% url 'return_list' %}">
-                        <i class='bx bx-history'></i>
-                        <span>Trả sách</span>
-                    </a>
-                </li>
+                {% if perms.muon_sach.add_phieumuon or request.user.is_superuser %}
+                    <li class="{% block nav_return %}{% endblock %}">
+                        <a href="{% url 'return_list' %}">
+                            <i class='bx bx-history'></i>
+                            <span>Trả sách</span>
+                        </a>
+                    </li>
+                {% endif %}
 
-                <li class="{% block nav_books %}{% endblock %}">
-                    <a href="{% url 'book_list' %}">
-                        <i class='bx bx-book'></i>
-                        <span>Quản lý sách</span>
-                    </a>
-                </li>
+                {% if perms.muon_sach.add_phieumuon or request.user.is_superuser %}
+                    <li class="{% block nav_books %}{% endblock %}">
+                        <a href="{% url 'book_list' %}">
+                            <i class='bx bx-book'></i>
+                            <span>Quản lý sách</span>
+                        </a>
+                    </li>
+                {% endif %}
 
-                <li class="{% block nav_users %}{% endblock %}">
-                    <a href="{% url 'reader_list' %}">
-                        <i class='bx bx-group'></i>
-                        <span>Người dùng</span>
-                    </a>
-                </li>
+                {% if perms.muon_sach.add_phieumuon or request.user.is_superuser %}
+                    <li class="{% block nav_users %}{% endblock %}">
+                        <a href="{% url 'reader_list' %}">
+                            <i class='bx bx-group'></i>
+                            <span>Người dùng</span>
+                        </a>
+                    </li>
+                {% endif %}
 
-                <li class="{% block nav_reports %}{% endblock %}">
-                    <a href="{% url 'report_statistics' %}">
-                        <i class='bx bx-line-chart'></i>
-                        <span>Báo cáo</span>
-                    </a>
-                </li>
+                {% if perms.muon_sach.add_phieumuon or request.user.is_superuser %}
+                    <li class="{% block nav_reports %}{% endblock %}">
+                        <a href="{% url 'report_statistics' %}">
+                            <i class='bx bx-line-chart'></i>
+                            <span>Báo cáo</span>
+                        </a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
 
@@ -97,7 +108,13 @@
                                 Nguyễn Văn An
                             {% endif %}
                         </span>
-                        <span class="user-role">{% block user_role %}Thủ thư{% endblock %}</span>
+                        <span class="user-role">
+                            {% if request.user.is_authenticated %}
+                                {{ request.user|role_label }}
+                            {% else %}
+                                {% block user_role %}Thủ thư{% endblock %}
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="user-avatar">
                         {% if request.user.is_authenticated %}

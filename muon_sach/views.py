@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
@@ -9,8 +10,18 @@ from .models import PhieuMuon, ChiTietPhieuMuon
 from quan_ly_nguoi_dung.models import NguoiDung
 from quan_ly_sach.models import SachTrongKho
 
+
+def _is_doc_gia_user(user):
+    return hasattr(user, 'nguoi_dung') and user.nguoi_dung.loai_nguoi_dung == 'doc_gia'
+
+
+def _can_view_borrow_area(user):
+    return user.is_superuser or user.has_perm('muon_sach.view_phieumuon') or _is_doc_gia_user(user)
+
 @login_required
 def borrow_list_view(request):
+    if not _can_view_borrow_area(request.user):
+        return JsonResponse({'success': False, 'message': 'Bạn không có quyền truy cập chức năng này.'}, status=403)
     return render(request, 'muon_sach/borrow_list.html')
 
 @login_required
@@ -20,7 +31,14 @@ def borrow_list(request):
 @login_required
 @require_GET
 def api_get_borrow_list(request):
+    if not _can_view_borrow_area(request.user):
+        return JsonResponse({'success': False, 'message': 'Bạn không có quyền truy cập chức năng này.'}, status=403)
+
     slips = PhieuMuon.objects.all().select_related('ma_nguoi_dung').order_by('-ngay_muon')
+
+    if _is_doc_gia_user(request.user):
+        slips = slips.filter(ma_nguoi_dung=request.user.nguoi_dung)
+
     data = []
     today = timezone.now().date()
     
@@ -51,6 +69,7 @@ def api_get_borrow_list(request):
 
 @login_required
 @require_GET
+@permission_required('muon_sach.add_phieumuon', raise_exception=True)
 def api_get_user_info(request):
     ma_nguoi_dung = request.GET.get('ma_nguoi_dung')
     try:
@@ -66,6 +85,7 @@ def api_get_user_info(request):
 
 @login_required
 @require_GET
+@permission_required('muon_sach.add_phieumuon', raise_exception=True)
 def api_get_book_info(request):
     ma_sach_trong_kho = request.GET.get('ma_sach_trong_kho')
     try:
@@ -86,6 +106,7 @@ def api_get_book_info(request):
 
 @login_required
 @require_GET
+@permission_required('muon_sach.add_phieumuon', raise_exception=True)
 def api_search_books(request):
     query = request.GET.get('q', '').strip()
     if not query:
@@ -109,6 +130,7 @@ def api_search_books(request):
 
 @login_required
 @require_POST
+@permission_required('muon_sach.add_phieumuon', raise_exception=True)
 def api_create_borrow_slip(request):
     try:
         data = json.loads(request.body)
@@ -159,6 +181,7 @@ def api_create_borrow_slip(request):
 
 @login_required
 @require_POST
+@permission_required('muon_sach.delete_phieumuon', raise_exception=True)
 def api_delete_borrow_slip(request, pk):
     try:
         with transaction.atomic():
@@ -184,6 +207,7 @@ def api_delete_borrow_slip(request, pk):
 
 @login_required
 @require_POST
+@permission_required('muon_sach.extend_phieumuon', raise_exception=True)
 def api_extend_borrow_slip(request, pk):
     try:
         data = json.loads(request.body)

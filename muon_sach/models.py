@@ -51,6 +51,9 @@ class PhieuMuon(models.Model):
         ordering = ['-ngay_muon']
         verbose_name = 'Phiếu mượn'
         verbose_name_plural = 'Phiếu mượn'
+        permissions = [
+            ('extend_phieumuon', 'Can extend borrow slip'),
+        ]
 
     def __str__(self):
         return f"{self.ma_phieu_muon}- {self.get_trang_thai_display()}"

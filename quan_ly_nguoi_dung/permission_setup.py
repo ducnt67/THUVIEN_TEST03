@@ -2,6 +2,10 @@ from django.contrib.auth.models import Permission
 
 
 ROLE_PERMISSION_MAP = {
+    'doc_gia': [
+        'muon_sach.view_phieumuon',
+        'muon_sach.view_chitietphieumuon',
+    ],
     'thu_thu': [
         'quan_ly_sach.view_sach',
         'quan_ly_sach.add_sach',
