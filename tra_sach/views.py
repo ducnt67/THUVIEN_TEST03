@@ -192,58 +192,15 @@ def api_xac_nhan_tra_sach(request):
             # Cập nhật ngày trả, tình trạng
             ctpm.ngay_tra = timezone.now().date()
             ctpm.tinh_trang_khi_tra = 'Tốt' if tinh_trang == 'tot' else 'Hư hỏng'
-            ctpm.save()
-            # Cập nhật số lượng và trạng thái sách trong kho khi trả
+            ctpm.save(update_fields=['ngay_tra', 'tinh_trang_khi_tra'])
+
+            # Cập nhật trạng thái bản sách trong kho khi trả
             sach_trong_kho = ctpm.ma_sach_trong_kho
-            if hasattr(sach_trong_kho, 'so_luong'):
-                sach_trong_kho.so_luong = (sach_trong_kho.so_luong or 0) + 1
-            if tinh_trang == 'tot':
-                sach_trong_kho.trang_thai_sach = 'available'
-            elif tinh_trang == 'hu_hong':
-                sach_trong_kho.trang_thai_sach = 'damaged'
-            sach_trong_kho.save()
-            # Cập nhật trạng thái phiếu mượn nếu tất cả sách đã trả
-            if not ChiTietPhieuMuon.objects.filter(ma_phieu_muon=pm, ngay_tra__isnull=True).exists():
-                pm.trang_thai = 'da_tra'
-                pm.save()
-            # Xử lý phạt trễ hạn
-            han_tra = ctpm.han_tra
-            ngay_tra = ctpm.ngay_tra
-            phat_trong_chinh_sach = ChinhSachPhat.objects.filter(loai_phat__icontains='Trễ hạn').first()
-            khoan_phat = None
-            if ngay_tra > han_tra and phat_trong_chinh_sach:
-                so_ngay_qua_han = (ngay_tra - han_tra).days
-                so_tien = so_ngay_qua_han * Decimal(phat_trong_chinh_sach.muc_phat_moi_ngay or 0)
-                khoan_phat = KhoanPhat.objects.create(
-                    ma_phat=f'FINE-{timezone.now().strftime("%Y%m%d%H%M%S%f")}',
-                    ma_nguoi_dung=pm.ma_nguoi_dung,
-                    ma_phieu_muon=pm,
-                    ma_sach_trong_kho=ctpm.ma_sach_trong_kho,
-                    ma_loai_phat=phat_trong_chinh_sach,
-                    so_tien=so_tien,
-                    ngay_tao=timezone.now(),
-                    trang_thai_tt='Chưa thanh toán',
-                    ly_do=f'Trả trễ {so_ngay_qua_han} ngày',
-                    nguoi_tao=nguoi_xac_nhan
-                )
-            # Xử lý phạt hư hỏng
-            if tinh_trang == 'hu_hong':
-                # Lấy đúng chính sách phạt theo mã loại phạt truyền từ frontend
-                chinh_sach_hu_hong = ChinhSachPhat.objects.filter(ma_loai_phat=damage_level).first()
-                if chinh_sach_hu_hong:
-                    so_tien_hu_hong = Decimal(chinh_sach_hu_hong.muc_phat_hu_hong or 0)
-                    KhoanPhat.objects.create(
-                        ma_phat=f'FINE-{timezone.now().strftime("%Y%m%d%H%M%S%f")}',
-                        ma_nguoi_dung=pm.ma_nguoi_dung,
-                        ma_phieu_muon=pm,
-                        ma_sach_trong_kho=ctpm.ma_sach_trong_kho,
-                        ma_loai_phat=chinh_sach_hu_hong,
-                        so_tien=so_tien_hu_hong,
-                        ngay_tao=timezone.now(),
-                        trang_thai_tt='Chưa thanh toán',
-                        ly_do=f"{chinh_sach_hu_hong.loai_phat}{'. Ghi chú: ' + mo_ta_hu_hong if mo_ta_hu_hong else ''}",
-                        nguoi_tao=nguoi_xac_nhan
-                    )
+            sach_trong_kho.trang_thai_sach = 'available' if tinh_trang == 'tot' else 'damaged'
+            sach_trong_kho.save(update_fields=['trang_thai_sach'])
+
+            # Đồng bộ trạng thái phiếu mượn theo toàn bộ chi tiết để tránh lệch trạng thái da_tra/qua_han.
+            pm.sync_status()
             return JsonResponse({'success': True})
     except ChiTietPhieuMuon.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy bản ghi mượn.'}, status=404)
@@ -438,4 +395,3 @@ def api_xac_nhan_den_sach(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-# Không có endpoint hoặc logic scan barcode ở backend, không cần chỉnh sửa gì thêm cho phần này.
