@@ -11,31 +11,31 @@
         <div class="card card-blue">
             <div class="card-content">
                 <p class="card-title">Tổng số sách <i class='bx bx-book-bookmark'></i></p>
-                <h3>61</h3>
-                <p class="card-desc">49 sách còn trong kho</p>
+                <h3>{{ total_books }}</h3>
+                <p class="card-desc">{{ available_books }} sách còn trong kho</p>
             </div>
         </div>
 
         <div class="card card-blue">
             <div class="card-content">
                 <p class="card-title">Sách đang mượn <i class='bx bx-book-open'></i></p>
-                <h3>3</h3>
-                <p class="card-desc">1 phiếu quá hạn</p>
+                <h3>{{ borrowed_books }}</h3>
+                <p class="card-desc">{{ overdue_slips }} phiếu quá hạn</p>
             </div>
         </div>
 
         <div class="card card-blue">
             <div class="card-content">
                 <p class="card-title">Tổng độc giả <i class='bx bx-group'></i></p>
-                <h3>4</h3>
-                <p class="card-desc">Đang hoạt động</p>
+                <h3>{{ total_readers }}</h3>
+                <p class="card-desc">{{ active_readers }} đang hoạt động</p>
             </div>
         </div>
 
         <div class="card card-red">
             <div class="card-content">
                 <p class="card-title">Phiếu quá hạn <i class='bx bx-calendar-x'></i></p>
-                <h3 class="text-red">1</h3>
+                <h3 class="text-red">{{ overdue_slips }}</h3>
                 <p class="card-desc">Cần xử lý</p>
             </div>
         </div>
@@ -43,7 +43,7 @@
         <div class="card card-red">
             <div class="card-content">
                 <p class="card-title">Tiền phạt chưa thu <i class='bx bx-money'></i></p>
-                <h3 class="text-red">50.000đ</h3>
+                <h3 class="text-red">{{ unpaid_fines_display }}</h3>
                 <p class="card-desc">Cần thu</p>
             </div>
         </div>
@@ -63,63 +63,54 @@
                 </div>
             </div>
 
-            <div class="chart-card">
+            <div class="chart-card chart-card-readers">
                 <div class="chart-header">
                     <span class="title">Độc giả</span>
                     <span class="subtitle">Hoạt động</span>
                 </div>
                 <div class="chart-wrapper" style="position: relative;">
                     <canvas id="readersChart"></canvas>
-                    <div class="donut-inner">
-                        <span class="num">4</span>
-                        <span>Đang hoạt động</span>
-                    </div>
                 </div>
             </div>
 
             <div class="chart-card">
                 <div class="chart-header">
                     <span class="title">Xu hướng quá hạn</span>
-                    <span class="subtitle">7 ngày</span>
+                    <span class="subtitle">7 ngày gần nhất</span>
                 </div>
                 <div class="chart-wrapper">
                     <canvas id="overdueChart"></canvas>
                 </div>
             </div>
 
-            <div class="chart-card">
+            <div class="chart-card chart-card-fines">
                 <div class="chart-header">
                     <span class="title">Tiền phạt</span>
                     <span class="subtitle">Đã thu vs Chưa thu</span>
                 </div>
 
-                <div class="progress-section">
+                <div class="progress-section progress-section-fines">
                     <div class="progress-item text-red">
                         <div class="prog-label">
                             <span>Chưa thu</span>
-                            <strong>50.000đ</strong>
+                            <strong>{{ unpaid_fines_display }}</strong>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress bg-red" style="width: 100%;"></div>
+                            <div class="progress bg-red" style="width: {{ unpaid_percent }}%;"></div>
                         </div>
                     </div>
 
                     <div class="progress-item text-blue">
                         <div class="prog-label">
                             <span>Đã thu</span>
-                            <strong>0đ</strong>
+                            <strong>{{ paid_fines_display }}</strong>
                         </div>
                         <div class="progress-bar">
-                            <div class="progress bg-blue" style="width: 0%;"></div>
+                            <div class="progress bg-blue" style="width: {{ paid_percent }}%;"></div>
                         </div>
                     </div>
 
                     <p class="target-desc">Mục tiêu: thu toàn bộ trong tuần</p>
-
-                    <div class="legend-inline">
-                        <span><span class="dot dot-red"></span> Chưa thu</span>
-                        <span><span class="dot dot-gray"></span> Đã thu</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -128,5 +119,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/reports.js' %}"></script>
+{{ dashboard_chart_data|json_script:"dashboard-chart-data" }}
+<script src="{% static 'js/reports.js' %}?v=20260421-5"></script>
 {% endblock %}

@@ -12,10 +12,29 @@ def report_statistics(request):
     today = timezone.now().date()
 
     # ── Thống kê sách đã trả (dùng cho tab 1 & summary top) ──────────────
-    returned_qs = ChiTietPhieuMuon.objects.filter(ngay_tra__isnull=False)
+    returned_qs = ChiTietPhieuMuon.objects.filter(ngay_tra__isnull=False).select_related(
+        'ma_phieu_muon__ma_nguoi_dung',
+        'ma_sach_trong_kho__ma_sach',
+    )
     total_returned = returned_qs.count()
     on_time        = returned_qs.filter(ngay_tra__lte=F('han_tra')).count()
     late           = returned_qs.filter(ngay_tra__gt=F('han_tra')).count()
+
+    returned_rows = []
+    for ct in returned_qs:
+        pm = ct.ma_phieu_muon
+        sach_trong_kho = ct.ma_sach_trong_kho
+        sach = sach_trong_kho.ma_sach
+        status = 'Trả quá hạn' if ct.ngay_tra and ct.ngay_tra > ct.han_tra else 'Trả đúng hạn'
+        returned_rows.append([
+            pm.ma_phieu_muon,
+            sach.ten_sach,
+            sach_trong_kho.ma_sach_trong_kho,
+            pm.ma_nguoi_dung.ho_ten,
+            pm.ngay_muon.strftime('%d/%m/%Y'),
+            ct.ngay_tra.strftime('%d/%m/%Y') if ct.ngay_tra else '',
+            status,
+        ])
 
     # ── Thống kê phí phạt ─────────────────────────────────────────────────
     fines_qs = KhoanPhat.objects.select_related(
@@ -57,7 +76,6 @@ def report_statistics(request):
         })
 
     # ── Thống kê sách đang cho mượn (tab 2) ───────────────────────────────
-    from muon_sach.models import PhieuMuon
     lending_qs = ChiTietPhieuMuon.objects.filter(ngay_tra__isnull=True).select_related(
         'ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach'
     )
@@ -85,14 +103,19 @@ def report_statistics(request):
     total_lending = len(lending_rows)
 
     # ── Thống kê sách còn trong kho (tab 3) ───────────────────────────────
-    from quan_ly_sach.models import Sach, SachTrongKho
+    from quan_ly_sach.models import Sach
     stock_rows = []
     total_titles = Sach.objects.count()
     total_stock = 0
     low_stock = 0
     for sach in Sach.objects.all():
         kho_objs = sach.sach_trong_kho.all()
-        available_count = kho_objs.filter(trang_thai_sach='available').count()
+
+        # Còn lại trong kho = các bản không còn ở trạng thái đang lưu thông/đã mất.
+        available_count = kho_objs.exclude(
+            trang_thai_sach__in=['borrowed', 'overdue', 'awaiting_replacement', 'lost', 'processed']
+        ).count()
+
         total_count = kho_objs.count()
         total_stock += total_count
         if available_count <= 3:
@@ -120,6 +143,7 @@ def report_statistics(request):
         # Bảng chi tiết phí phạt
         'fines': fines_list,
 
+        'returned_rows': returned_rows,
         'lending_rows': lending_rows,
         'total_lending': total_lending,
         'lending_on_time': lending_on_time,
@@ -130,28 +154,11 @@ def report_statistics(request):
         'low_stock': low_stock,
     }
 
-    # Truyền dữ liệu bảng/stat cards ra template cho JS
+    # Truyền dữ liệu bảng ra template cho JS
     context['report_data'] = json.dumps({
-        'returned': context['lending_rows'] if 'returned_rows' not in context else context['returned_rows'],
+        'returned': context['returned_rows'],
         'lending': context['lending_rows'],
         'stock': context['stock_rows'],
-    }, ensure_ascii=False)
-    context['stat_data'] = json.dumps({
-        'returned': [
-            { 'label': 'Tổng số sách đã trả', 'value': context['total_returned'], 'cls': '' },
-            { 'label': 'Trả đúng hạn', 'value': context['on_time'], 'cls': 'sc-green' },
-            { 'label': 'Trả quá hạn', 'value': context['late'], 'cls': 'sc-red' },
-        ],
-        'lending': [
-            { 'label': 'Tổng số sách đang mượn', 'value': context['total_lending'], 'cls': '' },
-            { 'label': 'Đang trong hạn', 'value': context['lending_on_time'], 'cls': 'sc-green' },
-            { 'label': 'Đã quá hạn', 'value': context['lending_late'], 'cls': 'sc-red' },
-        ],
-        'stock': [
-            { 'label': 'Tổng số đầu sách', 'value': context['total_titles'], 'cls': '' },
-            { 'label': 'Tổng số lượng', 'value': context['total_stock'], 'cls': 'sc-green' },
-            { 'label': 'Sắp hết hàng', 'value': context['low_stock'], 'cls': 'sc-red' },
-        ],
     }, ensure_ascii=False)
 
     return render(request, 'bao_cao/statistics.html', context)

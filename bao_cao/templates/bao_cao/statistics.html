@@ -5,24 +5,13 @@
 {% block nav_reports %}active{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}?v=2.0">
+<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}?v=2.1">
 {% endblock %}
 
-{% block page_title %}<span id="dynamic-title">Báo cáo sách được trả</span>{% endblock %}
+{% block page_title %}<span id="dynamic-title">Báo cáo sách đã trả</span>{% endblock %}
 
 {% block content %}
 <div class="reports-container">
-
-    <!-- ── Search ─────────────────────────────────────────────────── -->
-    <div class="search-group">
-        <div class="search-input-wrapper">
-            <i class='bx bx-search search-icon'></i>
-            <input type="text" id="report-search" placeholder="Tìm kiếm người mượn, mã sách...">
-            <button class="btn-filter" id="btn-filter">
-                <i class='bx bx-filter-alt'></i> Lọc
-            </button>
-        </div>
-    </div>
 
     <!-- ── Tabs ───────────────────────────────────────────────────── -->
     <div class="report-tabs">
@@ -32,15 +21,9 @@
         <button class="tab-btn" data-tab="fines">Phí phạt</button>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         TAB CONTENT: returned / lending / stock
-         Cards + bảng nằm TRONG section này (giống fine tab)
-    ══════════════════════════════════════════════════════════════ -->
-    <div id="general-section" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-        <!-- Heading tên thống kê -->
+    <div id="general-section" class="general-section">
         <h3 class="fine-summary-heading" id="general-heading">Thống kê sách đã trả</h3>
 
-        <!-- Stat cards cố định cho từng tab -->
         <div id="stat-returned" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
             <div class="stat-card">
                 <div class="sc-label">Tổng số sách đã trả</div>
@@ -55,6 +38,7 @@
                 <div class="sc-value sc-red">{{ late }}</div>
             </div>
         </div>
+
         <div id="stat-lending" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
             <div class="stat-card">
                 <div class="sc-label">Tổng số sách đang mượn</div>
@@ -69,6 +53,7 @@
                 <div class="sc-value sc-red">{{ lending_late }}</div>
             </div>
         </div>
+
         <div id="stat-stock" class="stat-grid" style="display:none; grid-template-columns: repeat(3, 1fr);">
             <div class="stat-card">
                 <div class="sc-label">Tổng số đầu sách</div>
@@ -84,10 +69,6 @@
             </div>
         </div>
 
-        <!-- Stat cards sẽ được render bằng JS -->
-        <div class="stat-grid" id="summary-section"></div>
-
-        <!-- Bảng dữ liệu sẽ được render bằng JS -->
         <div class="report-table-container" id="report-table-container">
             <div class="data-table-scroll table-wrapper" style="flex: 1 1 auto; min-height: 0;">
                 <table id="reportTable" class="table">
@@ -100,9 +81,6 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════════
-         TAB FINES — ẩn/hiện theo tab (đã có sẵn cards + bảng)
-    ══════════════════════════════════════════════════════════════ -->
     <div id="fine-section" style="display:none;">
 
         <h3 class="fine-summary-heading">Thống kê phí phạt</h3>
@@ -173,12 +151,9 @@
 
     </div><!-- /fine-section -->
 
-    <!-- Dữ liệu JSON statData/reportData từ backend -->
+    <!-- Dữ liệu JSON reportData từ backend -->
     <script id="report-data" type="application/json">
       {{ report_data|safe }}
-    </script>
-    <script id="stat-data" type="application/json">
-      {{ stat_data|safe }}
     </script>
 
 </div><!-- /reports-container -->
@@ -190,30 +165,24 @@
         const tabs = document.querySelectorAll('.tab-btn');
         const tableHeader = document.getElementById('table-header');
         const tableBody = document.getElementById('table-body');
-        const summarySection = document.getElementById('summary-section');
         const generalHeading = document.getElementById('general-heading');
         const generalSection = document.getElementById('general-section');
         const dynamicTitle = document.getElementById('dynamic-title');
-        const searchInput = document.getElementById('report-search');
-        const filterBtn = document.getElementById('btn-filter');
         const fineSection = document.getElementById('fine-section');
 
-        let currentTab = 'returned';
+        let reportData = { returned: [], lending: [], stock: [] };
+        const reportDataNode = document.getElementById('report-data');
+        if (reportDataNode) {
+            try {
+                reportData = JSON.parse(reportDataNode.textContent) || reportData;
+            } catch (e) {
+                reportData = { returned: [], lending: [], stock: [] };
+            }
+        }
 
-        // DỮ LIỆU THỰC: bạn cần truyền các biến JSON từ backend vào đây
-        // Ví dụ:
-        // const reportData = { returned: [...], lending: [...], stock: [...] };
-        // const statData = { returned: [...], lending: [...], stock: [...] };
-        // Nếu backend chưa truyền, bạn cần bổ sung vào context và render ra <script> như hướng dẫn ở các phiên bản trước.
-
-        // Dưới đây là ví dụ dữ liệu mẫu, bạn cần thay bằng dữ liệu thật từ backend
-        const reportData = window.REPORT_DATA || { returned: [], lending: [], stock: [] };
-        const statData = window.STAT_DATA || { returned: [], lending: [], stock: [] };
-
-        // Cấu hình tiêu đề, cột cho từng tab
         const tabConfig = {
             returned: {
-                title: 'Báo cáo sách được trả',
+                title: 'Báo cáo sách đã trả',
                 heading: 'Thống kê sách đã trả',
                 headers: ['MÃ PHIẾU', 'SÁCH', 'MÃ SÁCH TRONG KHO', 'NGƯỜI MƯỢN', 'NGÀY MƯỢN', 'NGÀY TRẢ', 'TRẠNG THÁI'],
                 rows: reportData.returned || [],
@@ -239,29 +208,11 @@
             return 'badge-blue-solid';
         }
 
-        function renderStats(stats) {
-            if (!stats || stats.length === 0) {
-                summarySection.style.display = 'none';
-                summarySection.innerHTML = '';
-                return;
-            }
-            summarySection.style.display = 'grid';
-            summarySection.innerHTML = stats.map(s =>
-                `<div class="stat-card">
-                <div class="sc-label">${s.label}</div>
-                <div class="sc-value ${s.cls}">${s.value}</div>
-             </div>`
-            ).join('');
-        }
-
-        function renderTable(cfg, filter) {
-            const q = (filter || '').toLowerCase();
+        function renderTable(cfg) {
             tableHeader.innerHTML = cfg.headers.map(h => `<th>${h}</th>`).join('');
-            const rows = q
-                ? cfg.rows.filter(r => r.some(c => String(c).toLowerCase().includes(q)))
-                : cfg.rows;
+            const rows = cfg.rows || [];
             if (!rows.length) {
-                tableBody.innerHTML = `<tr><td colspan="${cfg.headers.length}" class="empty-state">Không có dữ liệu phù hợp</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="${cfg.headers.length}" class="empty-state">Không có dữ liệu</td></tr>`;
                 return;
             }
             tableBody.innerHTML = rows.map(row => {
@@ -271,16 +222,13 @@
             }).join('');
         }
 
-        // Hiển thị card thống kê cố định đúng theo tab
         function showStatCards(tab) {
             document.getElementById('stat-returned').style.display = (tab === 'returned') ? '' : 'none';
             document.getElementById('stat-lending').style.display = (tab === 'lending') ? '' : 'none';
             document.getElementById('stat-stock').style.display = (tab === 'stock') ? '' : 'none';
         }
 
-        // Gọi khi chuyển tab
-        function switchTab(key, filter) {
-            currentTab = key;
+        function switchTab(key) {
             if (key === 'fines') {
                 dynamicTitle.textContent = 'Báo cáo phí phạt';
                 generalSection.style.display = 'none';
@@ -288,35 +236,25 @@
                 showStatCards('');
                 return;
             }
+
             fineSection.style.display = 'none';
             generalSection.style.display = '';
             showStatCards(key);
+
             const cfg = tabConfig[key];
             if (!cfg) return;
             dynamicTitle.textContent = cfg.title;
             generalHeading.textContent = cfg.heading;
-            renderStats(statData[key] || []);
-            renderTable(cfg, filter);
+            renderTable(cfg);
         }
 
-        // Khởi tạo
-        switchTab('returned', '');
-        showStatCards('returned');
+        switchTab('returned');
 
-        // Sự kiện chuyển tab
         tabs.forEach(btn => btn.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
-            switchTab(btn.dataset.tab, searchInput.value);
+            switchTab(btn.dataset.tab);
         }));
-
-        filterBtn.addEventListener('click', () => switchTab(currentTab, searchInput.value));
-        searchInput.addEventListener('keypress', e => {
-            if (e.key === 'Enter') switchTab(currentTab, searchInput.value);
-        });
-        searchInput.addEventListener('input', () => {
-            if (!searchInput.value) switchTab(currentTab, '');
-        });
     });
 </script>
 {% endblock %}

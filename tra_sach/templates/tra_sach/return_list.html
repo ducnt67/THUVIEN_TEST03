@@ -248,10 +248,10 @@
                                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                                     {% if item.tong_tien > 0 %}
                                     <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Thanh toán</button>
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})">Thanh toán</button>
                                     {% else %}
                                     <button class="btn btn-primary" style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;" 
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}')">Xem chi tiết</button>
+                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})">Xem chi tiết</button>
                                     {% endif %}
                                 </div>
                             </td>

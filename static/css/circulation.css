@@ -60,7 +60,7 @@ table.table th {
     font-size: 12px;
     font-weight: 600;
     color: #334155;
-    background: #f8fafc;
+    background: #f1f5f9;
     text-transform: uppercase;
     letter-spacing: .05em;
     border-bottom: 1px solid #f1f5f9;
@@ -771,7 +771,7 @@ table.table tbody tr:hover td {
 }
 
 #popup-payment table th {
-    background-color: #f9fafb !important;
+    background-color: #f1f5f9 !important;
     position: static !important;
     text-transform: uppercase;
     letter-spacing: 0.04em;
@@ -943,4 +943,4 @@ table.table tbody tr:hover td {
 
 .suggestion-item:hover .s-title, .suggestion-item.active .s-title {
     color: #3b82f6;
-}
+}

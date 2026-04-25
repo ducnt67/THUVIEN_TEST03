@@ -4,97 +4,38 @@
 
 .reports-container {
     background: var(--white);
-    padding: 28px 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, .05);
+    padding: 16px 18px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .04);
     border: 1px solid var(--border-color);
-    height: calc(100vh - 120px);
-    /* Cố định chiều cao, trừ header và padding */
-    min-height: 600px;
+    height: calc(100vh - 130px);
+    min-height: 520px;
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
 
-/* ── Search ─────────────────────────────────────────────────── */
-.search-group {
-    margin-bottom: 30px;
-}
-
-.search-input-wrapper {
-    position: relative;
+.general-section {
     display: flex;
-    gap: 12px;
-}
-
-.search-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 18px;
-    color: #94a3b8;
-    pointer-events: none;
-}
-
-.search-input-wrapper input {
+    flex-direction: column;
     flex: 1;
-    height: 44px;
-    /* Chuẩn hóa 44px */
-    padding: 0 16px 0 40px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color .2s, box-shadow .2s;
-}
-
-.search-input-wrapper input:focus {
-    border-color: var(--primary-blue);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
-}
-
-/* Nút Lọc cạnh thanh search */
-.btn-filter {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 44px;
-    /* Chuẩn hóa 44px */
-    padding: 0 18px;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #475569;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .2s, border-color .2s;
-}
-
-.btn-filter:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-}
-
-.btn-filter i {
-    font-size: 16px;
-    color: #64748b;
+    min-height: 0;
+    gap: 8px;
 }
 
 /* ── Summary cards (dùng chung cho cả 4 tab) ──────────────── */
 .stat-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(160px, 220px));
-    gap: 10px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .stat-card {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 14px 18px;
+    border-radius: 8px;
+    padding: 10px 12px;
     min-width: 0;
 }
 
@@ -102,77 +43,29 @@
     font-size: 12px;
     color: #64748b;
     font-weight: 500;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .sc-value {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: #1e293b;
-    line-height: 1.2;
-}
-
-.sc-green {
-    color: #10b981;
-}
-
-.sc-red {
-    color: #ef4444;
-}
-
-.text-green {
-    color: #10b981;
-}
-
-.text-red {
-    color: #ef4444;
+    line-height: 1.15;
 }
 
 /* ── Tab buttons ────────────────────────────────────────────── */
 .report-tabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
-    padding-bottom: 0;
-    border-bottom: none;
+    gap: 8px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
 }
 
-/* Sub-pills bên trong tab */
-.sub-tabs-container {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-
-.sub-pill {
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    background: #f1f5f9;
-    color: #64748b;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.sub-pill:hover {
-    background: #e2e8f0;
-}
-
-.sub-pill.active {
-    background: #fff;
-    color: #1e293b;
-    border-color: #1e293b;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
 .tab-btn {
-    padding: 7px 16px;
+    padding: 7px 14px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #fff;
@@ -200,8 +93,7 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: auto;
-    max-height: 420px;
-    /* Giới hạn chiều cao bảng, chỉ scroll phần tbody */
+    max-height: 100%;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #fff;
@@ -220,7 +112,7 @@
     z-index: 2;
     background: #f8fafc;
     text-align: left;
-    padding: 16px 14px;
+    padding: 12px 12px;
     font-size: 12px;
     font-weight: 700;
     color: #334155;
@@ -230,7 +122,7 @@
 }
 
 .report-table td {
-    padding: 14px;
+    padding: 11px 12px;
     color: #1e293b;
     border-bottom: 1px solid #f1f5f9;
     vertical-align: middle;
@@ -261,16 +153,16 @@
 
 /* ── Heading trước fine cards ──────────────────────────────── */
 .fine-summary-heading {
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     color: #1e293b;
-    margin: 0 0 12px 0;
+    margin: 0 0 6px 0;
 }
 
 /* ── Empty state ────────────────────────────────────────────── */
 .empty-state {
     text-align: center;
-    padding: 48px 0;
+    padding: 32px 0;
     color: #94a3b8;
     font-size: 14px;
 }
@@ -317,7 +209,8 @@
     .reports-container {
         height: auto;
         min-height: 0;
-        padding: 16px 4px;
+        padding: 12px;
+        gap: 8px;
     }
 
     .report-table-container {
