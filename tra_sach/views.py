@@ -311,7 +311,7 @@ def api_xu_ly_mat_sach(request):
             if phuong_an == 'den_bu_tien':
                 sach_trong_kho.trang_thai_sach = 'lost'
                 sach_trong_kho.save()
-                # Giảm số lượng sách
+                # Giảm số lượng sách trong kho
                 sach = sach_trong_kho.ma_sach
                 if sach.so_luong > 0:
                     sach.so_luong -= 1
@@ -338,7 +338,7 @@ def api_xu_ly_mat_sach(request):
             elif phuong_an == 'den_sach_moi':
                 sach_trong_kho.trang_thai_sach = 'lost'
                 sach_trong_kho.save()
-                # Giảm số lượng sách
+                # Giảm số lượng sách trong kho
                 sach = sach_trong_kho.ma_sach
                 if sach.so_luong > 0:
                     sach.so_luong -= 1
@@ -374,24 +374,31 @@ def api_xac_nhan_den_sach(request):
             pm.trang_thai = 'da_tra'
             pm.save()
             from quan_ly_sach.models import SachTrongKho, Sach
-            sach_trong_kho = SachTrongKho.objects.create(
-                ma_sach_trong_kho=ma_sach_trong_kho_moi,
-                trang_thai_sach='available',
-                ghi_chu=thong_tin_sach_moi
-            )
-            # Tăng số lượng sách
-            # Tìm sách theo tiền tố mã sách trong kho
-            ma_sach = ma_sach_trong_kho_moi.split('-')[0] if '-' in ma_sach_trong_kho_moi else None
-            if ma_sach:
+            
+            # Tách lấy mã sách gốc để lấy foreign key
+            ma_sach_str = ma_sach_trong_kho_moi.split('-')[0] if '-' in ma_sach_trong_kho_moi else None
+            sach_obj = None
+            if ma_sach_str:
                 try:
-                    sach = Sach.objects.get(ma_sach=ma_sach)
-                    sach.so_luong += 1
-                    sach.save()
+                    sach_obj = Sach.objects.get(ma_sach=ma_sach_str)
                 except Sach.DoesNotExist:
                     pass
+            
+            if sach_obj:
+                sach_trong_kho = SachTrongKho.objects.create(
+                    ma_sach_trong_kho=ma_sach_trong_kho_moi,
+                    ma_sach=sach_obj,
+                    ma_vach=f"BC-{ma_sach_trong_kho_moi}",
+                    trang_thai_sach='available'
+                )
+                # Tăng số lượng sách gốc để đồng bộ với số lượng bản ghi SachTrongKho
+                sach_obj.so_luong += 1
+                sach_obj.save()
+            else:
+                return JsonResponse({'error': 'Không tìm thấy sách gốc trong hệ thống.'}, status=400)
+                
             return JsonResponse({'success': True})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy phiếu mượn.'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
