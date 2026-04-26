@@ -36,7 +36,7 @@ def api_get_borrow_list(request):
     if not _can_view_borrow_area(request.user):
         return JsonResponse({'success': False, 'message': 'Bạn không có quyền truy cập chức năng này.'}, status=403)
 
-    slips = PhieuMuon.objects.all().select_related('ma_nguoi_dung').order_by('-ngay_muon')
+    slips = PhieuMuon.objects.all().select_related('ma_nguoi_dung').order_by('ma_phieu_muon')
 
     if _is_doc_gia_user(request.user):
         slips = slips.filter(ma_nguoi_dung=request.user.nguoi_dung)

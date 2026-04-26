@@ -10,12 +10,26 @@ from django.utils import timezone
 from decimal import Decimal
 from django.db.models import Q
 
+def _create_fine(ma_nguoi_dung, ma_phieu_muon, ma_sach_trong_kho, ma_loai_phat, so_tien, ly_do, nguoi_tao):
+    """Hàm hỗ trợ tạo khoản phạt."""
+    if so_tien > 0:
+        KhoanPhat.objects.create(
+            ma_nguoi_dung=ma_nguoi_dung,
+            ma_phieu_muon=ma_phieu_muon,
+            ma_sach_trong_kho=ma_sach_trong_kho,
+            ma_loai_phat=ma_loai_phat,
+            so_tien=so_tien,
+            trang_thai_tt='Chưa thanh toán',
+            ly_do=ly_do,
+            nguoi_tao=nguoi_tao
+        )
+
 @login_required
 def return_list_view(request):
     # Tab 1: Danh sách sách (Tất cả: Đang mượn + Đã trả)
     chi_tiet_muon = ChiTietPhieuMuon.objects.all().select_related(
         'ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach'
-    ).order_by('-ngay_tra', 'ma_phieu_muon')
+    ).order_by('ma_phieu_muon')
     
     tab1_grouped = {}
     for ct in chi_tiet_muon:
@@ -175,8 +189,9 @@ def api_xac_nhan_tra_sach(request):
         ma_sach_trong_kho = request.POST.get('ma_sach_trong_kho')
         tinh_trang = request.POST.get('tinh_trang')
         mo_ta_hu_hong = request.POST.get('mo_ta_hu_hong', '')
-        damage_level = request.POST.get('damage_level', '')  # nhận mức độ hư hỏng
+        damage_level_id = request.POST.get('damage_level', '')  # ID của loại phạt hư hỏng
         nguoi_xac_nhan = request.user
+
         if not (ma_phieu_muon and ma_sach_trong_kho and tinh_trang):
             return HttpResponseBadRequest('Thiếu thông tin bắt buộc')
 
@@ -187,21 +202,40 @@ def api_xac_nhan_tra_sach(request):
                 ngay_tra__isnull=True
             )
             pm = ctpm.ma_phieu_muon
+
             if pm.trang_thai not in ['dang_muon', 'qua_han']:
                 return JsonResponse({'error': f'Chỉ xác nhận trả khi trạng thái là Đang mượn hoặc Quá hạn (Hiện tại: {pm.trang_thai}).'}, status=400)
-            # Cập nhật ngày trả, tình trạng
-            ctpm.ngay_tra = timezone.now().date()
-            ctpm.tinh_trang_khi_tra = 'Tốt' if tinh_trang == 'tot' else 'Hư hỏng'
+            
+            ngay_tra = timezone.now().date()
+            ctpm.ngay_tra = ngay_tra
+            ctpm.tinh_trang_khi_tra = 'Tốt' if tinh_trang == 'tot' else f'Hư hỏng - {mo_ta_hu_hong}'
             ctpm.save(update_fields=['ngay_tra', 'tinh_trang_khi_tra'])
 
-            # Cập nhật trạng thái bản sách trong kho khi trả
             sach_trong_kho = ctpm.ma_sach_trong_kho
             sach_trong_kho.trang_thai_sach = 'available' if tinh_trang == 'tot' else 'damaged'
             sach_trong_kho.save(update_fields=['trang_thai_sach'])
 
-            # Đồng bộ trạng thái phiếu mượn theo toàn bộ chi tiết để tránh lệch trạng thái da_tra/qua_han.
+            # Xử lý phạt trễ hạn
+            so_ngay_qua_han = (ngay_tra - ctpm.han_tra).days
+            if so_ngay_qua_han > 0:
+                chinh_sach_tre_han = ChinhSachPhat.objects.filter(loai_phat__icontains='Trễ hạn').first()
+                if chinh_sach_tre_han and chinh_sach_tre_han.muc_phat_moi_ngay:
+                    so_tien_phat = so_ngay_qua_han * chinh_sach_tre_han.muc_phat_moi_ngay
+                    _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_tre_han, so_tien_phat, f'Trả sách trễ {so_ngay_qua_han} ngày', nguoi_xac_nhan)
+
+            # Xử lý phạt hư hỏng
+            if tinh_trang == 'hu_hong' and damage_level_id:
+                try:
+                    chinh_sach_hu_hong = ChinhSachPhat.objects.get(pk=damage_level_id)
+                    if chinh_sach_hu_hong.muc_phat_hu_hong:
+                        _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_hu_hong, chinh_sach_hu_hong.muc_phat_hu_hong, f'Làm hỏng sách: {mo_ta_hu_hong}', nguoi_xac_nhan)
+                except ChinhSachPhat.DoesNotExist:
+                    # Bỏ qua nếu không tìm thấy chính sách (tránh gây lỗi)
+                    pass
+
             pm.sync_status()
             return JsonResponse({'success': True})
+
     except ChiTietPhieuMuon.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy bản ghi mượn.'}, status=404)
     except Exception as e:
@@ -267,6 +301,8 @@ def api_thanh_toan_phi_phat(request):
                 trang_thai='Đã thanh toán',
                 nguoi_thu=nguoi_thu
             )
+            from muon_sach.models import PhieuMuon, ChiTietPhieuMuon
+            
             for kp in khoan_phat_qs:
                 ChiTietThanhToan.objects.create(
                     ma_giao_dich=gd,
@@ -275,6 +311,25 @@ def api_thanh_toan_phi_phat(request):
                 )
                 kp.trang_thai_tt = 'Đã thanh toán'
                 kp.save()
+
+                # Nếu đây là khoản phạt mất sách, ta cần hoàn tất quy trình mượn
+                if kp.ma_loai_phat and 'mất sách' in kp.ma_loai_phat.loai_phat.lower():
+                    if kp.ma_phieu_muon and kp.ma_sach_trong_kho:
+                        pm = kp.ma_phieu_muon
+                        try:
+                            ctpm = ChiTietPhieuMuon.objects.get(
+                                ma_phieu_muon=pm,
+                                ma_sach_trong_kho=kp.ma_sach_trong_kho
+                            )
+                            # Đánh dấu là đã xử lý xong việc mất sách (coi như đã trả)
+                            if not ctpm.ngay_tra:
+                                ctpm.ngay_tra = timezone.now().date()
+                                ctpm.save(update_fields=['ngay_tra'])
+                            
+                            pm.sync_status() # Cập nhật lại trạng thái tổng của phiếu
+                        except ChiTietPhieuMuon.DoesNotExist:
+                            pass
+
             return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
@@ -289,12 +344,16 @@ def api_xu_ly_mat_sach(request):
     try:
         ma_phieu_muon = request.POST.get('ma_phieu_muon')
         ma_sach_trong_kho = request.POST.get('ma_sach_trong_kho')
-        ngay_khai_bao_mat = request.POST.get('ngay_khai_bao_mat')
+        ngay_khai_bao_mat_str = request.POST.get('ngay_khai_bao_mat')
         phuong_an = request.POST.get('phuong_an')
         ghi_chu = request.POST.get('ghi_chu', '')
         nguoi_xu_ly = request.user
-        if not (ma_phieu_muon and ma_sach_trong_kho and ngay_khai_bao_mat and phuong_an):
+
+        if not (ma_phieu_muon and ma_sach_trong_kho and ngay_khai_bao_mat_str and phuong_an):
             return HttpResponseBadRequest('Thiếu thông tin bắt buộc')
+
+        ngay_khai_bao_mat = timezone.datetime.strptime(ngay_khai_bao_mat_str, '%Y-%m-%d').date()
+
         with transaction.atomic():
             ctpm = ChiTietPhieuMuon.objects.select_for_update().get(
                 ma_phieu_muon__ma_phieu_muon=ma_phieu_muon,
@@ -302,52 +361,49 @@ def api_xu_ly_mat_sach(request):
                 ngay_tra__isnull=True
             )
             pm = ctpm.ma_phieu_muon
+
             if pm.trang_thai not in ['dang_muon', 'qua_han']:
                 return JsonResponse({'error': f'Chỉ xử lý mất sách khi trạng thái là Đang mượn hoặc Quá hạn (Hiện tại: {pm.trang_thai}).'}, status=400)
+
             ctpm.ngay_khai_bao_mat = ngay_khai_bao_mat
             ctpm.phuong_an_boi_thuong = phuong_an
             ctpm.save()
+
             sach_trong_kho = ctpm.ma_sach_trong_kho
+            sach_trong_kho.trang_thai_sach = 'lost'
+            sach_trong_kho.save()
+            
+            sach = sach_trong_kho.ma_sach
+            if sach.so_luong > 0:
+                sach.so_luong -= 1
+                sach.save()
+
+            # Xử lý phạt trễ hạn (nếu có)
+            so_ngay_qua_han = (ngay_khai_bao_mat - ctpm.han_tra).days
+            if so_ngay_qua_han > 0:
+                chinh_sach_tre_han = ChinhSachPhat.objects.filter(loai_phat__icontains='Trễ hạn').first()
+                if chinh_sach_tre_han and chinh_sach_tre_han.muc_phat_moi_ngay:
+                    so_tien_phat_tre_han = so_ngay_qua_han * chinh_sach_tre_han.muc_phat_moi_ngay
+                    _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_tre_han, so_tien_phat_tre_han, f'Trễ hạn {so_ngay_qua_han} ngày trước khi báo mất', nguoi_xu_ly)
+
             if phuong_an == 'den_bu_tien':
-                sach_trong_kho.trang_thai_sach = 'lost'
-                sach_trong_kho.save()
-                # Giảm số lượng sách trong kho
-                sach = sach_trong_kho.ma_sach
-                if sach.so_luong > 0:
-                    sach.so_luong -= 1
-                    sach.save()
                 chinh_sach_mat = ChinhSachPhat.objects.filter(loai_phat__icontains='Mất sách').first()
                 if not chinh_sach_mat:
                     return JsonResponse({'error': 'Chưa cấu hình chính sách phạt mất sách.'}, status=400)
+                
                 so_tien_mat = Decimal(chinh_sach_mat.muc_den_bu_mat_sach or 0)
-                from .models import KhoanPhat
-                KhoanPhat.objects.create(
-                    ma_phat=f'FINE-{timezone.now().strftime("%Y%m%d%H%M%S%f")}',
-                    ma_nguoi_dung=pm.ma_nguoi_dung,
-                    ma_phieu_muon=pm,
-                    ma_sach_trong_kho=ctpm.ma_sach_trong_kho,
-                    ma_loai_phat=chinh_sach_mat,
-                    so_tien=so_tien_mat,
-                    ngay_tao=timezone.now(),
-                    trang_thai_tt='Chưa thanh toán',
-                    ly_do=f'Mất sách: {ghi_chu}',
-                    nguoi_tao=nguoi_xu_ly
-                )
+                _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_mat, so_tien_mat, f'Báo mất sách: {ghi_chu}', nguoi_xu_ly)
                 pm.trang_thai = 'dang_xu_ly'
                 pm.save()
+
             elif phuong_an == 'den_sach_moi':
-                sach_trong_kho.trang_thai_sach = 'lost'
-                sach_trong_kho.save()
-                # Giảm số lượng sách trong kho
-                sach = sach_trong_kho.ma_sach
-                if sach.so_luong > 0:
-                    sach.so_luong -= 1
-                    sach.save()
                 pm.trang_thai = 'cho_den_sach'
                 pm.save()
             else:
                 return JsonResponse({'error': 'Phương án bồi hoàn không hợp lệ.'}, status=400)
+
             return JsonResponse({'success': True})
+
     except ChiTietPhieuMuon.DoesNotExist:
         return JsonResponse({'error': 'Không tìm thấy bản ghi mượn.'}, status=404)
     except Exception as e:
@@ -366,7 +422,7 @@ def api_xac_nhan_den_sach(request):
         thong_tin_sach_moi = request.POST.get('thong_tin_sach_moi', '')
         nguoi_xac_nhan = request.user
         if not (ma_phieu_muon and ma_sach_trong_kho_moi):
-            return HttpResponseBadRequest('Thiếu thông tin bắt buộc')
+            return JsonResponse({'error': 'Thiếu mã sách mới (vui lòng nhập vào ô Mã sách đền bù).'}, status=400)
         with transaction.atomic():
             pm = PhieuMuon.objects.select_for_update().get(ma_phieu_muon=ma_phieu_muon)
             if pm.trang_thai != 'cho_den_sach':

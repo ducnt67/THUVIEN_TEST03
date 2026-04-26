@@ -42,7 +42,7 @@ def _user_queryset(search_query='', filter_status='all', filter_class='all'):
     if filter_class != 'all':
         users = users.filter(lop=filter_class)
 
-    return users.order_by('role_priority', 'ho_ten')
+    return users.order_by('role_priority', 'ma_nguoi_dung')
 
 
 @login_required

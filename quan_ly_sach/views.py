@@ -58,7 +58,7 @@ def _book_queryset(keyword):
             filter=Q(sach_trong_kho__trang_thai_sach=SachTrongKho.TrangThai.OVERDUE),
             distinct=True
         ),
-    ).order_by('ten_sach')
+    ).order_by('ma_sach')
 
 def _build_book_context(request):
     """Xây dựng context cho trang danh sách sách"""
