@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         if (books.length === 0) {
-            safeToast('error', 'Vui lòng thêm ít nhất một cuốn sách hợp lệ.');
+            safeToast('error', 'Không tìm thấy sách');
             return;
         }
 
