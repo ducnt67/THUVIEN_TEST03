@@ -34,17 +34,24 @@ class Sach(models.Model):
 
     def dong_bo_kho(self):
         prefix = self.ma_sach
-        current_count = self.sach_trong_kho.count()
+        
+        # Đếm tổng số record trong kho (bao gồm cả những sách đã mất)
+        total_count = self.sach_trong_kho.count()
+        # Đếm số lượng sách bị mất
+        lost_count = self.sach_trong_kho.filter(trang_thai_sach='lost').count()
+        
+        # Số lượng sách thực tế còn trong hệ thống (không tính sách mất)
+        active_count = total_count - lost_count
 
-        # Nếu số lượng mới lớn hơn số lượng đang có -> Đẻ thêm
-        if current_count < self.so_luong:
+        # Nếu số lượng khai báo mới lớn hơn số lượng đang active -> Đẻ thêm
+        if active_count < self.so_luong:
             items_to_create = []
-            for i in range(current_count + 1, self.so_luong + 1):
+            num_to_create = self.so_luong - active_count
+            for i in range(total_count + 1, total_count + num_to_create + 1):
                 # Mã kho ví dụ: MS0001-001
                 ma_kho = f"{prefix}-{str(i).zfill(3)}"
 
-                # SỬA TẠI ĐÂY: Mã vạch sẽ lấy theo mã kho cho sạch sẽ và dễ quét
-                # Kết quả sẽ là: BC-MS0001-001 (Không bao giờ có dấu +)
+                # Mã vạch sẽ lấy theo mã kho cho sạch sẽ và dễ quét
                 ma_vach = f"BC-{ma_kho}"
 
                 items_to_create.append(SachTrongKho(

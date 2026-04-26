@@ -16,7 +16,7 @@
 .data-table-scroll,
 .table-wrapper {
     overflow: auto;
-    max-height: 480px; /* Chiều cao tối đa trước khi xuất hiện thanh cuộn */
+    max-height: calc(100vh - 320px); /* Co giãn theo chiều cao màn hình */
     border-radius: 8px;
     border: 1px solid #e5e7eb;
     background: #fff;
@@ -586,11 +586,26 @@ table.table tbody tr:hover td {
 }
 
 .tab-content {
-    display: block; /* Chuyển sang block để co giãn theo nội dung */
+    display: block;
+}
+
+/* Khi tab-content kết hợp data-panel: khôi phục flex chain */
+.tab-content.data-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .tab-pane {
-    display: block;
+    display: none; /* Ẩn tất cả tab mặc định */
+}
+
+.tab-pane.active {
+    display: flex; /* Tab active hiện dạng flex */
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
 .tab-pane-fixed {

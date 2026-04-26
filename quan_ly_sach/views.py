@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q, F
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 import django.shortcuts as shortcuts
 from .models import Sach, SachTrongKho
@@ -18,25 +18,44 @@ def _book_queryset(keyword):
             Q(ten_nha_xuat_ban__icontains=keyword)
         )
 
-    # Trong views.py, hãy đảm bảo filter đúng giá trị text trong database
+    # Các trạng thái sách được coi là vẫn còn trong bộ sưu tập của thư viện
+    # (không tính các sách đã mất, chờ đền hoặc đã xử lý xong)
+    collection_statuses = [
+        SachTrongKho.TrangThai.AVAILABLE,
+        SachTrongKho.TrangThai.BORROWED,
+        SachTrongKho.TrangThai.OVERDUE,
+        SachTrongKho.TrangThai.DAMAGED, # Hư hỏng nhẹ vẫn được tính vào tổng số
+    ]
+
     return books.annotate(
-        total_quantity=F('so_luong'),
-        # Đếm số lượng Sẵn sàng
+        # Fix: Tổng số lượng chỉ tính các sách còn trong bộ sưu tập
+        total_quantity=Count(
+            'sach_trong_kho',
+            filter=Q(sach_trong_kho__trang_thai_sach__in=collection_statuses),
+            distinct=True
+        ),
+
+        # Số lượng có sẵn chỉ tính những cuốn có trạng thái 'available'
         available_quantity=Count(
             'sach_trong_kho',
-            filter=Q(sach_trong_kho__trang_thai_sach='available'),
+            filter=Q(sach_trong_kho__trang_thai_sach=SachTrongKho.TrangThai.AVAILABLE),
             distinct=True
         ),
-        # Đếm tất cả những cuốn KHÔNG sẵn sàng (đang mượn, quá hạn, mất...)
+
+        # Số lượng không có sẵn là các trạng thái còn lại trong bộ sưu tập
         not_available_quantity=Count(
             'sach_trong_kho',
-            filter=~Q(sach_trong_kho__trang_thai_sach='available'),
+            filter=Q(sach_trong_kho__trang_thai_sach__in=[
+                SachTrongKho.TrangThai.BORROWED,
+                SachTrongKho.TrangThai.OVERDUE,
+                SachTrongKho.TrangThai.DAMAGED,
+            ]),
             distinct=True
         ),
-        # Bạn có thể đếm riêng Quá hạn nếu muốn hiện cảnh báo đỏ
+
         overdue_quantity=Count(
             'sach_trong_kho',
-            filter=Q(sach_trong_kho__trang_thai_sach='overdue'),
+            filter=Q(sach_trong_kho__trang_thai_sach=SachTrongKho.TrangThai.OVERDUE),
             distinct=True
         ),
     ).order_by('ten_sach')
@@ -53,7 +72,6 @@ def _build_book_context(request):
     if detail_id:
         detail_book = Sach.objects.filter(ma_sach=detail_id).first()
 
-    # Đổi tên thành selected_book để khớp với template HTML
     selected_book = None
     if edit_id:
         selected_book = Sach.objects.filter(ma_sach=edit_id).first()
@@ -68,56 +86,49 @@ def _build_book_context(request):
 
 @login_required
 def book_list_view(request):
-    # =========================
-    # XỬ LÝ POST (CREATE / UPDATE / DELETE / ADD COPIES)
-    # =========================
     if request.method == "POST":
         action = request.POST.get("action", "").strip()
         book_id = request.POST.get("book_id", "").strip()
 
-        # --- NHÓM 1: CÁC HÀNH ĐỘNG CHỈ CẦN ID (XÓA / THÊM BẢN SAO) ---
-
-        # 1. Hành động Xóa
         if action == "delete":
             book = get_object_or_404(Sach, ma_sach=book_id)
-
-
-            # Lấy các bản sao theo trạng thái
             available_copies = book.sach_trong_kho.filter(trang_thai_sach='available')
             not_available_copies = book.sach_trong_kho.exclude(trang_thai_sach='available')
 
-            # Xóa chỉ các bản available
             deleted_count = available_copies.count()
             available_copies.delete()
 
-            # Nếu vẫn còn bản đang mượn / quá hạn
             if not_available_copies.exists():
                 messages.warning(
                     request,
                     f"Đã xóa {deleted_count} bản có sẵn. "
                     f"Còn {not_available_copies.count()} bản đang được mượn / không thể xóa."
                 )
-          
             else:
-                # Không còn bản nào → xóa luôn sách chính
                 book.delete()
+                messages.success(request, f"Đã xóa hoàn toàn sách '{book.ten_sach}'.")
+
+            # Đồng bộ lại trường so_luong của model Sach sau khi xóa (chỉ tính sách không bị mất)
+            book.so_luong = book.sach_trong_kho.exclude(trang_thai_sach='lost').count()
+            book.save()
 
             return redirect("book_list")
 
-        # 2. Hành động Thêm bản sao (Modal riêng)
         elif action == "add_copies":
             num_to_add_raw = request.POST.get("num_to_add", "0")
             try:
                 num_to_add = int(num_to_add_raw)
+                if num_to_add <= 0:
+                    raise ValueError("Số lượng thêm vào phải là số dương.")
                 book = get_object_or_404(Sach, ma_sach=book_id)
                 book.so_luong += num_to_add
-                book.save()  # Tự động gọi dong_bo_kho() trong Model
+                book.save()
                 messages.success(request, f"Đã thêm {num_to_add} bản sao cho sách {book.ten_sach}.")
+            except (ValueError, TypeError) as e:
+                messages.error(request, f"Lỗi khi thêm bản sao: {e}")
             except Exception as e:
-                messages.error(request, f"Lỗi khi thêm bản sao: {str(e)}")
+                messages.error(request, f"Đã xảy ra lỗi không xác định: {e}")
             return redirect("book_list")
-
-        # --- NHÓM 2: CÁC HÀNH ĐỘNG CẦN NHẬP FORM ĐẦY ĐỦ (CREATE / UPDATE) ---
 
         title = request.POST.get("title", "").strip()
         author = request.POST.get("author", "").strip()
@@ -127,19 +138,19 @@ def book_list_view(request):
         quantity_raw = request.POST.get("quantity", "0").strip()
         original_id = request.POST.get("original_id", "").strip()
 
-        # Kiểm tra thông tin bắt buộc cho Create/Update
         if not (book_id and title and year_raw):
-            messages.error(request, "Vui lòng điền đầy đủ các thông tin bắt buộc.")
+            messages.error(request, "Vui lòng điền đầy đủ các thông tin bắt buộc (Mã sách, Tên sách, Năm XB).")
             return redirect("book_list")
 
         try:
             year = int(year_raw)
             quantity = int(quantity_raw)
-        except ValueError:
+            if quantity < 0:
+                 raise ValueError("Số lượng không thể là số âm.")
+        except (ValueError, TypeError):
             messages.error(request, "Năm xuất bản hoặc số lượng không hợp lệ.")
             return redirect("book_list")
 
-        # 3. Thực hiện Thêm mới
         if action == "create":
             if Sach.objects.filter(ma_sach=book_id).exists():
                 messages.error(request, "Mã sách này đã tồn tại.")
@@ -149,13 +160,12 @@ def book_list_view(request):
                     the_loai=category or None, ten_nha_xuat_ban=publisher or None,
                     nam_xuat_ban=year, so_luong=quantity
                 )
+                messages.success(request, f"Đã thêm mới sách '{title}'.")
 
-
-        # 4. Thực hiện Cập nhật
         elif action == "update":
             book = get_object_or_404(Sach, ma_sach=original_id if original_id else book_id)
             if book_id != original_id and Sach.objects.filter(ma_sach=book_id).exists():
-                messages.error(request, "Mã sách mới bị trùng.")
+                messages.error(request, "Mã sách mới bị trùng với một sách khác.")
             else:
                 book.ma_sach = book_id
                 book.ten_sach = title
@@ -165,32 +175,38 @@ def book_list_view(request):
                 book.nam_xuat_ban = year
                 book.so_luong = quantity
                 book.save()
+                messages.success(request, f"Đã cập nhật thông tin sách '{title}'.")
 
         return redirect("book_list")
 
-    # =========================
-    # XỬ LÝ GET (HIỂN THỊ)
-    # =========================
     context = _build_book_context(request)
     return shortcuts.render(request, "book_list.html", context)
 
 @login_required
 def book_list(request):
-    """Entry point cho url 'book_list'"""
     return book_list_view(request)
 
 @login_required
 def quan_ly_kho_view(request):
-    # Lấy mã sách từ tham số ?ma_sach=MS0002
     ma_sach_tu_url = request.GET.get('ma_sach')
-
-    # Lấy thông tin cuốn sách chính
-    sach_chinh = Sach.objects.get(ma_sach=ma_sach_tu_url)
-
-    # Lấy danh sách các bản sao trong kho của cuốn sách đó
+    sach_chinh = get_object_or_404(Sach, ma_sach=ma_sach_tu_url)
     danh_sach_kho = SachTrongKho.objects.filter(ma_sach=sach_chinh)
+    
+    # Tính số lượng có sẵn
+    so_luong_co_san = danh_sach_kho.filter(trang_thai_sach='available').count()
+    
+    # Tính tổng số lượng (active) y hệt như _book_queryset
+    collection_statuses = [
+        SachTrongKho.TrangThai.AVAILABLE,
+        SachTrongKho.TrangThai.BORROWED,
+        SachTrongKho.TrangThai.OVERDUE,
+        SachTrongKho.TrangThai.DAMAGED,
+    ]
+    tong_so_luong_active = danh_sach_kho.filter(trang_thai_sach__in=collection_statuses).count()
 
     return shortcuts.render(request, 'sachtrongkho.html', {
         'sach': sach_chinh,
-        'danh_sach_kho': danh_sach_kho
+        'danh_sach_kho': danh_sach_kho,
+        'so_luong_co_san': so_luong_co_san,
+        'tong_so_luong_active': tong_so_luong_active
     })

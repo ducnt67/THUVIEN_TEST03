@@ -27,14 +27,18 @@ function performSearch() {
 
 function switchTab(clickedTab, targetId) {
     document.querySelectorAll('.tab').forEach((t) => t.classList.remove('active'));
-    document.querySelectorAll('.tab-pane').forEach((p) => p.classList.add('hidden'));
-    document.querySelectorAll('.tab-pane').forEach((p) => p.style.display = 'none');
+    document.querySelectorAll('.tab-pane').forEach((p) => {
+        p.classList.add('hidden');
+        p.classList.remove('active');
+        p.style.display = '';  // Xóa inline style để CSS class quyết định
+    });
 
     clickedTab.classList.add('active');
     const target = document.getElementById(targetId);
     if (target) {
         target.classList.remove('hidden');
-        target.style.display = 'flex';
+        target.classList.add('active');
+        target.style.display = '';  // Xóa inline style để CSS .tab-pane.active quyết định
     }
 }
 

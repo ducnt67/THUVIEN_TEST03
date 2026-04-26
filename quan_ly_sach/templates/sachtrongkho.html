@@ -7,95 +7,116 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/book_list.css' %}">
+<link rel="stylesheet" href="{% static 'css/circulation.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid" style="padding: 20px; font-family: Arial, sans-serif; background: #f4f6f9;">
+<div class="data-page" style="font-family: Arial, sans-serif;">
 
-    <div class="card" style="background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-        <a href="{% url 'book_list' %}"style="display: inline-flex;
-                        align-items: center; justify-content: center;
-                        width: 200px; height: 50px; background: #475de1;
-                        color: #fff; border-radius: 10px; text-decoration: none;
-                         font-size: 18px; font-weight: 600; margin-bottom: 20px; margin-top: 0px;
-                         transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(71, 93, 225, 0.2);">
-        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Quản lý sách
-        </a>
+    <div class="card" style="margin-bottom: 20px; flex-shrink: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="section-title" style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 20px;">
+                <i class='bx bx-book-open' style="color: #2563eb; font-size: 24px;"></i> Thông tin sách
+            </h2>
+            <a href="{% url 'book_list' %}" class="btn btn-primary"
+                style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px;">
+                <i class='bx bx-arrow-back'></i> Quản lý sách
+            </a>
+        </div>
 
-        <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 15px;">Thông tin sách</h2>
-
-        <p style="margin: 8px 0; font-size: 14px; color: #000;">
-            <b style="font-weight: 700;">Mã sách:</b>
-            <span id="bookId" style="font-weight: 400; font-family: 'Montserrat', sans-serif; margin-left: 5px;">{{ sach.ma_sach }}</span>
-        </p>
-
-        <p style="margin: 8px 0; font-size: 14px; color: #000;">
-            <b style="font-weight: 700;">Tên sách:</b>
-            <span id="bookTitle" style="font-weight: 400; font-family: 'Montserrat', sans-serif; margin-left: 5px;">{{ sach.ten_sach }}</span>
-        </p>
-
-        <p style="margin: 8px 0; font-size: 14px; color: #000;">
-            <b style="font-weight: 700;">Tác giả:</b>
-            <span id="bookAuthor" style="font-weight: 400;font-family: 'Montserrat', sans-serif; margin-left: 5px;">{{ sach.ten_tac_gia|default:"N/A" }}</span>
-        </p>
-
-        <p style="margin: 8px 0; font-size: 14px; color: #000;">
-            <b style="font-weight: 700;">Số lượng:</b>
-            <span id="bookQty" style="font-weight: 400; font-family: 'Montserrat', sans-serif; margin-left: 5px;">{{ danh_sach_kho.count }}/{{ sach.so_luong }}</span>
-        </p>
+        <div
+            style="display: flex; flex-wrap: wrap; gap: 24px; padding: 20px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;">
+            <div style="flex: 1; min-width: 200px;">
+                <div
+                    style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    Mã sách</div>
+                <div style="font-size: 16px; color: #0f172a; font-weight: 700;">{{ sach.ma_sach }}</div>
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <div
+                    style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    Tên sách</div>
+                <div style="font-size: 16px; color: #0f172a; font-weight: 600;">{{ sach.ten_sach }}</div>
+            </div>
+            <div style="flex: 1.5; min-width: 200px;">
+                <div
+                    style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    Tác giả</div>
+                <div style="font-size: 16px; color: #334155; font-weight: 500;">{{ sach.ten_tac_gia|default:"N/A" }}
+                </div>
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <div
+                    style="font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                    Số lượng</div>
+                <div style="font-size: 16px; color: #0f172a; font-weight: 600;">
+                    {% if so_luong_co_san > 0 %}
+                    <span style="color: #22c55e;">{{ so_luong_co_san }}</span>
+                    {% else %}
+                    <span style="color: #ef4444;">{{ so_luong_co_san }}</span>
+                    {% endif %}
+                    <span style="color: #94a3b8; font-weight: 400; margin: 0 2px;">/</span>
+                    <span>{{ tong_so_luong_active }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card table-section" style="background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+    <div class="card data-panel" style="padding: 24px;">
 
-    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-top: 0; margin-bottom: 20px;">
-        Kho sách
-    </h2>
-        <div style="max-height: 420px; overflow-y: auto; border-radius: 8px;">
+        <h2 class="section-title" style="margin-bottom: 20px; flex-shrink: 0;">
+            Chi tiết bản sao sách
+        </h2>
+        <div class="data-table-scroll table-wrapper" style="flex: 1; min-height: 0; max-height: none; overflow: auto;">
 
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid #ddd;">
+            <table class="table">
 
-            <thead>
-                <tr>
-                    <th style="padding: 12px; text-align: center; background: #007bff; color: #fff; border: 1px solid #ddd; font-weight: 600;">Mã sách trong kho</th>
-                    <th style="padding: 12px; text-align: center; background: #007bff; color: #fff; border: 1px solid #ddd; font-weight: 600;">Mã sách</th>
-                    <th style="padding: 12px; text-align: center; background: #007bff; color: #fff; border: 1px solid #ddd; font-weight: 600;">Mã vạch</th>
-                    <th style="padding: 12px; text-align: center; background: #007bff; color: #fff; border: 1px solid #ddd; font-weight: 600;">Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody id="stockTable">
-                {% for item in danh_sach_kho %}
-                <tr>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #eee; font-family: 'Courier New', monospace; font-weight: 500;">{{ item.ma_sach_trong_kho }}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #eee; color: #64748b; font-family: 'Courier New', monospace;">{{ sach.ma_sach }}</td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #eee; font-family: 'Courier New', monospace; color: #475569;"><span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">{{ item.ma_vach }}</span></td>
-                    <td style="padding: 12px; text-align: center; border: 1px solid #eee;">
-                        {% with status=item.trang_thai_sach %}
+                <thead>
+                    <tr>
+                        <th>Mã sách trong kho</th>
+                        <th>Mã sách</th>
+                        <th>Mã vạch</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody id="stockTable">
+                    {% for item in danh_sach_kho %}
+                    <tr>
+                        <td><strong>{{ item.ma_sach_trong_kho }}</strong></td>
+                        <td style="color: #64748b;">{{ sach.ma_sach }}</td>
+                        <td>{{ item.ma_vach }}</td>
+                        <td>
+                            {% with status=item.trang_thai_sach %}
                             {% if status == 'available' %}
-                                <span class="badge" style="background: #dcfce7; color: #166534;">CÓ SẴN</span>
+                            <span class="badge badge-green-solid">Sẵn sàng</span>
                             {% elif status == 'borrowed' %}
-                                <span class="badge" style="background: #e0f2fe; color: #0369a1;">ĐANG MƯỢN</span>
+                            <span class="badge badge-blue-solid">Đang mượn</span>
                             {% elif status == 'overdue' %}
-                                <span class="badge" style="background: #fee2e2; color: #991b1b;">QUÁ HẠN</span>
-                            {% elif status == 'lost_damaged' %}
-                                <span class="badge" style="background: #fef3c7; color: #92400e;">MẤT/HỎNG</span>
+                            <span class="badge badge-orange-solid">Quá hạn</span>
+                            {% elif status == 'damaged' %}
+                            <span class="badge badge-orange-solid">Hư hỏng</span>
+                            {% elif status == 'lost' %}
+                            <span class="badge badge-red-solid">Đã mất</span>
                             {% elif status == 'awaiting_replacement' %}
-                                <span class="badge" style="background: #f3e8ff; color: #6b21a8;">CHỜ ĐỀN BÙ</span>
+                            <span class="badge badge-purple-solid" style="background: #a855f7; color: white;">Chờ đền bù</span>
+                            {% elif status == 'processed' %}
+                            <span class="badge badge-gray-solid" style="background: #64748b; color: white;">Đã xử lý</span>
                             {% else %}
-                                <span class="badge" style="background: #f1f5f9; color: #475569;">{{ status }}</span>
+                            <span class="badge badge-gray-solid" style="background: #94a3b8; color: white;">{{ status|title }}</span>
                             {% endif %}
-                        {% endwith %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center; padding: 20px; color: #94a3b8; border: 1px solid #eee;">
-                        Không có dữ liệu bản sao chi tiết.
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">
+                            <i class='bx bx-info-circle'></i> Chưa có bản sao sách nào trong kho.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

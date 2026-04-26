@@ -12,9 +12,12 @@
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_detail_new.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_copy.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/toast_notification.css' %}">
+<link rel="stylesheet" href="{% static 'css/circulation.css' %}">
 {% endblock %}
 
 {% block content %}
+<div id="page-books" class="data-page">
+
 <div style="display: none;">
     {% if messages %}
         {% for message in messages %}
@@ -23,7 +26,7 @@
     {% endif %}
 </div>
 
-<section class="search-section search-uniform card">
+<section class="search-section search-uniform card" style="flex-shrink: 0;">
     <p class="section-label">Tìm kiếm sách</p>
     <div class="search-bar">
         <div class="input-with-icon">
@@ -39,11 +42,11 @@
     </div>
 </section>
 
-<section class="table-section card data-panel" style="padding: 24px; height: 600px; min-height: 0; display: flex; flex-direction: column;">
-    <p class="section-label" style="margin-bottom: 5px;">Danh sách sách</p>
-    <p id="bookCount" class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách sách trong thư viện</p>
+<section class="table-section card data-panel">
+    <p class="section-label" style="margin-bottom: 5px; flex-shrink: 0;">Danh sách sách</p>
+    <p id="bookCount" class="section-meta" style="margin-bottom: 15px; flex-shrink: 0;">Hiển thị danh sách sách trong thư viện</p>
 
-    <div class="table-wrapper data-table-scroll" style="flex: 1 1 auto; min-height: 0; max-height: 100%; overflow: auto;">
+    <div class="data-table-scroll table-wrapper">
         <table class="table" id="bookTable">
             <thead>
                 <tr>
@@ -83,15 +86,15 @@
                         </td>
                         <td>
                             {% if book.available_quantity > 0 %}
-                                <span class="status-badge status-available" style="background: #3b82f6; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">SẴN SÀNG</span>
+                                <span class="badge badge-green-solid">Sẵn sàng</span>
                             {% else %}
-                                <span class="status-badge status-unavailable" style="background: #ef4444; color: white; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px;">HẾT SÁCH</span>
+                                <span class="badge badge-red-solid">Hết sách</span>
                             {% endif %}
                         </td>
                         <td class="col-action">
                             <div class="action-tools">
                                 <i class="bx bx-info-circle" title="Chi tiết"
-                                   onclick="event.stopPropagation(); viewDetail('{{ book.ma_sach }}', '{{ book.ten_sach }}', '{{ book.ten_tac_gia }}', '{{ book.the_loai }}', '{{ book.ten_nha_xuat_ban }}', '{{ book.nam_xuat_ban }}', '{{ book.total_quantity }}')"></i>
+                                   onclick="event.stopPropagation(); viewDetail('{{ book.ma_sach }}', '{{ book.ten_sach }}', '{{ book.ten_tac_gia }}', '{{ book.the_loai }}', '{{ book.ten_nha_xuat_ban }}', '{{ book.nam_xuat_ban }}', '{{ book.available_quantity }}', '{{ book.total_quantity }}')"></i>
                                 <i class="bx bx-edit-alt" title="Sửa"
                                    onclick="event.stopPropagation(); editBook('{{ book.ma_sach }}', '{{ book.ten_sach }}', '{{ book.ten_tac_gia }}', '{{ book.the_loai }}', '{{ book.ten_nha_xuat_ban }}', '{{ book.nam_xuat_ban }}', '{{ book.total_quantity }}')"></i>
                                 <i class="bx bx-copy-alt" title="Thêm sách"
@@ -112,6 +115,8 @@
         </table>
     </div>
 </section>
+
+</div><!-- end data-page -->
 
 <div id="toastContainer"></div>
 

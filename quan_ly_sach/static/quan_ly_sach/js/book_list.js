@@ -178,11 +178,18 @@ document.getElementById('editBookForm').addEventListener('submit', function(e) {
 /* =========================
    3. VIEW DETAIL
 ========================= */
-window.viewDetail = function(id, title, author, type, pub, year, qty, status = 'Có sẵn') {
+window.viewDetail = function(id, title, author, type, pub, year, availableQty, totalQty) {
     const modal = document.getElementById('detailModal');
     const content = document.getElementById('bookDetailContent');
 
     if (!modal || !content) return;
+
+    const status = parseInt(availableQty) > 0 ? 'Sẵn sàng' : 'Hết sách';
+    const quantityDisplay = `
+        <b style="color: ${parseInt(availableQty) > 0 ? '#1e293b' : '#ef4444'};">${availableQty}</b>
+        /
+        <span style="font-weight: 500;">${totalQty}</span>
+    `;
 
     content.innerHTML = `
         <div class="detail-info">
@@ -215,8 +222,8 @@ window.viewDetail = function(id, title, author, type, pub, year, qty, status = '
                 <span>${pub}</span>
             </div>
             <div class="detail-item">
-                <label>Số lượng</label>
-                <span>${qty}</span>
+                <label>Số lượng (Có sẵn / Tổng)</label>
+                <span>${quantityDisplay}</span>
             </div>
         </div>
     `;
