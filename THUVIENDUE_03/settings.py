@@ -105,9 +105,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Authentication redirects
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/tong-quan/'
-LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

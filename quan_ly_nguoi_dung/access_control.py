@@ -6,7 +6,7 @@ class DocGiaAccessMiddleware:
     """Han che doc gia chi truy cap khu vuc muon sach va gia han."""
 
     ALLOWED_PATH_PREFIXES = (
-        '/borrow/',
+        '/borrow-books/',
         '/api/borrow/list/',
         '/logout/',
         '/forgot-password/',

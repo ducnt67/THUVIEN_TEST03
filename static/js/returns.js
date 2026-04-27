@@ -246,7 +246,7 @@ function submitReturnConfirm() {
     const ma_sach_trong_kho = selectedReturnRow?.dataset.bookCode || '';
 
     // Gửi request xác nhận trả sách
-    fetch('/api/xac_nhan_tra_sach/', {
+    fetch('/api/return/confirm/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -402,7 +402,7 @@ function submitLostBookReport() {
     const ma_sach_trong_kho = selectedLostRow?.dataset.bookCode || '';
     const ghi_chu = document.getElementById('lostNote')?.value || '';
 
-    fetch('/api/xu_ly_mat_sach/', {
+    fetch('/api/return/lost/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -543,7 +543,7 @@ function submitCompensateConfirm() {
         return;
     }
 
-    fetch('/api/xac_nhan_den_sach/', {
+    fetch('/api/return/compensate/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -662,7 +662,7 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
     openModalById('popup-payment');
 
     // Fetch chi tiết từ server
-    fetch(`/api/get_user_fines/?ma_nguoi_dung=${maNguoiDung}`)
+    fetch(`/api/return/fines/?ma_nguoi_dung=${maNguoiDung}`)
         .then(res => res.json())
         .then(data => {
             window.currentFineIds = []; // Chi luu ma phat chua thanh toan
@@ -734,7 +734,7 @@ function submitPayment() {
 
     window.currentFineIds.forEach(id => params.append('danh_sach_ma_phat[]', id));
 
-    fetch('/api/thanh_toan_phi_phat/', {
+    fetch('/api/return/pay-fines/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

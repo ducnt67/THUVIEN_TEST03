@@ -64,7 +64,7 @@
             <tbody id="bookTableBody">
                 <!-- Dữ liệu sẽ được render bởi JavaScript -->
                 {% for book in books %}
-                    <tr onclick="window.location.href='/quan-ly-kho/?ma_sach={{ book.ma_sach }}'" style="cursor: pointer;">
+                    <tr onclick="window.location.href='{% url 'quan_ly_kho' %}?ma_sach={{ book.ma_sach }}'" style="cursor: pointer;">
                         <td><strong>{{ book.ma_sach }}</strong></td>
                         <td>{{ book.ten_sach }}</td>
                         <td>{{ book.ten_tac_gia|default:"-" }}</td>
