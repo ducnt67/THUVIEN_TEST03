@@ -5,7 +5,44 @@
 {% block nav_reports %}active{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}?v=2.1">
+<link rel="stylesheet" href="{% static 'css/reports_premium.css' %}?v=2.2">
+<style>
+    .reports-container {
+        display: flex;
+        flex-direction: column;
+        /* Chiếm hết chiều cao còn lại của viewport, trừ đi phần header và padding */
+        height: calc(100vh - 160px);
+    }
+
+    #general-section, #fine-section {
+        display: flex;
+        flex-direction: column;
+        flex: 1; /* Cho phép section này mở rộng để lấp đầy không gian */
+        min-height: 0; /* Quan trọng: cho phép flex item co lại nhỏ hơn nội dung của nó */
+    }
+
+    .report-table-container {
+        flex: 1; /* Mở rộng để lấp đầy không gian còn lại trong section */
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table-wrapper {
+        flex: 1; /* Mở rộng để lấp đầy .report-table-container */
+        overflow-y: auto; /* Chỉ có thanh cuộn ở đây */
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+    }
+
+    .table thead th {
+        position: -webkit-sticky; /* Safari */
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background-color: #f8fafc; /* Đảm bảo header có nền che nội dung bên dưới */
+    }
+</style>
 {% endblock %}
 
 {% block page_title %}<span id="dynamic-title">Báo cáo sách đã trả</span>{% endblock %}
@@ -70,7 +107,7 @@
         </div>
 
         <div class="report-table-container" id="report-table-container">
-            <div class="data-table-scroll table-wrapper" style="flex: 1 1 auto; min-height: 0;">
+            <div class="table-wrapper">
                 <table id="reportTable" class="table">
                     <thead>
                         <tr id="table-header"></tr>
@@ -107,46 +144,48 @@
 
         <!-- Bảng chi tiết khoản phạt từ DB -->
         <div class="report-table-container">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>NGƯỜI MƯỢN</th>
-                        <th>MÃ SÁCH</th>
-                        <th>TÊN SÁCH</th>
-                        <th>TÌNH TRẠNG</th>
-                        <th>LÝ DO</th>
-                        <th>SỐ TIỀN PHẠT</th>
-                        <th>NGÀY TẠO</th>
-                        <th>MÃ PHIẾU MƯỢN</th>
-                        <th>TRẠNG THÁI</th>
-                    </tr>
-                </thead>
-                <tbody id="fine-table-body">
-                    {% for fine in fines %}
-                    <tr>
-                        <td><strong>{{ fine.nguoi }}</strong></td>
-                        <td>{{ fine.ma_sach }}</td>
-                        <td>{{ fine.ten_sach }}</td>
-                        <td><span class="badge badge-late">Trễ hạn</span></td>
-                        <td>{{ fine.ly_do }}</td>
-                        <td class="fine-amount">{{ fine.so_tien|floatformat:0 }}đ</td>
-                        <td>{{ fine.ngay_tao|date:"d/m/Y" }}</td>
-                        <td>{{ fine.ma_phieu }}</td>
-                        <td>
-                            {% if fine.trang_thai == 'Đã thanh toán' %}
-                            <span class="badge badge-paid">Đã thanh toán</span>
-                            {% else %}
-                            <span class="badge badge-unpaid">Chưa thanh toán</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="9" class="empty-state">Chưa có khoản phạt nào trong hệ thống</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>NGƯỜI MƯỢN</th>
+                            <th>MÃ SÁCH</th>
+                            <th>TÊN SÁCH</th>
+                            <th>TÌNH TRẠNG</th>
+                            <th>LÝ DO</th>
+                            <th>SỐ TIỀN PHẠT</th>
+                            <th>NGÀY TẠO</th>
+                            <th>MÃ PHIẾU MƯỢN</th>
+                            <th>TRẠNG THÁI</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fine-table-body">
+                        {% for fine in fines %}
+                        <tr>
+                            <td><strong>{{ fine.nguoi }}</strong></td>
+                            <td>{{ fine.ma_sach }}</td>
+                            <td>{{ fine.ten_sach }}</td>
+                            <td><span class="badge badge-late">Trễ hạn</span></td>
+                            <td>{{ fine.ly_do }}</td>
+                            <td class="fine-amount">{{ fine.so_tien|floatformat:0 }}đ</td>
+                            <td>{{ fine.ngay_tao|date:"d/m/Y" }}</td>
+                            <td>{{ fine.ma_phieu }}</td>
+                            <td>
+                                {% if fine.trang_thai == 'Đã thanh toán' %}
+                                <span class="badge badge-paid">Đã thanh toán</span>
+                                {% else %}
+                                <span class="badge badge-unpaid">Chưa thanh toán</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="empty-state">Chưa có khoản phạt nào trong hệ thống</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div><!-- /fine-section -->
