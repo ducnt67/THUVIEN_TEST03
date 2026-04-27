@@ -51,6 +51,8 @@ def api_get_borrow_list(request):
             'dang_muon': 'badge badge-blue-solid',
             'qua_han': 'badge badge-orange-solid',
             'da_tra': 'badge badge-green-solid',
+            'dang_xu_ly': 'badge badge-red-solid',
+            'cho_den_sach': 'badge badge-red-solid',
         }.get(status, 'badge badge-blue-solid')
 
         data.append({

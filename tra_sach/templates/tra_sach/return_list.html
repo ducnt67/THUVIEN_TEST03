@@ -331,7 +331,7 @@
                             data-record-id="{{ item.ma_phieu_muon }}" data-book-title="{{ book.ten_sach }}"
                             data-book-code="{{ book.ma_sach_trong_kho }}" data-compensator="{{ item.nguoi_muon }}"
                             data-report-date="{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}"
-                            data-status="{% if not book.is_completed %}cho_den_sach{% else %}da_tra{% endif %}" data-lost-fee="{{ lost_fee }}">
+                            data-status="{{ book.status_key }}" data-lost-fee="{{ lost_fee }}">
                             {% if forloop.first %}
                             <td rowspan="{{ slip_len }}"><strong>{{ item.ma_phieu_muon }}</strong></td>
                             <td rowspan="{{ slip_len }}" class="col-wrap">{{ item.nguoi_muon }}</td>
@@ -340,9 +340,11 @@
                             <td class="col-wrap">{{ book.ten_sach }}</td>
                             <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
                             <td class="col-action col-status">
-                                {% if not book.is_completed %}
+                                {% if book.can_confirm %}
                                 <span class="badge badge-red-solid compensate-confirm-trigger"
                                     style="cursor:pointer;">Chờ đền sách</span>
+                                {% elif book.status_key == 'dang_xu_ly' %}
+                                <span class="badge badge-orange-solid">Đang xử lý</span>
                                 {% else %}
                                 <span class="badge badge-green-solid">Đã hoàn thành</span>
                                 {% endif %}
@@ -749,5 +751,5 @@
     <script>
         window.CSRF_TOKEN = '{{ csrf_token }}';
     </script>
-    <script src="{% static 'js/returns.js' %}?v=103"></script>
+    <script src="{% static 'js/returns.js' %}?v=104"></script>
     {% endblock %}

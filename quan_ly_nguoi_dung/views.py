@@ -1,11 +1,35 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, Count, DecimalField, IntegerField, OuterRef, Q, Subquery, Sum, Value, When
+from django.db.models.functions import Coalesce
 from django.http import JsonResponse
 from django.shortcuts import render
 from .models import NguoiDung
 
 
 def _user_queryset(search_query='', filter_status='all', filter_class='all'):
+    borrowed_books_sq = (
+        NguoiDung.objects.filter(pk=OuterRef('pk'))
+        .annotate(
+            cnt=Count(
+                'phieu_muon__chi_tiet_phieu_muon',
+                filter=Q(phieu_muon__chi_tiet_phieu_muon__ngay_tra__isnull=True),
+                distinct=True,
+            )
+        )
+        .values('cnt')[:1]
+    )
+
+    unpaid_fines_sq = (
+        NguoiDung.objects.filter(pk=OuterRef('pk'))
+        .annotate(
+            total=Sum(
+                'khoan_phat__so_tien',
+                filter=Q(khoan_phat__chi_tiet_thanh_toan__isnull=True),
+            )
+        )
+        .values('total')[:1]
+    )
+
     users = NguoiDung.objects.all().annotate(
         role_priority=Case(
             When(loai_nguoi_dung='thu_thu', then=Value(0)),
@@ -14,14 +38,10 @@ def _user_queryset(search_query='', filter_status='all', filter_class='all'):
             default=Value(99),
             output_field=IntegerField(),
         ),
-        borrowed_books=Count(
-            'phieu_muon__chi_tiet_phieu_muon',
-            filter=Q(phieu_muon__chi_tiet_phieu_muon__ngay_tra__isnull=True),
-            distinct=True,
-        ),
-        unpaid_fines=Sum(
-            'khoan_phat__so_tien',
-            filter=Q(khoan_phat__trang_thai_tt__iexact='Chưa thanh toán'),
+        borrowed_books=Coalesce(Subquery(borrowed_books_sq, output_field=IntegerField()), 0),
+        unpaid_fines=Coalesce(
+            Subquery(unpaid_fines_sq, output_field=DecimalField(max_digits=19, decimal_places=2)),
+            Value(0, output_field=DecimalField(max_digits=19, decimal_places=2)),
         ),
     )
 
