@@ -76,6 +76,19 @@ function formatCurrency(value) {
     return `${new Intl.NumberFormat('vi-VN').format(Math.max(0, value || 0))}đ`;
 }
 
+function normalizeStatusText(value) {
+    return (value || '')
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+}
+
+function isUnpaidStatus(value) {
+    return normalizeStatusText(value) === 'chua thanh toan';
+}
+
 function isReturnEligibleStatus(status) {
     const s = (status || '').toLowerCase();
     return s === 'đang mượn' || s === 'quá hạn' || s === 'dang_muon' || s === 'qua_han';
@@ -246,7 +259,7 @@ function submitReturnConfirm() {
     const ma_sach_trong_kho = selectedReturnRow?.dataset.bookCode || '';
 
     // Gửi request xác nhận trả sách
-    fetch('/api/return/confirm/', {
+    fetch('/api/xac_nhan_tra_sach/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -402,7 +415,7 @@ function submitLostBookReport() {
     const ma_sach_trong_kho = selectedLostRow?.dataset.bookCode || '';
     const ghi_chu = document.getElementById('lostNote')?.value || '';
 
-    fetch('/api/return/lost/', {
+    fetch('/api/xu_ly_mat_sach/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -543,7 +556,7 @@ function submitCompensateConfirm() {
         return;
     }
 
-    fetch('/api/return/compensate/', {
+    fetch('/api/xac_nhan_den_sach/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -662,16 +675,29 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
     openModalById('popup-payment');
 
     // Fetch chi tiết từ server
-    fetch(`/api/return/fines/?ma_nguoi_dung=${maNguoiDung}`)
-        .then(res => res.json())
+    fetch(`/api/lay_danh_sach_phi_phat_nguoi_dung/?ma_nguoi_dung=${maNguoiDung}`)
+        .then(async (res) => {
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (err) {
+                throw new Error('Phản hồi không hợp lệ từ máy chủ.');
+            }
+
+            if (!res.ok || !data.success) {
+                throw new Error(data?.error || data?.message || `Lỗi tải dữ liệu (${res.status})`);
+            }
+
+            return data;
+        })
         .then(data => {
             window.currentFineIds = []; // Chi luu ma phat chua thanh toan
             let unpaidTotal = 0;
-            if (data.success && data.fines.length > 0) {
+            if (data.fines.length > 0) {
                 tableBody.innerHTML = '';
                 data.fines.forEach(fine => {
                     const fineAmount = Number(fine.so_tien) || 0;
-                    const isUnpaid = fine.trang_thai === 'Chưa thanh toán';
+                    const isUnpaid = isUnpaidStatus(fine.trang_thai);
 
                     if (isUnpaid) {
                         window.currentFineIds.push(fine.ma_phat);
@@ -680,6 +706,7 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
 
                     const row = document.createElement('tr');
                     row.style.borderBottom = '1px solid #f3f4f6';
+                    const isPaid = !isUnpaid;
                     row.innerHTML = `
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_sach_trong_kho}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ten_sach}</td>
@@ -689,8 +716,8 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ngay_tao}</td>
                     <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_phieu_muon}</td>
                     <td style="padding:12px 14px;">
-                        <span class="badge ${fine.trang_thai === 'Đã thanh toán' ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px;">
-                            ${fine.trang_thai}
+                        <span class="badge ${isPaid ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px;">
+                            ${isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
                         </span>
                     </td>
                 `;
@@ -703,7 +730,7 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
 
                 // Ẩn/Hiện bộ điều khiển thanh toán tùy vào còn nợ hay không
                 const paymentControls = document.getElementById('paymentControls');
-                const hasUnpaid = data.fines.some(f => f.trang_thai === 'Chưa thanh toán');
+                const hasUnpaid = data.fines.some(f => isUnpaidStatus(f.trang_thai));
                 if (paymentControls) {
                     paymentControls.style.display = hasUnpaid ? 'block' : 'none';
                 }
@@ -714,8 +741,10 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
                 if (paymentControls) paymentControls.style.display = 'none';
             }
         })
-        .catch(() => {
-            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#ef4444;">Lỗi kết nối khi tải chi tiết phí phạt.</td></tr>';
+        .catch((err) => {
+            const message = err?.message || 'Lỗi kết nối khi tải chi tiết phí phạt.';
+            tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#ef4444;">${message}</td></tr>`;
+            console.error('Payment detail load error:', err);
         });
 }
 
@@ -734,7 +763,7 @@ function submitPayment() {
 
     window.currentFineIds.forEach(id => params.append('danh_sach_ma_phat[]', id));
 
-    fetch('/api/return/pay-fines/', {
+    fetch('/api/thanh_toan_phi_phat/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

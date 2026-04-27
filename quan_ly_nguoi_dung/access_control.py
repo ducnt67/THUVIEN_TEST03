@@ -7,7 +7,7 @@ class DocGiaAccessMiddleware:
 
     ALLOWED_PATH_PREFIXES = (
         '/borrow-books/',
-        '/api/borrow/list/',
+        '/api/danh_sach_phieu_muon/',
         '/logout/',
         '/forgot-password/',
         '/reset-password/',

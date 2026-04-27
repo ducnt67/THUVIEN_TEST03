@@ -5,10 +5,10 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.db import transaction
 from muon_sach.models import PhieuMuon, ChiTietPhieuMuon
 
-from .models import KhoanPhat, ChinhSachPhat
+from .models import KhoanPhat, ChinhSachPhat, ChiTietThanhToan
 from django.utils import timezone
 from decimal import Decimal
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 
 def _create_fine(ma_nguoi_dung, ma_phieu_muon, ma_sach_trong_kho, ma_loai_phat, so_tien, ly_do, nguoi_tao):
     """Hàm hỗ trợ tạo khoản phạt."""
@@ -24,8 +24,34 @@ def _create_fine(ma_nguoi_dung, ma_phieu_muon, ma_sach_trong_kho, ma_loai_phat, 
             nguoi_tao=nguoi_tao
         )
 
+
+UNPAID_STATUS = 'Chưa thanh toán'
+PAID_STATUS = 'Đã thanh toán'
+
+
+def _sync_fine_statuses():
+    """Dong bo trang thai KhoanPhat dua tren chi tiet thanh toan de tranh lech du lieu."""
+    payment_detail_qs = ChiTietThanhToan.objects.filter(ma_phat=OuterRef('pk'))
+    fines = KhoanPhat.objects.annotate(has_payment=Exists(payment_detail_qs)).values('ma_phat', 'trang_thai_tt', 'has_payment')
+
+    to_paid_ids = []
+    to_unpaid_ids = []
+    for fine in fines:
+        if fine['has_payment']:
+            if fine['trang_thai_tt'] != PAID_STATUS:
+                to_paid_ids.append(fine['ma_phat'])
+        elif fine['trang_thai_tt'] != UNPAID_STATUS:
+            to_unpaid_ids.append(fine['ma_phat'])
+
+    if to_paid_ids:
+        KhoanPhat.objects.filter(ma_phat__in=to_paid_ids).update(trang_thai_tt=PAID_STATUS)
+    if to_unpaid_ids:
+        KhoanPhat.objects.filter(ma_phat__in=to_unpaid_ids).update(trang_thai_tt=UNPAID_STATUS)
+
 @login_required
 def return_list_view(request):
+    _sync_fine_statuses()
+
     # Tab 1: Danh sách sách (Tất cả: Đang mượn + Đã trả)
     chi_tiet_muon = ChiTietPhieuMuon.objects.all().select_related(
         'ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach'
@@ -58,8 +84,13 @@ def return_list_view(request):
         })
     tab1_data = list(tab1_grouped.values())
 
-    # Tab 2: Danh sách người dùng nợ phí phạt (Chỉ hiện nợ thực tế, nhưng lưu vết tất cả)
-    khoan_phat_all = KhoanPhat.objects.all().select_related('ma_nguoi_dung', 'ma_loai_phat')
+    # Tab 2: Danh sách người dùng nợ phí phạt (chỉ lấy khoản chưa thanh toán thực tế)
+    unpaid_detail_qs = ChiTietThanhToan.objects.filter(ma_phat=OuterRef('pk'))
+    khoan_phat_all = (
+        KhoanPhat.objects.select_related('ma_nguoi_dung', 'ma_loai_phat')
+        .annotate(has_payment=Exists(unpaid_detail_qs))
+        .filter(has_payment=False)
+    )
     tab2_data = {}
     for kp in khoan_phat_all:
         nd = kp.ma_nguoi_dung
@@ -70,16 +101,15 @@ def return_list_view(request):
                 'tong_tien': 0,
                 'ly_do_phat': []
             }
-        if kp.trang_thai_tt == 'Chưa thanh toán':
-            tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
-            loai_phat = kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác'
-            tab2_data[nd.ma_nguoi_dung]['ly_do_phat'].append(f"{loai_phat}")
-            
+        tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
+        loai_phat = kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác'
+        tab2_data[nd.ma_nguoi_dung]['ly_do_phat'].append(f"{loai_phat}")
+
     # Lọc lại lý do để tránh trùng lặp
     for k, v in tab2_data.items():
         v['ly_do_phat'] = list(set(v['ly_do_phat']))
         
-    tab2_data = list(tab2_data.values())
+    tab2_data = [item for item in tab2_data.values() if item['tong_tien'] > 0]
 
     # Tab 3: Danh sách báo mất (Hiện các trường hợp ĐÃ báo mất HOẶC đang mượn/quá hạn để báo mất)
     lost_qs = ChiTietPhieuMuon.objects.filter(
@@ -132,11 +162,29 @@ def return_list_view(request):
             }
         sach_trong_kho = ct.ma_sach_trong_kho
         sach = sach_trong_kho.ma_sach
+        if ct.ngay_tra is not None:
+            comp_status_key = 'da_tra'
+            comp_status_label = 'Đã hoàn thành'
+            comp_confirmable = False
+        elif ct.phuong_an_boi_thuong == 'den_sach_moi':
+            comp_status_key = 'cho_den_sach'
+            comp_status_label = 'Chờ đền sách'
+            comp_confirmable = True
+        elif ct.phuong_an_boi_thuong == 'den_bu_tien':
+            comp_status_key = 'dang_xu_ly'
+            comp_status_label = 'Đang xử lý'
+            comp_confirmable = False
+        else:
+            comp_status_key = 'dang_muon'
+            comp_status_label = 'Đang mượn'
+            comp_confirmable = False
         tab4_grouped[key]['sach_list'].append({
             'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
             'ten_sach': sach.ten_sach,
             'ngay_khai_bao_mat': ct.ngay_khai_bao_mat,
-            'is_completed': pm.trang_thai == 'da_tra'
+            'status_key': comp_status_key,
+            'status_label': comp_status_label,
+            'can_confirm': comp_confirmable,
         })
     tab4_data = list(tab4_grouped.values())
 
@@ -249,23 +297,42 @@ def api_get_user_fines(request):
     ma_nguoi_dung = request.GET.get('ma_nguoi_dung')
     if not ma_nguoi_dung:
         return JsonResponse({'error': 'Thiếu mã người dùng'}, status=400)
-    
-    khoan_phats = KhoanPhat.objects.filter(
-        ma_nguoi_dung__ma_nguoi_dung=ma_nguoi_dung
-    ).select_related('ma_sach_trong_kho__ma_sach', 'ma_loai_phat', 'ma_phieu_muon')
-    
+
+    _sync_fine_statuses()
+
+    payment_detail_qs = ChiTietThanhToan.objects.filter(ma_phat=OuterRef('pk'))
+
+    khoan_phats = (
+        KhoanPhat.objects.filter(ma_nguoi_dung__ma_nguoi_dung=ma_nguoi_dung)
+        .select_related('ma_sach_trong_kho__ma_sach', 'ma_loai_phat', 'ma_phieu_muon')
+        .annotate(has_payment=Exists(payment_detail_qs))
+    )
+
     data = []
     for kp in khoan_phats:
+        status_text = PAID_STATUS if kp.has_payment else UNPAID_STATUS
+
+        ma_sach_trong_kho = '-'
+        ten_sach = 'N/A'
+        try:
+            if kp.ma_sach_trong_kho:
+                ma_sach_trong_kho = kp.ma_sach_trong_kho.ma_sach_trong_kho
+                if kp.ma_sach_trong_kho.ma_sach:
+                    ten_sach = kp.ma_sach_trong_kho.ma_sach.ten_sach
+        except Exception:
+            # Truong hop du lieu cu bi mat lien ket thi van tra du lieu con lai.
+            pass
+
         data.append({
             'ma_phat': kp.ma_phat,
-            'ma_sach_trong_kho': kp.ma_sach_trong_kho.ma_sach_trong_kho if kp.ma_sach_trong_kho else '-',
-            'ten_sach': kp.ma_sach_trong_kho.ma_sach.ten_sach if kp.ma_sach_trong_kho else 'N/A',
+            'ma_sach_trong_kho': ma_sach_trong_kho,
+            'ten_sach': ten_sach,
             'loai_phat': kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác',
             'ly_do': kp.ly_do or '-',
             'so_tien': float(kp.so_tien),
             'ngay_tao': kp.ngay_tao.strftime('%d/%m/%Y'),
             'ma_phieu_muon': kp.ma_phieu_muon.ma_phieu_muon if kp.ma_phieu_muon else '-',
-            'trang_thai': kp.trang_thai_tt
+            'trang_thai': status_text
         })
     
     return JsonResponse({'success': True, 'fines': data})
@@ -283,12 +350,20 @@ def api_thanh_toan_phi_phat(request):
         danh_sach_ma_phat = request.POST.getlist('danh_sach_ma_phat[]')
         nguoi_thu = request.user
         if not (ma_nguoi_dung and phuong_thuc and danh_sach_ma_phat):
-            return HttpResponseBadRequest('Thiếu thông tin bắt buộc')
+            return JsonResponse({'error': 'Thiếu thông tin bắt buộc'}, status=400)
+
+        _sync_fine_statuses()
+
         with transaction.atomic():
-            khoan_phat_qs = KhoanPhat.objects.select_for_update().filter(ma_phat__in=danh_sach_ma_phat, trang_thai_tt='Chưa thanh toán')
+            khoan_phat_qs = (
+                KhoanPhat.objects.select_for_update()
+                .filter(ma_phat__in=danh_sach_ma_phat, chi_tiet_thanh_toan__isnull=True)
+                .distinct()
+            )
             if khoan_phat_qs.count() != len(danh_sach_ma_phat):
                 return JsonResponse({'error': 'Có khoản phạt không hợp lệ hoặc đã thanh toán.'}, status=400)
-            tong_tien = sum([float(kp.so_tien) for kp in khoan_phat_qs])
+
+            tong_tien = sum((kp.so_tien for kp in khoan_phat_qs), Decimal('0'))
             from .models import GiaoDichThanhToan, ChiTietThanhToan
             from quan_ly_nguoi_dung.models import NguoiDung
             nguoi_dung = NguoiDung.objects.get(pk=ma_nguoi_dung)
@@ -309,7 +384,7 @@ def api_thanh_toan_phi_phat(request):
                     ma_phat=kp,
                     so_tien_thanh_toan=kp.so_tien
                 )
-                kp.trang_thai_tt = 'Đã thanh toán'
+                kp.trang_thai_tt = PAID_STATUS
                 kp.save()
 
                 # Nếu đây là khoản phạt mất sách, ta cần hoàn tất quy trình mượn
@@ -425,10 +500,19 @@ def api_xac_nhan_den_sach(request):
             return JsonResponse({'error': 'Thiếu mã sách mới (vui lòng nhập vào ô Mã sách đền bù).'}, status=400)
         with transaction.atomic():
             pm = PhieuMuon.objects.select_for_update().get(ma_phieu_muon=ma_phieu_muon)
-            if pm.trang_thai != 'cho_den_sach':
-                return JsonResponse({'error': f'Chỉ xác nhận khi trạng thái là Chờ đền sách (Hiện tại: {pm.trang_thai}).'}, status=400)
-            pm.trang_thai = 'da_tra'
-            pm.save()
+            ctpm = (
+                ChiTietPhieuMuon.objects.select_for_update()
+                .filter(
+                    ma_phieu_muon=pm,
+                    ngay_khai_bao_mat__isnull=False,
+                    phuong_an_boi_thuong='den_sach_moi',
+                    ngay_tra__isnull=True,
+                )
+                .order_by('-ngay_khai_bao_mat')
+                .first()
+            )
+            if not ctpm:
+                return JsonResponse({'error': 'Không tìm thấy hồ sơ đền sách đang chờ xác nhận.'}, status=400)
             from quan_ly_sach.models import SachTrongKho, Sach
             
             # Tách lấy mã sách gốc để lấy foreign key
@@ -450,6 +534,9 @@ def api_xac_nhan_den_sach(request):
                 # Tăng số lượng sách gốc để đồng bộ với số lượng bản ghi SachTrongKho
                 sach_obj.so_luong += 1
                 sach_obj.save()
+                ctpm.ngay_tra = timezone.now().date()
+                ctpm.save(update_fields=['ngay_tra'])
+                pm.sync_status()
             else:
                 return JsonResponse({'error': 'Không tìm thấy sách gốc trong hệ thống.'}, status=400)
                 

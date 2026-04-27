@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function fetchSlips() {
         try {
-            const response = await fetch('/api/borrow/list/');
+            const response = await fetch('/api/danh_sach_phieu_muon/');
             if (!response.ok) throw new Error('Network response was not ok');
             slips = await response.json();
             renderRows(slips);
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 try {
-                    const response = await fetch(`/api/book/search/?q=${query}`);
+                    const response = await fetch(`/api/tim_kiem_sach/?q=${query}`);
                     const data = await response.json();
                     
                     if (data.length > 0) {
@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             try {
-                const response = await fetch(`/api/user/info/?ma_nguoi_dung=${uid}`);
+                const response = await fetch(`/api/thong_tin_nguoi_dung/?ma_nguoi_dung=${uid}`);
                 const data = await response.json();
                 if (data.success) {
                     if (addUserNameInput) addUserNameInput.value = data.ho_ten;
@@ -474,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-            const response = await fetch('/api/borrow/create/', {
+            const response = await fetch('/api/tao_phieu_muon/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-            const response = await fetch(`/api/borrow/extend/${detailSlipId}/`, {
+            const response = await fetch(`/api/gia_han_phieu_muon/${detailSlipId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -627,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-            const response = await fetch(`/api/borrow/extend/${extSmallSlipId}/`, {
+            const response = await fetch(`/api/gia_han_phieu_muon/${extSmallSlipId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -672,7 +672,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-            const response = await fetch(`/api/borrow/extend/${extLargeSlipId}/`, {
+            const response = await fetch(`/api/gia_han_phieu_muon/${extLargeSlipId}/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-            const response = await fetch(`/api/borrow/delete/${pendingDeleteId}/`, {
+            const response = await fetch(`/api/xoa_phieu_muon/${pendingDeleteId}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrftoken

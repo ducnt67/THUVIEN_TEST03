@@ -61,20 +61,42 @@ class PhieuMuon(models.Model):
     def sync_status(self):
         """
         Calculates and updates the trang_thai field based on book details and current date.
+        The order of checking status is important.
         """
         chi_tiet = self.chi_tiet_phieu_muon.all()
         if not chi_tiet.exists():
             return self.trang_thai
 
-        today = timezone.now().date()
-        all_returned = all(ct.ngay_tra is not None for ct in chi_tiet)
-        any_overdue = any(ct.ngay_tra is None and ct.han_tra < today for ct in chi_tiet)
+        # Nếu phiếu đang ở trạng thái xử lý đặc biệt, không tự động thay đổi
+        if self.trang_thai in ['dang_xu_ly', 'cho_den_sach']:
+            # Trừ khi tất cả sách đã được trả (bao gồm cả sách đã báo mất và xử lý xong)
+            if all(ct.ngay_tra is not None or ct.ngay_khai_bao_mat is not None for ct in chi_tiet):
+                 # Nếu tất cả đã xử lý xong, thì mới chuyển về 'da_tra'
+                 pass
+            else:
+                return self.trang_thai
 
-        new_status = 'dang_muon'
+        today = timezone.now().date()
+        
+        # 1. Kiểm tra xem tất cả sách đã được trả chưa
+        all_returned = all(ct.ngay_tra is not None for ct in chi_tiet)
         if all_returned:
             new_status = 'da_tra'
-        elif any_overdue:
-            new_status = 'qua_han'
+        else:
+            # 2. Nếu chưa trả hết, kiểm tra các trường hợp đặc biệt
+            any_pending_replace = any(ct.phuong_an_boi_thuong == 'den_sach_moi' and ct.ngay_tra is None for ct in chi_tiet)
+            any_processing_loss = any(ct.phuong_an_boi_thuong == 'den_bu_tien' and ct.ngay_tra is None for ct in chi_tiet)
+            any_overdue = any(ct.han_tra < today and ct.ngay_tra is None and ct.ngay_khai_bao_mat is None for ct in chi_tiet)
+
+            if any_pending_replace:
+                new_status = 'cho_den_sach'
+            elif any_processing_loss:
+                new_status = 'dang_xu_ly'
+            elif any_overdue:
+                new_status = 'qua_han'
+            else:
+                # 3. Nếu không có trường hợp đặc biệt nào, trạng thái là 'đang mượn'
+                new_status = 'dang_muon'
 
         if self.trang_thai != new_status:
             self.trang_thai = new_status
