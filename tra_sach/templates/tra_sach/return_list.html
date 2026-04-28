@@ -716,16 +716,17 @@
                             toán</div>
                         <div class="selection-item"
                             onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
-                            <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash"
-                                style="pointer-events:none;">
+                            <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash">
                             <span style="font-size:14px;">Tiền mặt</span>
                         </div>
                         <div class="selection-item"
                             onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
-                            <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer"
-                                style="pointer-events:none;">
+                            <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer">
                             <span style="font-size:14px;">Chuyển khoản</span>
                         </div>
+                        <p id="paymentMethodError" class="field-error hidden" style="color:#ef4444; margin:6px 0 0 0; font-size:13px;">
+                          Vui lòng chọn phương thức thanh toán.
+                        </p>
                     </div>
                     <div
                         style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 20px 0;">
@@ -753,3 +754,4 @@
     </script>
     <script src="{% static 'js/returns.js' %}?v=104"></script>
     {% endblock %}
+</div>
