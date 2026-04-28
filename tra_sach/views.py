@@ -84,32 +84,41 @@ def return_list_view(request):
         })
     tab1_data = list(tab1_grouped.values())
 
-    # Tab 2: Danh sách người dùng nợ phí phạt (chỉ lấy khoản chưa thanh toán thực tế)
+    # Tab 2: Danh sách người dùng có khoản phạt (hiển thị cả lịch sử đã thanh toán và chưa thanh toán)
+    # Lưu ý: 'tong_tien' sẽ chỉ tính các khoản CHƯA thanh toán để UI biết ai còn nợ
     unpaid_detail_qs = ChiTietThanhToan.objects.filter(ma_phat=OuterRef('pk'))
     khoan_phat_all = (
         KhoanPhat.objects.select_related('ma_nguoi_dung', 'ma_loai_phat')
         .annotate(has_payment=Exists(unpaid_detail_qs))
-        .filter(has_payment=False)
     )
-    tab2_data = {}
+
+    tab2_users = {}
     for kp in khoan_phat_all:
         nd = kp.ma_nguoi_dung
-        if nd.ma_nguoi_dung not in tab2_data:
-            tab2_data[nd.ma_nguoi_dung] = {
-                'ma_nguoi_dung': nd.ma_nguoi_dung,
+        uid = nd.ma_nguoi_dung
+        if uid not in tab2_users:
+            tab2_users[uid] = {
+                'ma_nguoi_dung': uid,
                 'ho_ten': nd.ho_ten,
-                'tong_tien': 0,
-                'ly_do_phat': []
+                'tong_tien': 0.0,  # chỉ cộng các khoản chưa thanh toán
+                'ly_do_phat': [],
+                'has_any_fine': False,
             }
-        tab2_data[nd.ma_nguoi_dung]['tong_tien'] += float(kp.so_tien)
-        loai_phat = kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác'
-        tab2_data[nd.ma_nguoi_dung]['ly_do_phat'].append(f"{loai_phat}")
 
-    # Lọc lại lý do để tránh trùng lặp
-    for k, v in tab2_data.items():
+        tab2_users[uid]['has_any_fine'] = True
+        # Nếu khoản phạt chưa có bản ghi thanh toán, cộng vào tong_tien
+        if not getattr(kp, 'has_payment', False):
+            tab2_users[uid]['tong_tien'] += float(kp.so_tien)
+
+        loai_phat = kp.ma_loai_phat.loai_phat if kp.ma_loai_phat else 'Khác'
+        tab2_users[uid]['ly_do_phat'].append(loai_phat)
+
+    # Chuẩn hóa dữ liệu: loại bỏ trùng lặp lý do, và chuyển về danh sách
+    for k, v in tab2_users.items():
         v['ly_do_phat'] = list(set(v['ly_do_phat']))
-        
-    tab2_data = [item for item in tab2_data.values() if item['tong_tien'] > 0]
+
+    # Hiển thị tất cả người dùng có ít nhất 1 khoản phạt (cả đã thanh toán và chưa thanh toán)
+    tab2_data = list(tab2_users.values())
 
     # Tab 3: Danh sách báo mất (Hiện các trường hợp ĐÃ báo mất HOẶC đang mượn/quá hạn để báo mất)
     lost_qs = ChiTietPhieuMuon.objects.filter(
