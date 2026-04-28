@@ -668,6 +668,10 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
     if (nameEl) nameEl.innerText = hoTen || '-';
     if (totalEl) totalEl.innerText = formatCurrency(Number(tongTien) || 0);
 
+    document.querySelectorAll('input[name="paymentMethodNew"]').forEach(r => r.checked = false);
+    const errorEl = document.getElementById('paymentMethodError');
+    if (errorEl) errorEl.classList.add('hidden');
+
     // Xóa nội dung bảng cũ và hiện loading
     const tableBody = document.getElementById('paymentTableBody');
     if (tableBody) tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#6b7280;">Đang tải chi tiết các khoản phạt...</td></tr>';
@@ -691,54 +695,80 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
             return data;
         })
         .then(data => {
-            window.currentFineIds = []; // Chi luu ma phat chua thanh toan
+            window.currentFineIds = []; // Chỉ lưu mã phạt chưa thanh toán
             let unpaidTotal = 0;
+            tableBody.innerHTML = '';
             if (data.fines.length > 0) {
-                tableBody.innerHTML = '';
                 data.fines.forEach(fine => {
                     const fineAmount = Number(fine.so_tien) || 0;
                     const isUnpaid = isUnpaidStatus(fine.trang_thai);
-
                     if (isUnpaid) {
                         window.currentFineIds.push(fine.ma_phat);
                         unpaidTotal += fineAmount;
                     }
-
                     const row = document.createElement('tr');
                     row.style.borderBottom = '1px solid #f3f4f6';
                     const isPaid = !isUnpaid;
+
+                    let penaltyBadgeClass = 'badge-gray';
+                    const lcLoai = (fine.loai_phat || '').toLowerCase();
+                    let displayLoaiPhat = fine.loai_phat;
+                    
+                    if (lcLoai.includes('hư hỏng') || lcLoai.includes('hu hong')) {
+                        penaltyBadgeClass = 'badge-orange-solid';
+                        displayLoaiPhat = 'Hư hỏng';
+                    } else if (lcLoai.includes('mất sách') || lcLoai.includes('mat sach') || lcLoai.includes('đền sách') || lcLoai.includes('den sach')) {
+                        penaltyBadgeClass = 'badge-red-solid';
+                    } else if (lcLoai.includes('trễ hạn') || lcLoai.includes('tre han')) {
+                        penaltyBadgeClass = 'badge-blue-solid';
+                    }
+
                     row.innerHTML = `
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_sach_trong_kho}</td>
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ten_sach}</td>
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.loai_phat}</td>
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ly_do}</td>
-                    <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316;">${formatCurrency(fineAmount)}</td>
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ngay_tao}</td>
-                    <td style="padding:12px 14px; font-size:13px; color:#374151;">${fine.ma_phieu_muon}</td>
-                    <td style="padding:12px 14px;">
-                        <span class="badge ${isPaid ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px;">
-                            ${isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
-                        </span>
-                    </td>
-                `;
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;"><strong>${fine.ma_sach_trong_kho}</strong></td>
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; font-weight: 600;">${fine.ten_sach}</td>
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: normal !important; text-align: center;">
+                            <span class="badge ${penaltyBadgeClass}" style="font-size:11px; padding: 4px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; display: inline-block; text-align: center; min-width: 80px;">${displayLoaiPhat}</span>
+                        </td>
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: normal !important; min-width: 150px; max-width: 250px; word-wrap: break-word;">${fine.ly_do}</td>
+                        <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316; white-space: nowrap !important; text-align: center;">${formatCurrency(fineAmount)}</td>
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;">${fine.ngay_tao}</td>
+                        <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;"><strong>${fine.ma_phieu_muon}</strong></td>
+                        <td style="padding:12px 14px; white-space: nowrap !important; text-align: center;">
+                            <span class="badge ${isPaid ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px; white-space: nowrap !important; display: inline-block; padding: 4px 8px; text-align: center; min-width: 90px;">
+                                ${isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                            </span>
+                        </td>
+                    `;
                     tableBody.appendChild(row);
                 });
-
                 if (totalEl) {
                     totalEl.innerText = formatCurrency(unpaidTotal);
-                }
-
-                // Ẩn/Hiện bộ điều khiển thanh toán tùy vào còn nợ hay không
-                const paymentControls = document.getElementById('paymentControls');
-                const hasUnpaid = data.fines.some(f => isUnpaidStatus(f.trang_thai));
-                if (paymentControls) {
-                    paymentControls.style.display = hasUnpaid ? 'block' : 'none';
                 }
             } else {
                 tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">Không có lịch sử phí phạt.</td></tr>';
                 if (totalEl) totalEl.innerText = formatCurrency(0);
-                const paymentControls = document.getElementById('paymentControls');
-                if (paymentControls) paymentControls.style.display = 'none';
+            }
+            // Ẩn/Hiện controls thanh toán và hiển thị thông báo nếu đã thanh toán hết
+            const paymentControls = document.getElementById('paymentControls');
+            const paidNotice = document.getElementById('paidNotice');
+            const paymentFooterActions = document.getElementById('paymentFooterActions');
+            const paymentFooterExit = document.getElementById('paymentFooterExit');
+
+            const hasUnpaid = data.fines.some(f => isUnpaidStatus(f.trang_thai));
+            if (paymentControls) {
+                paymentControls.style.display = hasUnpaid ? 'block' : 'none';
+            }
+            if (paidNotice) {
+                paidNotice.style.display = (!hasUnpaid && data.fines.length > 0) ? 'block' : 'none';
+            }
+            if (paymentFooterActions && paymentFooterExit) {
+                if (hasUnpaid) {
+                    paymentFooterActions.style.display = 'flex';
+                    paymentFooterExit.style.display = 'none';
+                } else {
+                    paymentFooterActions.style.display = 'none';
+                    paymentFooterExit.style.display = 'flex';
+                }
             }
         })
         .catch((err) => {
@@ -757,7 +787,7 @@ function submitPayment() {
     if (!paymentMethod) {
         if (errorEl) {
             errorEl.classList.remove('hidden');
-            errorEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+            errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         return;
     }

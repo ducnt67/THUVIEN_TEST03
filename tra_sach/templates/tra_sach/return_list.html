@@ -112,6 +112,63 @@
         color: #f97316 !important;
         font-weight: 600 !important;
     }
+
+    /* Allow badges (phạt loại) to wrap instead of causing horizontal scroll */
+    .table td .badge {
+        white-space: normal !important;
+        word-break: break-word !important;
+        max-width: 280px;
+        /* reasonable limit so very long text wraps */
+    }
+
+    /* Clickable row visual style */
+    tr.row-clickable {
+        cursor: pointer;
+    }
+
+    tr.row-clickable:hover {
+        background: #f8fafc;
+    }
+
+    /* Allow table header cells to wrap in narrow layouts
+       Use more specific selectors to override global `th { white-space: nowrap }` rules */
+    #tab-2 table.table th.th-wrap,
+    .popup-modal table.table th.th-wrap,
+    table.table th.th-wrap {
+        white-space: normal !important;
+        word-break: break-word !important;
+        max-width: 180px;
+        vertical-align: middle;
+        text-align: left;
+    }
+
+    /* Force header cells to wrap in tab-2 and in popup tables so long labels (Người dùng, Trạng thái...) break lines */
+    #tab-2 table.table th.force-wrap {
+        white-space: normal !important;
+        word-break: break-word !important;
+        vertical-align: middle;
+    }
+
+    /* Force Sticky Header for Payment Table in Popup */
+    #popup-payment .table-wrapper {
+        overflow-y: auto !important;
+        overflow-x: auto !important;
+        max-height: 100%;
+    }
+
+    #paymentTable thead {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+    }
+
+    #paymentTable th {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 50 !important;
+        background-color: #fafafa !important;
+        box-shadow: inset 0 -1px 0 #e5e7eb, inset 0 1px 0 #e5e7eb !important;
+    }
 </style>
 {% endblock %}
 {% block content %}
@@ -200,46 +257,37 @@
             </div>
         </div>
         <div id="tab-2" class="tab-pane hidden tab-pane-fixed">
-            <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng nợ phí phạt</p>
-            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách phí phạt chưa thanh toán</p>
+            <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng có khoản phạt</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách người dùng có khoản phạt (đã thanh
+                toán hoặc chưa thanh toán). Dùng nút "Thanh toán" cho những người còn nợ.</p>
             <div class="data-table-scroll table-wrapper">
-                <table class="table">
+                <table class="table" style="width: 100%; table-layout: auto;">
                     <thead>
                         <tr>
-                            <th>Mã phạt</th>
-                            <th>Người dùng</th>
-                            <th>Mã người dùng</th>
-                            <th>Các loại phạt</th>
-                            <th>Tổng tiền phạt chưa thanh toán</th>
-                            <th class="col-action"></th>
+                            <th style="white-space: nowrap; padding: 16px;">Mã phạt</th>
+                            <th style="white-space: nowrap; padding: 16px;">Người dùng</th>
+                            <th style="white-space: nowrap; padding: 16px;">Mã người dùng</th>
+                            <th style="white-space: nowrap; padding: 16px;">Tổng tiền phạt chưa thanh toán</th>
+                            <th class="col-action" style="padding: 16px;"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in tab2_data %}
-                        <tr>
-                            <td><strong>{{ forloop.counter }}</strong></td>
-                            <td class="col-wrap">{{ item.ho_ten }}</td>
-                            <td>{{ item.ma_nguoi_dung }}</td>
-                            <td>
-                                {% for reason in item.ly_do_phat %}
-                                <span class="badge badge-gray" style="background:#f1f5f9; color:#475569; font-weight:600; padding:4px 8px; font-size:11px; margin-right:4px;">{{ reason }}</span>
-                                {% empty %}
-                                -
-                                {% endfor %}
-                            </td>
-                            <td><span style="color: #ea580c; font-weight: 700;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
-                            <td class="col-action">
-                                <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <tr class="row-clickable"
+                            onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})"
+                            role="button" aria-label="Mở chi tiết phí phạt của {{ item.ho_ten }}">
+                            <td style="white-space: nowrap; padding: 16px;"><strong>{{ forloop.counter }}</strong></td>
+                            <td style="white-space: nowrap; padding: 16px;">{{ item.ho_ten }}</td>
+                            <td style="white-space: nowrap; padding: 16px;">{{ item.ma_nguoi_dung }}</td>
+                            <td style="white-space: nowrap; padding: 16px;"><span
+                                    style="color: #ea580c; font-weight: 700; font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
+                            <td class="col-action" style="width:1px; white-space: nowrap; padding: 16px;">
+                                <div style="display:flex; gap:8px; justify-content:flex-end;">
                                     {% if item.tong_tien > 0 %}
                                     <button class="btn btn-primary"
-                                        style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;"
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})">Thanh
+                                        style="background-color: #3b82f6; padding: 8px 16px; font-size: 13px; white-space: nowrap; border-radius: 6px; font-weight: 600;"
+                                        onclick="event.stopPropagation(); openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})">Thanh
                                         toán</button>
-                                    {% else %}
-                                    <button class="btn btn-primary"
-                                        style="background-color: #3b82f6; padding: 6px 12px; font-size: 13px; white-space: nowrap; border-radius: 6px;"
-                                        onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})">Xem
-                                        chi tiết</button>
                                     {% endif %}
                                 </div>
                             </td>
@@ -284,7 +332,8 @@
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
-                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:"d/m/Y" }}</div>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{
+                                    book.ngay_mat|date:"d/m/Y" }}</div>
                                 {% elif book.is_overdue %}
                                 <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
@@ -641,9 +690,9 @@
 
                 <div class="form-group">
                     <label for="compInspectionNote"
-                        style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Mã sách đền bù (Bắt buộc)</label>
-                    <textarea id="compInspectionNote" class="form-input"
-                        placeholder="Nhập mã sách đền bù (VD: S001-05)"
+                        style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Mã
+                        sách đền bù (Bắt buộc)</label>
+                    <textarea id="compInspectionNote" class="form-input" placeholder="Nhập mã sách đền bù (VD: S001-05)"
                         style="width:100%; padding:14px 18px; border:1px solid #f1f5f9; background:#fcfdfe; border-radius:10px; outline:none; font-family:inherit; resize:none; height:90px; font-size:14px; box-sizing:border-box; transition:all 0.2s;"></textarea>
                 </div>
             </div>
@@ -656,93 +705,88 @@
                     nhận hoàn tất</button>
             </div>
         </div>
-        <div id="popup-payment" class="popup-modal popup-payment"
-            style="display:none; flex-direction:column; width:920px; max-width:96vw; background:#fff; border-radius:16px; padding:0; box-shadow:0 20px 60px rgba(0,0,0,0.15); max-height:90vh; overflow:hidden;">
-            <div
-                style="flex-shrink:0; position:relative; background:#fff; border-bottom:1px solid #f0f0f0; padding:20px 28px 16px 28px; border-radius:16px 16px 0 0;">
-                <h3 style="font-weight:700; font-size:20px; text-align:center; margin:0; color:#111827;">Thanh toán phí
-                    phạt
-                </h3>
-                <button type="button"
-                    onclick="document.getElementById('popupOverlay').style.display='none'; document.getElementById('popup-payment').style.display='none';"
-                    style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:50%; transform:translateY(-50%); color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
+        <div id="popup-payment" class="popup-modal"
+            style="display:none; flex-direction: column; width:min(1140px, 96vw); background:#fff; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); max-height:90vh; overflow:hidden;">
+            <div class="popup-header" style="position:relative; padding:24px 24px 10px 24px; flex-shrink: 0;">
+                <h3 style="font-weight:700; font-size:22px; width:100%; text-align:center; margin:0;">Thanh toán phí
+                    phạt</h3>
+                <button class="popup-close" type="button" onclick="closeAllPopups()"
+                    style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
             </div>
-            <div style="flex:1; overflow-y:auto; padding:20px 28px 4px 28px;">
-                <div style="border:1px solid #f1f5f9; padding:14px 20px; border-radius:10px; margin-bottom:18px;">
-                    <div style="color:#f97316; font-size:12px; font-weight:600; margin-bottom:4px;">Người dùng</div>
-                    <strong id="payUserName" style="font-size:16px; color:#111827; font-weight:700;">-</strong>
+            <div class="popup-content"
+                style="padding:20px 24px 24px; display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0;">
+                <div
+                    style="border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; margin-bottom: 16px; flex-shrink: 0;">
+                    <div style="color: #6b7280; font-weight: 600; margin-bottom: 8px;">Người dùng</div>
+                    <strong id="payUserName" style="font-size: 16px; color: #111827;"></strong>
                 </div>
-                <div style="border:1px solid #f1f5f9; border-radius:10px; overflow:hidden; margin-bottom:18px;">
-                    <div style="overflow-x:auto;">
-                        <table style="width:100%; border-collapse:collapse; text-align:left; min-width:750px;">
-                            <thead>
-                                <tr style="background:#f9fafb;">
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Mã sách trong kho</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Tên sách</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Loại phạt</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Lý do</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Số Tiền</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Ngày tạo</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Mã phiếu mượn</th>
-                                    <th
-                                        style="padding:12px 14px; font-size:12px; color:#6b7280; font-weight:600; border-bottom:1px solid #e5e7eb; white-space:nowrap; text-transform:uppercase; letter-spacing:0.04em;">
-                                        Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody id="paymentTableBody">
-                                <!-- Sẽ được điền bằng JS -->
-                            </tbody>
-                        </table>
-                    </div>
+
+                <div class="data-table-scroll table-wrapper"
+                    style="border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 16px; flex: 1; overflow-y: auto; overflow-x: auto; min-height: 0;">
+                    <table class="table table-fines" id="paymentTable"
+                        style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                        <thead style="position: sticky; top: 0; z-index: 50;">
+                            <tr>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Mã sách trong kho</th>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Tên sách</th>
+                                <th style="white-space: normal !important; min-width: 100px; padding: 12px 16px;">Loại
+                                    phạt</th>
+                                <th style="white-space: normal !important; padding: 12px 16px; min-width: 150px; max-width: 250px;">Lý do</th>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Số tiền</th>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Ngày tạo</th>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Mã phiếu mượn</th>
+                                <th style="white-space: nowrap !important; padding: 12px 16px;">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentTableBody">
+                            <!-- Nội dung động -->
+                        </tbody>
+                    </table>
                 </div>
-                <div id="paymentControls">
-                    <div style="margin-bottom:14px;">
-                        <div style="font-size:15px; font-weight:700; color:#111827; margin-bottom:10px;">Phương thức
-                            thanh
-                            toán</div>
-                        <div class="selection-item"
-                            onclick="document.getElementById('radio-cash').checked=true; updateLostOutcome();">
-                            <input type="radio" id="radio-cash" name="paymentMethodNew" value="cash">
-                            <span style="font-size:14px;">Tiền mặt</span>
+
+                <div class="form-group"
+                    style="margin-bottom: 16px; border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; background: #fafafa; flex-shrink: 0;">
+                    <div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: #111827;">Phương thức
+                        thanh toán</div>
+                    <div id="paymentControls" class="radio-group"
+                        style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
+                        <label class="selection-item" style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
+                            <input type="radio" name="paymentMethodNew" value="cash">
+                            <span style="font-size: 14px;">Tiền mặt</span>
+                        </label>
+                        <label class="selection-item" style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
+                            <input type="radio" name="paymentMethodNew" value="transfer">
+                            <span style="font-size: 14px;">Chuyển khoản</span>
+                        </label>
+                        <div style="width: 100%;">
+                            <span id="paymentMethodError" class="field-error hidden" style="color: #ef4444; font-size: 13px;">Vui lòng chọn phương thức thanh toán.</span>
                         </div>
-                        <div class="selection-item"
-                            onclick="document.getElementById('radio-transfer').checked=true; updateLostOutcome();">
-                            <input type="radio" id="radio-transfer" name="paymentMethodNew" value="transfer">
-                            <span style="font-size:14px;">Chuyển khoản</span>
-                        </div>
-                        <p id="paymentMethodError" class="field-error hidden" style="color:#ef4444; margin:6px 0 0 0; font-size:13px;">
-                          Vui lòng chọn phương thức thanh toán.
-                        </p>
-                    </div>
-                    <div
-                        style="display:flex; justify-content:space-between; align-items:center; padding:12px 0 20px 0;">
-                        <span style="font-size:15px; font-weight:700; color:#111827;">Tổng tiền</span>
-                        <span id="payTotalAmount" style="font-size:22px; font-weight:800; color:#f97316;">0đ</span>
-                    </div>
-                    <div
-                        style="flex-shrink:0; display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 0 10px 0;">
-                        <button type="button"
-                            onclick="document.getElementById('popup-payment').style.display='none'; document.getElementById('popupOverlay').style.display='none';"
-                            style="padding:10px 40px; border:1px solid #d1d5db; background:#fff; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; color:#374151; outline:none;">Hủy</button>
-                        <button type="button" onclick="submitPayment();"
-                            style="padding:10px 40px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; outline:none; box-shadow:0 4px 12px rgba(249,115,22,0.25);">Xác
-                            nhận thanh toán</button>
                     </div>
                 </div>
+
+                <div id="paidNotice"
+                    style="display:none; color:#22c55e; font-weight:600; text-align:center; margin-bottom:16px; flex-shrink: 0;">
+                    Người dùng đã thanh toán toàn bộ phí phạt.
+                </div>
+
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; padding-top: 16px; margin-bottom: 8px; flex-shrink: 0;">
+                    <div style="font-weight: 700; font-size: 16px; color: #111827;">Tổng tiền</div>
+                    <div id="payTotalAmount" style="font-size: 20px; font-weight: 700; color: #f97316;">0đ</div>
+                </div>
+            </div>
+            <div id="paymentFooterActions" class="popup-footer"
+                style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px; flex-shrink: 0;">
+                <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                    style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none; min-width: 140px;">Hủy</button>
+                <button class="btn btn-orange" id="btnConfirmPayment" type="button" onclick="submitPayment()"
+                    style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none; min-width: 140px;">Xác
+                    nhận</button>
+            </div>
+            <div id="paymentFooterExit" class="popup-footer"
+                style="display:none; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px; flex-shrink: 0;">
+                <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                    style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none; min-width: 140px;">Thoát</button>
             </div>
         </div>
     </div>
