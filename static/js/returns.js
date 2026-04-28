@@ -751,18 +751,24 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
 function submitPayment() {
     if (!selectedPaymentUser) return;
     const paymentMethod = getSelectedRadioValue('paymentMethodNew');
-
+    const errorEl = document.getElementById('paymentMethodError');
+    // Đảm bảo luôn ẩn lỗi trước khi kiểm tra
+    if (errorEl) errorEl.classList.add('hidden');
+    if (!paymentMethod) {
+        if (errorEl) {
+            errorEl.classList.remove('hidden');
+            errorEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+        return;
+    }
     if (!window.currentFineIds || window.currentFineIds.length === 0) {
         alert('Không có khoản phạt nào để thanh toán.');
         return;
     }
-
     const params = new URLSearchParams();
     params.append('ma_nguoi_dung', selectedPaymentUser);
     params.append('phuong_thuc', paymentMethod === 'cash' ? 'Tiền mặt' : 'Chuyển khoản');
-
     window.currentFineIds.forEach(id => params.append('danh_sach_ma_phat[]', id));
-
     fetch('/api/thanh_toan_phi_phat/', {
         method: 'POST',
         headers: {
@@ -788,4 +794,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initReturnFlow();
     initLostFlow();
     initCompensateFlow();
+    // Thêm sự kiện ẩn lỗi khi chọn radio phương thức thanh toán
+    document.querySelectorAll('input[name="paymentMethodNew"]').forEach((input) => {
+        input.addEventListener('change', () => {
+            const errorEl = document.getElementById('paymentMethodError');
+            if (errorEl) errorEl.classList.add('hidden');
+        });
+    });
 });
