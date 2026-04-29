@@ -252,7 +252,7 @@ function openModalById(id) {
     const overlay = document.getElementById('popupOverlay');
     if (!overlay) return;
     overlay.style.display = 'flex';
-    const flexModalIds = new Set(['popup-return-confirm', 'popup-return-cancel-confirm', 'popup-payment', 'popup-lost-book', 'popup-compensate-confirm']);
+    const flexModalIds = new Set(['popup-return-confirm', 'popup-return-cancel-confirm', 'popup-payment', 'popup-payment-cancel-confirm', 'popup-lost-book', 'popup-compensate-confirm']);
     document.querySelectorAll('.popup-modal').forEach((modal) => {
         if (modal.id === id) {
             modal.style.display = 'flex';
@@ -382,6 +382,33 @@ function backToReturnPopup() {
 
 function confirmCancelReturnPopup() {
     resetReturnFormState();
+    closeAllPopups();
+}
+
+function requestClosePaymentPopup() {
+    const paymentModal = document.getElementById('popup-payment');
+    const footerActions = document.getElementById('paymentFooterActions');
+    if (!paymentModal || paymentModal.style.display === 'none') {
+        closeAllPopups();
+        return;
+    }
+
+    const hasPendingPayment = !footerActions || footerActions.style.display !== 'none';
+    if (!hasPendingPayment) {
+        closeAllPopups();
+        return;
+    }
+
+    openModalById('popup-payment-cancel-confirm');
+}
+
+function backToPaymentPopup() {
+    openModalById('popup-payment');
+}
+
+function confirmCancelPaymentPopup() {
+    selectedPaymentUser = null;
+    window.currentFineIds = [];
     closeAllPopups();
 }
 
@@ -775,8 +802,14 @@ function initReturnFlow() {
         overlay.addEventListener('click', (event) => {
             if (event.target !== overlay) return;
             const returnModal = document.getElementById('popup-return-confirm');
+            const paymentModal = document.getElementById('popup-payment');
+            const paymentCancelModal = document.getElementById('popup-payment-cancel-confirm');
             if (returnModal && returnModal.style.display !== 'none') {
                 requestCloseReturnPopup();
+            } else if (paymentCancelModal && paymentCancelModal.style.display !== 'none') {
+                backToPaymentPopup();
+            } else if (paymentModal && paymentModal.style.display !== 'none') {
+                requestClosePaymentPopup();
             } else {
                 closeAllPopups();
             }

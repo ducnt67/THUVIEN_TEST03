@@ -258,7 +258,7 @@
                         <tr class="return-record {% if book.is_overdue %}row-overdue{% endif %} {% if forloop.first %}row-group-start{% endif %}"
                             data-loan-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.nguoi_muon }}" data-book-code="{{ book.ma_sach_trong_kho }}"
                             data-book-title="{{ book.ten_sach }}" data-borrower="{{ item.nguoi_muon }}"
-                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ item.trang_thai }}"
+                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ book.status_key }}"
                             data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}"
                             data-lost-fee="{{ lost_fee }}">
                             {% if forloop.first %}
@@ -375,7 +375,7 @@
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
-                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:'d/m/Y' }}</div>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:"d/m/Y" }}</div>
                                 {% elif book.is_overdue %}
                                 <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
@@ -752,7 +752,7 @@
             <div class="popup-header" style="position:relative; padding:24px 24px 10px 24px; flex-shrink: 0;">
                 <h3 style="font-weight:700; font-size:22px; width:100%; text-align:center; margin:0;">Thanh toán phí
                     phạt</h3>
-                <button class="popup-close" type="button" onclick="closeAllPopups()"
+                <button class="popup-close" type="button" onclick="requestClosePaymentPopup()"
                     style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
             </div>
             <div class="popup-content"
@@ -819,7 +819,7 @@
             </div>
             <div id="paymentFooterActions" class="popup-footer"
                 style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px; flex-shrink: 0;">
-                <button class="btn btn-outline" type="button" onclick="closeAllPopups()"
+                <button class="btn btn-outline" type="button" onclick="requestClosePaymentPopup()"
                     style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none; min-width: 140px;">Hủy</button>
                 <button class="btn btn-orange" id="btnConfirmPayment" type="button" onclick="submitPayment()"
                     style="padding:10px 32px; background:#f97316; color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer; outline:none; min-width: 140px;">Xác
@@ -831,6 +831,22 @@
                     style="padding:10px 32px; border:1px solid #e5e7eb; background:#fff; border-radius:8px; font-weight:600; cursor:pointer; color:#111827; outline:none; min-width: 140px;">Thoát</button>
             </div>
         </div>
+        <div id="popup-payment-cancel-confirm" class="popup-modal"
+            style="display:none; width:min(560px, 96vw); background:#fff; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); max-height:90vh; overflow:hidden;">
+            <div class="popup-header" style="position:relative; padding:24px 24px 10px 24px;">
+                <h3 style="font-weight:700; font-size:22px; width:100%; text-align:center; margin:0;">Xác nhận hủy</h3>
+                <button class="popup-close" type="button" onclick="backToPaymentPopup()"
+                    style="background:transparent; border:1px solid #e5e7eb; border-radius:8px; width:32px; height:32px; font-size:18px; cursor:pointer; position:absolute; right:20px; top:20px; color:#6b7280; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+            <div class="popup-content" style="padding:20px 24px 24px;">
+                <p class="confirm-message" style="text-align: center;">Chưa hoàn tất thanh toán, bạn có muốn hủy?</p>
+            </div>
+            <div class="popup-footer"
+                style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
+                <button class="btn btn-outline" type="button" onclick="confirmCancelPaymentPopup()">Thoát thanh toán</button>
+                <button class="btn btn-orange" type="button" onclick="backToPaymentPopup()">Tiếp tục thanh toán</button>
+            </div>
+        </div>
     </div>
     <div id="toast-container" class="toast-container"></div>
     {% endblock %}
@@ -838,6 +854,6 @@
     <script>
         window.CSRF_TOKEN = '{{ csrf_token }}';
     </script>
-            <script src="{% static 'js/returns.js' %}?v=107"></script>
+            <script src="{% static 'js/returns.js' %}?v=108"></script>
     {% endblock %}
 </div>
