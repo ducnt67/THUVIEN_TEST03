@@ -8,7 +8,10 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/circulation.css' %}">
 <style>
-    #tab-3 .col-status {
+    #tab-3 th.col-status,
+    #tab-3 td.col-status,
+    #tab-4 th.col-status,
+    #tab-4 td.col-status {
         text-align: center;
     }
 
@@ -26,7 +29,7 @@
 
     #tab-4 th.col-action,
     #tab-4 td.col-action {
-        text-align: left !important;
+        text-align: right !important;
         padding-right: 16px !important;
     }
 
@@ -147,7 +150,7 @@
     }
 
     /* Make the tab-4 status column itself wide enough for one-line labels */
-    #tab-4 th.col-action,
+    #tab-4 th.col-status,
     #tab-4 td.col-status {
         min-width: 150px;
         white-space: nowrap !important;
@@ -299,8 +302,7 @@
         </div>
         <div id="tab-2" class="tab-pane hidden tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng có khoản phạt</p>
-            <p class="section-meta" style="margin-bottom: 15px;">Chỉ hiển thị người dùng còn khoản phạt chưa thanh toán.
-                Những người đã thanh toán hết hoặc chỉ còn lịch sử đã thanh toán sẽ không hiển thị ở đây.</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách người dùng có lịch sử khoản phạt (bao gồm cả chưa thanh toán và đã thanh toán).</p>
             <div class="data-table-scroll table-wrapper">
                 <table class="table" style="width: 100%; table-layout: auto;">
                     <thead>
@@ -336,7 +338,7 @@
                         {% endfor %}
                         <tr id="tab2EmptyStateRow" class="empty-state-row" {% if tab2_data %}style="display:none;"{% endif %}>
                             <td colspan="5" class="empty-state-cell">
-                                <div class="empty-state">Không có người dùng nào còn khoản phạt chưa thanh toán</div>
+                                <div class="empty-state">Không có dữ liệu người dùng có khoản phạt</div>
                             </td>
                         </tr>
                     </tbody>
@@ -355,7 +357,7 @@
                             <th>Mã sách</th>
                             <th>Tên sách</th>
                             <th>Hạn trả</th>
-                            <th>Trạng thái</th>
+                            <th class="col-status">Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
@@ -410,7 +412,7 @@
                             <th>Mã sách</th>
                             <th>Sách cần đền</th>
                             <th>Ngày báo mất</th>
-                            <th class="col-action">Trạng thái</th>
+                            <th class="col-status">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
@@ -429,7 +431,7 @@
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
                             <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
-                            <td class="col-action col-status">
+                            <td class="col-status">
                                 {% if book.can_confirm %}
                                 <span class="badge badge-red-solid compensate-confirm-trigger"
                                     style="cursor:pointer;">Chờ đền sách</span>

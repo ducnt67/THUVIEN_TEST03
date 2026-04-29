@@ -631,6 +631,12 @@ function submitLostBookReport() {
                 resetLostFormState();
                 showToast('lostSuccess');
                 refreshTab2UserSummary(userId, userName);
+                
+                if (method === 'book') {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
             } else {
                 showToast('lostError', data.error || 'Xử lý mất sách thất bại');
             }
