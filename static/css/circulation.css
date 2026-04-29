@@ -36,6 +36,17 @@ td.col-action {
     padding-right: 24px !important;
 }
 
+/* Ensure status column content is left-aligned */
+td.col-status {
+    text-align: left !important;
+}
+
+/* Center align lost report and compensation dates */
+#lostReportDate,
+#compReportDate {
+    text-align: center;
+}
+
 .section-heading {
     font-weight: 700;
     margin-bottom: 20px;
