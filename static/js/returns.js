@@ -57,7 +57,7 @@ function showToast(type, customMessage) {
         compensateError: { cls: 'toast-error', icon: 'bx bx-x-circle', msg: 'Xác nhận đền sách thất bại' },
         lostSuccess: { cls: 'toast-success', icon: 'bx bx-check-circle', msg: 'Xác nhận mất sách thành công' },
         lostError: { cls: 'toast-error', icon: 'bx bx-x-circle', msg: 'Xác nhận xử lý mất sách thất bại' },
-        paymentSuccess: { cls: 'toast-success', icon: 'bx bx-check-circle', msg: 'Thanh toán phí phạt thành công' },
+        paymentSuccess: { cls: 'toast-success', icon: 'bx bx-check-circle', msg: 'Xác nhận thanh toán thành công' },
         error: { cls: 'toast-error', icon: 'bx bx-x-circle', msg: customMessage || 'Đã có lỗi xảy ra' }
     };
 
