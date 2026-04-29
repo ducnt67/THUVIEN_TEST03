@@ -64,6 +64,7 @@ def return_list_view(request):
         if key not in tab1_grouped:
             tab1_grouped[key] = {
                 'ma_phieu_muon': pm.ma_phieu_muon,
+                'ma_nguoi_dung': pm.ma_nguoi_dung.ma_nguoi_dung,
                 'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
                 'ngay_muon': pm.ngay_muon,
                 'trang_thai': pm.get_trang_thai_display(),
@@ -71,18 +72,34 @@ def return_list_view(request):
             }
         sach_trong_kho = ct.ma_sach_trong_kho
         sach = sach_trong_kho.ma_sach
+        
+        # Xác định trạng thái của từng cuốn sách (ChiTietPhieuMuon)
+        is_returned = ct.ngay_tra is not None
+        is_lost = ct.ngay_khai_bao_mat is not None
+        is_overdue = not is_returned and not is_lost and ct.han_tra < timezone.now().date()
+        
+        book_status_key = 'da_tra' if is_returned else \
+                          'da_mat' if is_lost else \
+                          'qua_han' if is_overdue else \
+                          'dang_muon'
+
         tab1_grouped[key]['sach_list'].append({
             'ma_sach_trong_kho': sach_trong_kho.ma_sach_trong_kho,
             'ten_sach': sach.ten_sach,
             'han_tra': ct.han_tra,
             'ngay_tra': ct.ngay_tra,
             'tinh_trang': ct.tinh_trang_khi_tra,
-            'is_returned': ct.ngay_tra is not None,
-            'is_lost': ct.ngay_khai_bao_mat is not None,
-            'is_overdue': ct.han_tra < timezone.now().date() if not ct.ngay_tra else ct.han_tra < ct.ngay_tra,
-            'so_ngay_qua_han': (timezone.now().date() - ct.han_tra).days if ct.han_tra < timezone.now().date() and not ct.ngay_tra else 0,
+            'is_returned': is_returned,
+            'is_lost': is_lost,
+            'is_overdue': is_overdue,
+            'so_ngay_qua_han': (timezone.now().date() - ct.han_tra).days if is_overdue else 0,
+            'status_key': book_status_key, # Trạng thái riêng của sách
         })
-    tab1_data = list(tab1_grouped.values())
+    tab1_data = sorted(
+        tab1_grouped.values(),
+        key=lambda item: item['ma_phieu_muon'],
+        reverse=True
+    )
 
     # Tab 2: Danh sách người dùng có khoản phạt (hiển thị cả lịch sử đã thanh toán và chưa thanh toán)
     # Lưu ý: 'tong_tien' sẽ chỉ tính các khoản CHƯA thanh toán để UI biết ai còn nợ
@@ -117,12 +134,12 @@ def return_list_view(request):
     for k, v in tab2_users.items():
         v['ly_do_phat'] = list(set(v['ly_do_phat']))
 
-    # Hiển thị tất cả người dùng có ít nhất 1 khoản phạt (cả đã thanh toán và chưa thanh toán)
-    tab2_data = list(tab2_users.values())
+    # Chỉ hiển thị người dùng còn khoản phạt CHƯA thanh toán
+    tab2_data = [v for v in tab2_users.values() if v['tong_tien'] > 0]
 
-    # Tab 3: Danh sách báo mất (Hiện các trường hợp ĐÃ báo mất HOẶC đang mượn/quá hạn để báo mất)
+    # Tab 3: Danh sách báo mất (Hiện tất cả phiếu chưa trả để báo mất, cả những cái đã báo mất)
     lost_qs = ChiTietPhieuMuon.objects.filter(
-        Q(ngay_khai_bao_mat__isnull=False) | Q(ngay_tra__isnull=True)
+        ngay_tra__isnull=True
     ).select_related('ma_phieu_muon', 'ma_sach_trong_kho', 'ma_phieu_muon__ma_nguoi_dung', 'ma_sach_trong_kho__ma_sach')
     
     tab3_grouped = {}
@@ -132,6 +149,7 @@ def return_list_view(request):
         if key not in tab3_grouped:
             tab3_grouped[key] = {
                 'ma_phieu_muon': pm.ma_phieu_muon,
+                'ma_nguoi_dung': pm.ma_nguoi_dung.ma_nguoi_dung,
                 'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
                 'trang_thai': pm.get_trang_thai_display(),
                 'sach_list': []
@@ -165,6 +183,7 @@ def return_list_view(request):
         if key not in tab4_grouped:
             tab4_grouped[key] = {
                 'ma_phieu_muon': pm.ma_phieu_muon,
+                'ma_nguoi_dung': pm.ma_nguoi_dung.ma_nguoi_dung,
                 'nguoi_muon': pm.ma_nguoi_dung.ho_ten,
                 'trang_thai': pm.get_trang_thai_display(),
                 'sach_list': []
@@ -259,9 +278,6 @@ def api_xac_nhan_tra_sach(request):
                 ngay_tra__isnull=True
             )
             pm = ctpm.ma_phieu_muon
-
-            if pm.trang_thai not in ['dang_muon', 'qua_han']:
-                return JsonResponse({'error': f'Chỉ xác nhận trả khi trạng thái là Đang mượn hoặc Quá hạn (Hiện tại: {pm.trang_thai}).'}, status=400)
             
             ngay_tra = timezone.now().date()
             ctpm.ngay_tra = ngay_tra
@@ -287,7 +303,6 @@ def api_xac_nhan_tra_sach(request):
                     if chinh_sach_hu_hong.muc_phat_hu_hong:
                         _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_hu_hong, chinh_sach_hu_hong.muc_phat_hu_hong, f'Làm hỏng sách: {mo_ta_hu_hong}', nguoi_xac_nhan)
                 except ChinhSachPhat.DoesNotExist:
-                    # Bỏ qua nếu không tìm thấy chính sách (tránh gây lỗi)
                     pass
 
             pm.sync_status()
@@ -329,7 +344,6 @@ def api_get_user_fines(request):
                 if kp.ma_sach_trong_kho.ma_sach:
                     ten_sach = kp.ma_sach_trong_kho.ma_sach.ten_sach
         except Exception:
-            # Truong hop du lieu cu bi mat lien ket thi van tra du lieu con lai.
             pass
 
         data.append({
@@ -396,7 +410,6 @@ def api_thanh_toan_phi_phat(request):
                 kp.trang_thai_tt = PAID_STATUS
                 kp.save()
 
-                # Nếu đây là khoản phạt mất sách, ta cần hoàn tất quy trình mượn
                 if kp.ma_loai_phat and 'mất sách' in kp.ma_loai_phat.loai_phat.lower():
                     if kp.ma_phieu_muon and kp.ma_sach_trong_kho:
                         pm = kp.ma_phieu_muon
@@ -405,12 +418,11 @@ def api_thanh_toan_phi_phat(request):
                                 ma_phieu_muon=pm,
                                 ma_sach_trong_kho=kp.ma_sach_trong_kho
                             )
-                            # Đánh dấu là đã xử lý xong việc mất sách (coi như đã trả)
                             if not ctpm.ngay_tra:
                                 ctpm.ngay_tra = timezone.now().date()
                                 ctpm.save(update_fields=['ngay_tra'])
                             
-                            pm.sync_status() # Cập nhật lại trạng thái tổng của phiếu
+                            pm.sync_status()
                         except ChiTietPhieuMuon.DoesNotExist:
                             pass
 
@@ -446,9 +458,6 @@ def api_xu_ly_mat_sach(request):
             )
             pm = ctpm.ma_phieu_muon
 
-            if pm.trang_thai not in ['dang_muon', 'qua_han']:
-                return JsonResponse({'error': f'Chỉ xử lý mất sách khi trạng thái là Đang mượn hoặc Quá hạn (Hiện tại: {pm.trang_thai}).'}, status=400)
-
             ctpm.ngay_khai_bao_mat = ngay_khai_bao_mat
             ctpm.phuong_an_boi_thuong = phuong_an
             ctpm.save()
@@ -462,7 +471,6 @@ def api_xu_ly_mat_sach(request):
                 sach.so_luong -= 1
                 sach.save()
 
-            # Xử lý phạt trễ hạn (nếu có)
             so_ngay_qua_han = (ngay_khai_bao_mat - ctpm.han_tra).days
             if so_ngay_qua_han > 0:
                 chinh_sach_tre_han = ChinhSachPhat.objects.filter(loai_phat__icontains='Trễ hạn').first()
@@ -477,15 +485,8 @@ def api_xu_ly_mat_sach(request):
                 
                 so_tien_mat = Decimal(chinh_sach_mat.muc_den_bu_mat_sach or 0)
                 _create_fine(pm.ma_nguoi_dung, pm, sach_trong_kho, chinh_sach_mat, so_tien_mat, f'Báo mất sách: {ghi_chu}', nguoi_xu_ly)
-                pm.trang_thai = 'dang_xu_ly'
-                pm.save()
-
-            elif phuong_an == 'den_sach_moi':
-                pm.trang_thai = 'cho_den_sach'
-                pm.save()
-            else:
-                return JsonResponse({'error': 'Phương án bồi hoàn không hợp lệ.'}, status=400)
-
+            
+            pm.sync_status()
             return JsonResponse({'success': True})
 
     except ChiTietPhieuMuon.DoesNotExist:
@@ -503,17 +504,15 @@ def api_xac_nhan_den_sach(request):
     try:
         ma_phieu_muon = request.POST.get('ma_phieu_muon')
         ma_sach_trong_kho_moi = request.POST.get('ma_sach_trong_kho_moi')
-        thong_tin_sach_moi = request.POST.get('thong_tin_sach_moi', '')
-        nguoi_xac_nhan = request.user
         if not (ma_phieu_muon and ma_sach_trong_kho_moi):
-            return JsonResponse({'error': 'Thiếu mã sách mới (vui lòng nhập vào ô Mã sách đền bù).'}, status=400)
+            return JsonResponse({'error': 'Thiếu mã sách mới (vui lòng nhập vào ô ghi chú).'}, status=400)
+        
         with transaction.atomic():
             pm = PhieuMuon.objects.select_for_update().get(ma_phieu_muon=ma_phieu_muon)
             ctpm = (
                 ChiTietPhieuMuon.objects.select_for_update()
                 .filter(
                     ma_phieu_muon=pm,
-                    ngay_khai_bao_mat__isnull=False,
                     phuong_an_boi_thuong='den_sach_moi',
                     ngay_tra__isnull=True,
                 )
@@ -521,33 +520,30 @@ def api_xac_nhan_den_sach(request):
                 .first()
             )
             if not ctpm:
-                return JsonResponse({'error': 'Không tìm thấy hồ sơ đền sách đang chờ xác nhận.'}, status=400)
+                return JsonResponse({'error': 'Không tìm thấy hồ sơ đền sách đang chờ xác nhận cho phiếu này.'}, status=400)
+            
             from quan_ly_sach.models import SachTrongKho, Sach
             
-            # Tách lấy mã sách gốc để lấy foreign key
-            ma_sach_str = ma_sach_trong_kho_moi.split('-')[0] if '-' in ma_sach_trong_kho_moi else None
-            sach_obj = None
-            if ma_sach_str:
-                try:
-                    sach_obj = Sach.objects.get(ma_sach=ma_sach_str)
-                except Sach.DoesNotExist:
-                    pass
+            sach_goc = ctpm.ma_sach_trong_kho.ma_sach
             
-            if sach_obj:
-                sach_trong_kho = SachTrongKho.objects.create(
-                    ma_sach_trong_kho=ma_sach_trong_kho_moi,
-                    ma_sach=sach_obj,
-                    ma_vach=f"BC-{ma_sach_trong_kho_moi}",
-                    trang_thai_sach='available'
-                )
-                # Tăng số lượng sách gốc để đồng bộ với số lượng bản ghi SachTrongKho
-                sach_obj.so_luong += 1
-                sach_obj.save()
-                ctpm.ngay_tra = timezone.now().date()
-                ctpm.save(update_fields=['ngay_tra'])
-                pm.sync_status()
-            else:
-                return JsonResponse({'error': 'Không tìm thấy sách gốc trong hệ thống.'}, status=400)
+            if SachTrongKho.objects.filter(pk=ma_sach_trong_kho_moi).exists():
+                return JsonResponse({'error': f"Mã sách '{ma_sach_trong_kho_moi}' đã tồn tại trong kho."}, status=400)
+
+            SachTrongKho.objects.create(
+                ma_sach_trong_kho=ma_sach_trong_kho_moi,
+                ma_sach=sach_goc,
+                ma_vach=f"BC-{ma_sach_trong_kho_moi}",
+                trang_thai_sach='available'
+            )
+            
+            sach_goc.so_luong += 1
+            sach_goc.save(update_fields=['so_luong'])
+            
+            ctpm.ngay_tra = timezone.now().date()
+            ctpm.tinh_trang_khi_tra = f'Đền sách mới (mã: {ma_sach_trong_kho_moi})'
+            ctpm.save(update_fields=['ngay_tra', 'tinh_trang_khi_tra'])
+            
+            pm.sync_status()
                 
             return JsonResponse({'success': True})
     except PhieuMuon.DoesNotExist:
