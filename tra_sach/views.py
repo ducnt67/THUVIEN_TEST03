@@ -134,8 +134,8 @@ def return_list_view(request):
     for k, v in tab2_users.items():
         v['ly_do_phat'] = list(set(v['ly_do_phat']))
 
-    # Chỉ hiển thị người dùng còn khoản phạt CHƯA thanh toán
-    tab2_data = [v for v in tab2_users.values() if v['tong_tien'] > 0]
+    # Hiển thị tất cả người dùng có khoản phạt (cả đã thanh toán và chưa thanh toán)
+    tab2_data = list(tab2_users.values())
 
     # Tab 3: Danh sách báo mất (Hiện tất cả phiếu chưa trả để báo mất, cả những cái đã báo mất)
     lost_qs = ChiTietPhieuMuon.objects.filter(
