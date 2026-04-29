@@ -76,6 +76,155 @@ function formatCurrency(value) {
     return `${new Intl.NumberFormat('vi-VN').format(Math.max(0, value || 0))}đ`;
 }
 
+function escapeHtml(text) {
+    return (text || '')
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getTab2Body() {
+    return document.querySelector('#tab-2 tbody');
+}
+
+function syncTab2EmptyState() {
+    const tbody = getTab2Body();
+    const emptyRow = document.getElementById('tab2EmptyStateRow');
+    if (!tbody || !emptyRow) return;
+
+    const hasDataRows = tbody.querySelectorAll('tr.row-clickable').length > 0;
+    emptyRow.style.display = hasDataRows ? 'none' : '';
+}
+
+function escapeSelectorValue(value) {
+    const text = String(value || '');
+    if (window.CSS && typeof CSS.escape === 'function') {
+        return CSS.escape(text);
+    }
+    return text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function findTab2UserRow(userId) {
+    if (!userId) return null;
+    const selector = `#tab-2 tr[data-user-id="${escapeSelectorValue(String(userId))}"]`;
+    return document.querySelector(selector);
+}
+
+function renderTab2UserRow(row, userId, userName, unpaidTotal, hasAnyFine) {
+    const tbody = getTab2Body();
+    if (!row || !tbody) return;
+
+    const safeUserId = String(userId || row.dataset.userId || '');
+    const safeUserName = userName || row.dataset.userName || '-';
+    const total = Number(unpaidTotal) || 0;
+    const rowIndex = Array.from(tbody.querySelectorAll('tr')).indexOf(row) + 1;
+
+    row.dataset.userId = safeUserId;
+    row.dataset.userName = safeUserName;
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', `Mở chi tiết phí phạt của ${safeUserName}`);
+    row.onclick = () => openPaymentPopup(safeUserId, safeUserName, total);
+
+    if (row.children.length >= 5) {
+        row.children[0].innerHTML = `<strong>${rowIndex}</strong>`;
+        row.children[1].textContent = safeUserName;
+        row.children[2].textContent = safeUserId;
+        row.children[3].innerHTML = `<span style="color: #ea580c; font-weight: 700; font-size: 15px;">${formatCurrency(total)}</span>`;
+        row.children[4].innerHTML = total > 0
+            ? `<div style="display:flex; gap:8px; justify-content:flex-end;"><button class="btn btn-primary" style="background-color: #3b82f6; padding: 8px 16px; font-size: 13px; white-space: nowrap; border-radius: 6px; font-weight: 600;" onclick='event.stopPropagation(); openPaymentPopup(${JSON.stringify(safeUserId)}, ${JSON.stringify(safeUserName)}, ${total})'>Thanh toán</button></div>`
+            : '';
+    }
+
+    if (!hasAnyFine && total <= 0) {
+        row.querySelector('td:nth-child(4)').innerHTML = `<span style="color: #ea580c; font-weight: 700; font-size: 15px;">0đ</span>`;
+    }
+}
+
+function upsertTab2UserRow(userId, userName, unpaidTotal, hasAnyFine = true) {
+    const tbody = getTab2Body();
+    if (!tbody) return;
+
+    const total = Number(unpaidTotal) || 0;
+    if (total <= 0) {
+        const existingRow = findTab2UserRow(userId);
+        if (existingRow) existingRow.remove();
+        syncTab2EmptyState();
+        return null;
+    }
+
+    const existingRow = findTab2UserRow(userId);
+    if (existingRow) {
+        renderTab2UserRow(existingRow, userId, userName, total, true);
+        return existingRow;
+    }
+
+    const row = document.createElement('tr');
+    row.className = 'row-clickable';
+    row.dataset.userId = String(userId || '');
+    row.dataset.userName = userName || '-';
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', `Mở chi tiết phí phạt của ${userName || '-'}`);
+
+    const rowIndex = tbody.querySelectorAll('tr').length + 1;
+    const safeUserId = String(userId || '');
+    const safeUserName = userName || '-';
+    row.innerHTML = `
+        <td style="white-space: nowrap; padding: 16px;"><strong>${rowIndex}</strong></td>
+        <td style="white-space: nowrap; padding: 16px;">${escapeHtml(safeUserName)}</td>
+        <td style="white-space: nowrap; padding: 16px;">${escapeHtml(safeUserId)}</td>
+        <td style="white-space: nowrap; padding: 16px;"><span style="color: #ea580c; font-weight: 700; font-size: 15px;">${formatCurrency(total)}</span></td>
+        <td class="col-action" style="width:1px; white-space: nowrap; padding: 16px;">
+            <div style="display:flex; gap:8px; justify-content:flex-end;">${total > 0 ? `<button class="btn btn-primary" style="background-color: #3b82f6; padding: 8px 16px; font-size: 13px; white-space: nowrap; border-radius: 6px; font-weight: 600;" onclick='event.stopPropagation(); openPaymentPopup(${JSON.stringify(safeUserId)}, ${JSON.stringify(safeUserName)}, ${total})'>Thanh toán</button>` : ''}</div>
+        </td>
+    `;
+    row.addEventListener('click', () => openPaymentPopup(safeUserId, safeUserName, total));
+    tbody.appendChild(row);
+    syncTab2EmptyState();
+    return row;
+}
+
+function refreshTab2UserSummary(userId, userName) {
+    if (!userId) return Promise.resolve();
+
+    return fetch(`/api/lay_danh_sach_phi_phat_nguoi_dung/?ma_nguoi_dung=${encodeURIComponent(userId)}`)
+        .then(async (res) => {
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (err) {
+                throw new Error('Phản hồi không hợp lệ từ máy chủ.');
+            }
+
+            if (!res.ok || !data.success) {
+                throw new Error(data?.error || data?.message || `Lỗi tải dữ liệu (${res.status})`);
+            }
+
+            const unpaidTotal = (data.fines || [])
+                .filter((fine) => isUnpaidStatus(fine.trang_thai))
+                .reduce((sum, fine) => sum + (Number(fine.so_tien) || 0), 0);
+            upsertTab2UserRow(userId, userName, unpaidTotal, true);
+        })
+        .catch((err) => {
+            console.error('Failed to refresh fee summary:', err);
+        });
+}
+
+function removeLostReportRow(loanId, bookCode) {
+    if (!loanId || !bookCode) return;
+    const selector = `#tab-3 tr.lost-record[data-loan-id="${escapeSelectorValue(String(loanId))}"][data-book-code="${escapeSelectorValue(String(bookCode))}"]`;
+    document.querySelectorAll(selector).forEach((row) => row.remove());
+}
+
+function getLocalISODate(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 function normalizeStatusText(value) {
     return (value || '')
         .toString()
@@ -276,6 +425,10 @@ function submitReturnConfirm() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                const loanId = selectedReturnRow?.dataset.loanId || '';
+                const bookCode = selectedReturnRow?.dataset.bookCode || '';
+                const userId = selectedReturnRow?.dataset.userId || '';
+                const userName = selectedReturnRow?.dataset.userName || selectedReturnRow?.dataset.borrower || '-';
                 selectedReturnRow.dataset.status = 'Đã trả';
                 if (selectedReturnRow.dataset.overdueDays) selectedReturnRow.dataset.overdueDays = '0';
                 selectedReturnRow.classList.remove('row-overdue');
@@ -289,7 +442,8 @@ function submitReturnConfirm() {
                 closeAllPopups();
                 resetReturnFormState();
                 showToast('returnSuccess');
-                setTimeout(() => location.reload(), 1000);
+                removeLostReportRow(loanId, bookCode);
+                refreshTab2UserSummary(userId, userName);
             } else {
                 showToast('returnError', data.error || 'Xác nhận trả sách thất bại');
             }
@@ -321,8 +475,7 @@ function resetLostFormState() {
 
     // Tự động chọn ngày hôm nay
     if (dateInput) {
-        const today = new Date().toISOString().split('T')[0];
-        dateInput.value = today;
+        dateInput.value = getLocalISODate();
     }
 
     if (noteInput) noteInput.value = '';
@@ -432,6 +585,8 @@ function submitLostBookReport() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                const userId = selectedLostRow?.dataset.userId || '';
+                const userName = selectedLostRow?.dataset.userName || selectedLostRow?.dataset.borrower || '-';
                 const statusCell = selectedLostRow.querySelector('.col-status');
                 const actionCell = selectedLostRow.querySelector('.col-action');
 
@@ -448,9 +603,7 @@ function submitLostBookReport() {
                 closeAllPopups();
                 resetLostFormState();
                 showToast('lostSuccess');
-
-                // Tải lại trang để đồng bộ dữ liệu giữa các Tab
-                setTimeout(() => location.reload(), 1000);
+                refreshTab2UserSummary(userId, userName);
             } else {
                 showToast('lostError', data.error || 'Xử lý mất sách thất bại');
             }
@@ -581,7 +734,6 @@ function submitCompensateConfirm() {
                 closeAllPopups();
                 resetCompensateFormState();
                 showToast('compensateSuccess');
-                setTimeout(() => location.reload(), 1000);
             } else {
                 showToast('compensateError', data.error || 'Xác nhận đền sách thất bại');
             }
@@ -810,9 +962,11 @@ function submitPayment() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
+                const nameEl = document.getElementById('payUserName');
+                const userName = nameEl ? nameEl.innerText.trim() : '-';
                 closeAllPopups();
                 showToast('paymentSuccess');
-                setTimeout(() => location.reload(), 1000);
+                refreshTab2UserSummary(selectedPaymentUser, userName);
             } else {
                 alert('Thanh toán thất bại: ' + (data.error || 'Lỗi hệ thống'));
             }
