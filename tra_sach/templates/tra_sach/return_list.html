@@ -22,57 +22,8 @@
 
     #tab-4 th.col-action,
     #tab-4 td.col-action {
-        text-align: center !important;
+        text-align: left !important;
         padding-right: 16px !important;
-    }
-
-    #tab-3 th.col-date,
-    #tab-3 td.col-date,
-    #tab-4 th.col-date,
-    #tab-4 td.col-date {
-        text-align: center !important;
-        vertical-align: middle !important;
-        white-space: nowrap !important;
-    }
-
-    #tab-3 th.col-status,
-    #tab-3 td.col-status,
-    #tab-4 th.col-status,
-    #tab-4 td.col-status {
-        text-align: center !important;
-        vertical-align: middle !important;
-    }
-
-    #tab-1 td.col-status .badge,
-    #tab-3 td.col-status .badge,
-    #tab-4 td.col-status .badge {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: auto !important;
-        min-width: 96px !important;
-        padding: 6px 12px !important;
-        border-radius: 999px !important;
-        line-height: 1.2;
-        margin: 0 auto;
-        font-size: 14px;
-        white-space: nowrap !important;
-        word-break: normal !important;
-    }
-
-    #tab-4 .compensate-confirm-trigger {
-        min-width: 96px !important;
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
-
-    .status-subdate {
-        display: block;
-        margin-top: 6px;
-        font-size: 11px;
-        color: #6b7280;
-        text-align: center;
-        white-space: nowrap;
     }
 
     .table tr.row-group-start {
@@ -186,6 +137,9 @@
         justify-content: center !important;
         white-space: nowrap !important;
         word-break: normal !important;
+        min-width: 130px;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
     }
 
     /* Make the tab-4 status column itself wide enough for one-line labels */
@@ -201,6 +155,7 @@
         justify-content: center !important;
         white-space: nowrap !important;
         word-break: normal !important;
+        min-width: 120px;
     }
 
     /* Clickable row visual style */
@@ -287,8 +242,8 @@
                             <th>Ngày mượn</th>
                             <th>Mã sách</th>
                             <th>Tên sách</th>
-                            <th class="col-date">Hạn trả</th>
-                            <th class="col-status">Trạng thái</th>
+                            <th>Hạn trả</th>
+                            <th>Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
@@ -310,7 +265,7 @@
                             {% endif %}
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td class="col-date">{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
@@ -362,8 +317,10 @@
                             <td style="white-space: nowrap; padding: 16px;"><strong>{{ forloop.counter }}</strong></td>
                             <td style="white-space: nowrap; padding: 16px;">{{ item.ho_ten }}</td>
                             <td style="white-space: nowrap; padding: 16px;">{{ item.ma_nguoi_dung }}</td>
-                            <td style="white-space: nowrap; padding: 16px;"><span
-                                    style="color: #ea580c; font-weight: 700; font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
+                            <td style="white-space: nowrap; padding: 16px;">
+                                <span class="money-dot-format"
+                                    style="color: #ea580c; font-weight: 700; font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span>
+                            </td>
                             <td class="col-action" style="width:1px; white-space: nowrap; padding: 16px;">
                                 <div style="display:flex; gap:8px; justify-content:flex-end;">
                                     {% if item.tong_tien > 0 %}
@@ -396,8 +353,8 @@
                             <th>Người mượn</th>
                             <th>Mã sách</th>
                             <th>Tên sách</th>
-                            <th class="col-date">Hạn trả</th>
-                            <th class="col-status">Trạng thái</th>
+                            <th>Hạn trả</th>
+                            <th>Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
@@ -414,11 +371,11 @@
                             <td class="col-wrap">{{ item.nguoi_muon }}</td>
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td class="col-date">{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
-                                <span class="status-subdate">{{ book.ngay_mat|date:'d/m/Y' }}</span>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:'d/m/Y' }}</div>
                                 {% elif book.is_overdue %}
                                 <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
@@ -452,8 +409,8 @@
                             <th>Người đền</th>
                             <th>Mã sách</th>
                             <th>Sách cần đền</th>
-                            <th class="col-date">Ngày báo mất</th>
-                            <th class="col-action col-status">Trạng thái</th>
+                            <th>Ngày báo mất</th>
+                            <th class="col-action">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
@@ -472,7 +429,7 @@
                             {% endif %}
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td class="col-date">{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
+                            <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
                             <td class="col-action col-status">
                                 {% if book.can_confirm %}
                                 <span class="badge badge-red-solid compensate-confirm-trigger"
@@ -904,6 +861,15 @@
     {% block extra_js %}
     <script>
         window.CSRF_TOKEN = '{{ csrf_token }}';
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.money-dot-format').forEach(function (element) {
+                const rawValue = element.textContent.replace(/[^0-9]/g, '');
+                if (!rawValue) return;
+                element.textContent = rawValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ';
+            });
+        });
     </script>
     <script src="{% static 'js/returns.js' %}?v=108"></script>
     {% endblock %}
