@@ -8,13 +8,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/circulation.css' %}">
 <style>
-    #tab-3 th.col-status,
-    #tab-3 td.col-status,
-    #tab-4 th.col-status,
-    #tab-4 td.col-status {
-        text-align: center;
-    }
-
     #tab-2 .empty-state {
         text-align: center;
         padding: 40px;
@@ -29,7 +22,7 @@
 
     #tab-4 th.col-action,
     #tab-4 td.col-action {
-        text-align: right !important;
+        text-align: left !important;
         padding-right: 16px !important;
     }
 
@@ -150,7 +143,7 @@
     }
 
     /* Make the tab-4 status column itself wide enough for one-line labels */
-    #tab-4 th.col-status,
+    #tab-4 th.col-action,
     #tab-4 td.col-status {
         min-width: 150px;
         white-space: nowrap !important;
@@ -259,7 +252,8 @@
                         {% with slip_len=item.sach_list|length %}
                         {% for book in item.sach_list %}
                         <tr class="return-record {% if book.is_overdue %}row-overdue{% endif %} {% if forloop.first %}row-group-start{% endif %}"
-                            data-loan-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.nguoi_muon }}" data-book-code="{{ book.ma_sach_trong_kho }}"
+                            data-loan-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}"
+                            data-user-name="{{ item.nguoi_muon }}" data-book-code="{{ book.ma_sach_trong_kho }}"
                             data-book-title="{{ book.ten_sach }}" data-borrower="{{ item.nguoi_muon }}"
                             data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="{{ book.status_key }}"
                             data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}"
@@ -302,7 +296,7 @@
         </div>
         <div id="tab-2" class="tab-pane hidden tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng có khoản phạt</p>
-            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách người dùng có lịch sử khoản phạt (bao gồm cả chưa thanh toán và đã thanh toán).</p>
+            <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách tất cả người dùng có khoản phạt.</p>
             <div class="data-table-scroll table-wrapper">
                 <table class="table" style="width: 100%; table-layout: auto;">
                     <thead>
@@ -316,14 +310,16 @@
                     </thead>
                     <tbody>
                         {% for item in tab2_data %}
-                        <tr class="row-clickable" data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.ho_ten }}"
+                        <tr class="row-clickable" data-user-id="{{ item.ma_nguoi_dung }}"
+                            data-user-name="{{ item.ho_ten }}"
                             onclick="openPaymentPopup('{{ item.ma_nguoi_dung }}', '{{ item.ho_ten|escapejs }}', {{ item.tong_tien|default:0 }})"
                             role="button" aria-label="Mở chi tiết phí phạt của {{ item.ho_ten }}">
                             <td style="white-space: nowrap; padding: 16px;"><strong>{{ forloop.counter }}</strong></td>
                             <td style="white-space: nowrap; padding: 16px;">{{ item.ho_ten }}</td>
                             <td style="white-space: nowrap; padding: 16px;">{{ item.ma_nguoi_dung }}</td>
                             <td style="white-space: nowrap; padding: 16px;"><span
-                                    style="color: #ea580c; font-weight: 700; font-size: 15px;">{{ item.tong_tien|floatformat:0 }}đ</span></td>
+                                    style="color: #ea580c; font-weight: 700; font-size: 15px;">{{
+                                    item.tong_tien|floatformat:0 }}đ</span></td>
                             <td class="col-action" style="width:1px; white-space: nowrap; padding: 16px;">
                                 <div style="display:flex; gap:8px; justify-content:flex-end;">
                                     {% if item.tong_tien > 0 %}
@@ -336,9 +332,10 @@
                             </td>
                         </tr>
                         {% endfor %}
-                        <tr id="tab2EmptyStateRow" class="empty-state-row" {% if tab2_data %}style="display:none;"{% endif %}>
+                        <tr id="tab2EmptyStateRow" class="empty-state-row" {% if tab2_data %}style="display:none;" {%
+                            endif %}>
                             <td colspan="5" class="empty-state-cell">
-                                <div class="empty-state">Không có dữ liệu người dùng có khoản phạt</div>
+                                <div class="empty-state">Không có người dùng nào còn khoản phạt chưa thanh toán</div>
                             </td>
                         </tr>
                     </tbody>
@@ -357,18 +354,19 @@
                             <th>Mã sách</th>
                             <th>Tên sách</th>
                             <th>Hạn trả</th>
-                            <th class="col-status">Trạng thái</th>
+                            <th>Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in tab3_data %}
                         {% for book in item.sach_list %}
-                        <tr class="lost-record"
-                            data-loan-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.nguoi_muon }}" data-book-title="{{ book.ten_sach }}"
-                            data-book-code="{{ book.ma_sach_trong_kho }}" data-borrower="{{ item.nguoi_muon }}"
-                            data-due-date="{{ book.han_tra|date:'d/m/Y' }}" data-status="dang_muon"
-                            data-lost-fee="{{ lost_fee }}" data-is-lost="{{ book.is_lost }}" data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}">
+                        <tr class="lost-record" data-loan-id="{{ item.ma_phieu_muon }}"
+                            data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.nguoi_muon }}"
+                            data-book-title="{{ book.ten_sach }}" data-book-code="{{ book.ma_sach_trong_kho }}"
+                            data-borrower="{{ item.nguoi_muon }}" data-due-date="{{ book.han_tra|date:'d/m/Y' }}"
+                            data-status="dang_muon" data-lost-fee="{{ lost_fee }}" data-is-lost="{{ book.is_lost }}"
+                            data-overdue-days="{{ book.so_ngay_qua_han }}" data-overdue-rate="{{ overdue_rate }}">
                             <td><strong>{{ item.ma_phieu_muon }}</strong></td>
                             <td class="col-wrap">{{ item.nguoi_muon }}</td>
                             <td>{{ book.ma_sach_trong_kho }}</td>
@@ -377,7 +375,8 @@
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
-                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:"d/m/Y" }}</div>
+                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{
+                                    book.ngay_mat|date:"d/m/Y" }}</div>
                                 {% elif book.is_overdue %}
                                 <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
@@ -412,7 +411,7 @@
                             <th>Mã sách</th>
                             <th>Sách cần đền</th>
                             <th>Ngày báo mất</th>
-                            <th class="col-status">Trạng thái</th>
+                            <th class="col-action">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
@@ -420,7 +419,8 @@
                         {% with slip_len=item.sach_list|length %}
                         {% for book in item.sach_list %}
                         <tr class="compensate-record {% if forloop.first %}row-group-start{% endif %}"
-                            data-record-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}" data-user-name="{{ item.nguoi_muon }}" data-book-title="{{ book.ten_sach }}"
+                            data-record-id="{{ item.ma_phieu_muon }}" data-user-id="{{ item.ma_nguoi_dung }}"
+                            data-user-name="{{ item.nguoi_muon }}" data-book-title="{{ book.ten_sach }}"
                             data-book-code="{{ book.ma_sach_trong_kho }}" data-compensator="{{ item.nguoi_muon }}"
                             data-report-date="{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}"
                             data-status="{{ book.status_key }}" data-lost-fee="{{ lost_fee }}">
@@ -431,7 +431,7 @@
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
                             <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
-                            <td class="col-status">
+                            <td class="col-action col-status">
                                 {% if book.can_confirm %}
                                 <span class="badge badge-red-solid compensate-confirm-trigger"
                                     style="cursor:pointer;">Chờ đền sách</span>
@@ -608,7 +608,8 @@
                         <i class='bx bx-calendar'
                             style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:#6b7280; pointer-events:none;"></i>
                     </div>
-                    <p style="font-size:12px; color:#6b7280; margin-top:6px; margin-bottom:0;">Ngày hôm nay sẽ được auto-fill. Vui lòng chỉnh sửa nếu sách mất từ ngày trước đó.</p>
+                    <p style="font-size:12px; color:#6b7280; margin-top:6px; margin-bottom:0;">Ngày hôm nay sẽ được
+                        auto-fill. Vui lòng chỉnh sửa nếu sách mất từ ngày trước đó.</p>
                     <p id="lostDateError" class="field-error hidden">Vui lòng chọn ngày hợp lệ</p>
                 </div>
                 <div class="form-group" style="margin-bottom:22px;">
@@ -775,7 +776,9 @@
                                 <th style="white-space: nowrap !important; padding: 12px 16px;">Tên sách</th>
                                 <th style="white-space: normal !important; min-width: 100px; padding: 12px 16px;">Loại
                                     phạt</th>
-                                <th style="white-space: normal !important; padding: 12px 16px; min-width: 150px; max-width: 250px;">Lý do</th>
+                                <th
+                                    style="white-space: normal !important; padding: 12px 16px; min-width: 150px; max-width: 250px;">
+                                    Lý do</th>
                                 <th style="white-space: nowrap !important; padding: 12px 16px;">Số tiền</th>
                                 <th style="white-space: nowrap !important; padding: 12px 16px;">Ngày tạo</th>
                                 <th style="white-space: nowrap !important; padding: 12px 16px;">Mã phiếu mượn</th>
@@ -794,16 +797,19 @@
                         thanh toán</div>
                     <div id="paymentControls" class="radio-group"
                         style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 20px; align-items: center;">
-                        <label class="selection-item" style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
+                        <label class="selection-item"
+                            style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
                             <input type="radio" name="paymentMethodNew" value="cash">
                             <span style="font-size: 14px;">Tiền mặt</span>
                         </label>
-                        <label class="selection-item" style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
+                        <label class="selection-item"
+                            style="margin-bottom: 0; padding: 10px 24px; min-width: 140px; justify-content: center;">
                             <input type="radio" name="paymentMethodNew" value="transfer">
                             <span style="font-size: 14px;">Chuyển khoản</span>
                         </label>
                         <div style="width: 100%;">
-                            <span id="paymentMethodError" class="field-error hidden" style="color: #ef4444; font-size: 13px;">Vui lòng chọn phương thức thanh toán.</span>
+                            <span id="paymentMethodError" class="field-error hidden"
+                                style="color: #ef4444; font-size: 13px;">Vui lòng chọn phương thức thanh toán.</span>
                         </div>
                     </div>
                 </div>
@@ -845,7 +851,8 @@
             </div>
             <div class="popup-footer"
                 style="display:flex; justify-content:center; gap:16px; border-top:1px solid #f0f0f0; padding:20px 24px;">
-                <button class="btn btn-outline" type="button" onclick="confirmCancelPaymentPopup()">Thoát thanh toán</button>
+                <button class="btn btn-outline" type="button" onclick="confirmCancelPaymentPopup()">Thoát thanh
+                    toán</button>
                 <button class="btn btn-orange" type="button" onclick="backToPaymentPopup()">Tiếp tục thanh toán</button>
             </div>
         </div>
@@ -856,6 +863,6 @@
     <script>
         window.CSRF_TOKEN = '{{ csrf_token }}';
     </script>
-            <script src="{% static 'js/returns.js' %}?v=108"></script>
+    <script src="{% static 'js/returns.js' %}?v=108"></script>
     {% endblock %}
 </div>

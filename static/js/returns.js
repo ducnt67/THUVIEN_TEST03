@@ -631,11 +631,11 @@ function submitLostBookReport() {
                 resetLostFormState();
                 showToast('lostSuccess');
                 refreshTab2UserSummary(userId, userName);
-                
+
                 if (method === 'book') {
                     setTimeout(() => {
                         window.location.reload();
-                    }, 1500);
+                    }, 500);
                 }
             } else {
                 showToast('lostError', data.error || 'Xử lý mất sách thất bại');
@@ -904,7 +904,7 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
                     let penaltyBadgeClass = 'badge-gray';
                     const lcLoai = (fine.loai_phat || '').toLowerCase();
                     let displayLoaiPhat = fine.loai_phat;
-                    
+
                     if (lcLoai.includes('hư hỏng') || lcLoai.includes('hu hong')) {
                         penaltyBadgeClass = 'badge-orange-solid';
                         displayLoaiPhat = 'Hư hỏng';
@@ -918,14 +918,14 @@ function openPaymentPopup(maNguoiDung, hoTen = '', tongTien = 0) {
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;"><strong>${fine.ma_sach_trong_kho}</strong></td>
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; font-weight: 600;">${fine.ten_sach}</td>
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: normal !important; text-align: center;">
-                            <span class="badge ${penaltyBadgeClass}" style="font-size:11px; padding: 4px 10px; border-radius: 12px; font-weight: 600; display: inline-block; text-align: center; min-width: 80px;">${displayLoaiPhat}</span>
+                            <span class="badge ${penaltyBadgeClass}" style="font-size:11px; padding: 4px 10px; border-radius: 12px; font-weight: 600; white-space: nowrap; display: inline-block; text-align: center; min-width: 80px;">${displayLoaiPhat}</span>
                         </td>
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: normal !important; min-width: 150px; max-width: 250px; word-wrap: break-word;">${fine.ly_do}</td>
                         <td style="padding:12px 14px; font-size:13px; font-weight:700; color:#f97316; white-space: nowrap !important; text-align: center;">${formatCurrency(fineAmount)}</td>
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;">${fine.ngay_tao}</td>
                         <td style="padding:12px 14px; font-size:13px; color:#374151; white-space: nowrap !important; text-align: center;"><strong>${fine.ma_phieu_muon}</strong></td>
-                        <td style="padding:12px 14px; text-align: left;">
-                            <span class="badge ${isPaid ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px; display: inline-block; padding: 4px 8px; min-width: 90px;">
+                        <td style="padding:12px 14px; white-space: nowrap !important; text-align: center;">
+                            <span class="badge ${isPaid ? 'badge-green-solid' : 'badge-orange-solid'}" style="font-size:11px; white-space: nowrap !important; display: inline-block; padding: 4px 8px; text-align: center; min-width: 90px;">
                                 ${isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}
                             </span>
                         </td>
