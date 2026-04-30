@@ -206,6 +206,58 @@
         background-color: #fafafa !important;
         box-shadow: inset 0 -1px 0 #e5e7eb, inset 0 1px 0 #e5e7eb !important;
     }
+
+    /* Fix căn giữa ngày tháng và trạng thái ở tab Xử lý mất sách / Xác nhận đền sách */
+    #tab-3 th.col-date,
+    #tab-3 td.col-date,
+    #tab-4 th.col-date,
+    #tab-4 td.col-date {
+        text-align: center !important;
+        vertical-align: middle !important;
+        white-space: nowrap !important;
+    }
+
+    #tab-3 th.col-status,
+    #tab-3 td.col-status,
+    #tab-4 th.col-status,
+    #tab-4 td.col-status {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    #tab-3 td.col-status .badge,
+    #tab-4 td.col-status .badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: auto !important;
+        min-width: 96px !important;
+        padding: 6px 12px !important;
+        border-radius: 999px !important;
+        line-height: 1.2;
+        margin: 0 auto;
+        font-size: 14px;
+        white-space: nowrap !important;
+        word-break: normal !important;
+    }
+
+    #tab-4 .compensate-confirm-trigger {
+        min-width: 96px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .status-subdate {
+        display: block !important;
+        width: 100% !important;
+        margin: 6px auto 0 auto !important;
+        font-size: 11px !important;
+        line-height: 1.2 !important;
+        color: #6b7280 !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+
 </style>
 {% endblock %}
 {% block content %}
@@ -224,13 +276,13 @@
         </div>
     </div>
     <div class="tabs-pill-container">
-        <button class="tab active" type="button" onclick="switchTab(this, 'tab-1')">Xác nhận trả sách</button>
-        <button class="tab" type="button" onclick="switchTab(this, 'tab-2')">Thanh toán phí phạt</button>
+        <button class="tab {% if request.GET.active_tab != 'payment' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-1')">Xác nhận trả sách</button>
+        <button class="tab {% if request.GET.active_tab == 'payment' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-2')">Thanh toán phí phạt</button>
         <button class="tab" type="button" onclick="switchTab(this, 'tab-3')">Xử lý mất sách</button>
         <button class="tab" type="button" onclick="switchTab(this, 'tab-4')">Xác nhận đền sách</button>
     </div>
     <div class="tab-content card data-panel" style="padding: 24px;">
-        <div id="tab-1" class="tab-pane active tab-pane-fixed">
+        <div id="tab-1" class="tab-pane {% if request.GET.active_tab != 'payment' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách sách đang mượn</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách sách đang mượn chi tiết</p>
             <div class="data-table-scroll table-wrapper">
@@ -242,8 +294,8 @@
                             <th>Ngày mượn</th>
                             <th>Mã sách</th>
                             <th>Tên sách</th>
-                            <th>Hạn trả</th>
-                            <th>Trạng thái</th>
+                            <th class="col-date">Hạn trả</th>
+                            <th class="col-status">Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
@@ -265,7 +317,7 @@
                             {% endif %}
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td class="col-date">{{ book.han_tra|date:'d/m/Y' }}</td>
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
@@ -294,7 +346,7 @@
                 </table>
             </div>
         </div>
-        <div id="tab-2" class="tab-pane hidden tab-pane-fixed">
+        <div id="tab-2" class="tab-pane {% if request.GET.active_tab == 'payment' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng có khoản phạt</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách tất cả người dùng có khoản phạt.</p>
             <div class="data-table-scroll table-wrapper">
@@ -353,8 +405,8 @@
                             <th>Người mượn</th>
                             <th>Mã sách</th>
                             <th>Tên sách</th>
-                            <th>Hạn trả</th>
-                            <th>Trạng thái</th>
+                            <th class="col-date">Hạn trả</th>
+                            <th class="col-status">Trạng thái</th>
                             <th class="col-action"></th>
                         </tr>
                     </thead>
@@ -371,11 +423,11 @@
                             <td class="col-wrap">{{ item.nguoi_muon }}</td>
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td>{{ book.han_tra|date:'d/m/Y' }}</td>
+                            <td class="col-date">{{ book.han_tra|date:'d/m/Y' }}</td>
                             <td class="col-status">
                                 {% if book.is_lost %}
                                 <span class="badge badge-red-solid">Đã mất</span>
-                                <div style="font-size: 11px; color: #6b7280; margin-top: 4px;">{{ book.ngay_mat|date:'d/m/Y' }}</div>
+                                <span class="status-subdate">{{ book.ngay_mat|date:'d/m/Y' }}</span>
                                 {% elif book.is_overdue %}
                                 <span class="badge badge-orange-solid">Quá hạn</span>
                                 {% else %}
@@ -409,8 +461,8 @@
                             <th>Người đền</th>
                             <th>Mã sách</th>
                             <th>Sách cần đền</th>
-                            <th>Ngày báo mất</th>
-                            <th class="col-action">Trạng thái</th>
+                            <th class="col-date">Ngày báo mất</th>
+                            <th class="col-action col-status">Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody id="compensateTableBody">
@@ -429,7 +481,7 @@
                             {% endif %}
                             <td>{{ book.ma_sach_trong_kho }}</td>
                             <td class="col-wrap">{{ book.ten_sach }}</td>
-                            <td>{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
+                            <td class="col-date">{{ book.ngay_khai_bao_mat|date:'d/m/Y' }}</td>
                             <td class="col-action col-status">
                                 {% if book.can_confirm %}
                                 <span class="badge badge-red-solid compensate-confirm-trigger"
@@ -871,6 +923,58 @@
             });
         });
     </script>
-    <script src="{% static 'js/returns.js' %}?v=108"></script>
-    {% endblock %}
+    <script src="{% static 'js/returns.js' %}?v=111"></script>
+
+    <script>
+        /*
+         * FIX: Sau khi thanh toán thành công, reload thẳng về tab Thanh toán phí phạt.
+         * Template sẽ render sẵn tab-2 active bằng request.GET.active_tab nên không còn cảnh nhảy từ tab 1 sang tab 2.
+         */
+        (function () {
+            function installPaymentTableReloadPatch() {
+                const originalSubmitPayment = window.submitPayment;
+
+                if (typeof originalSubmitPayment !== 'function') {
+                    setTimeout(installPaymentTableReloadPatch, 100);
+                    return;
+                }
+
+                if (window.__paymentTableReloadPatchInstalled) return;
+                window.__paymentTableReloadPatchInstalled = true;
+
+                window.submitPayment = function () {
+                    const selectedMethod = document.querySelector('input[name="paymentMethodNew"]:checked');
+                    const result = originalSubmitPayment.apply(this, arguments);
+
+                    function reloadDirectlyToPaymentTab() {
+                        const methodError = document.getElementById('paymentMethodError');
+
+                        // Nếu chưa chọn phương thức hoặc đang có lỗi validate thì không reload.
+                        if (!selectedMethod || (methodError && !methodError.classList.contains('hidden'))) {
+                            return;
+                        }
+
+                        setTimeout(function () {
+                            const url = new URL(window.location.href);
+                            url.searchParams.set('active_tab', 'payment');
+                            window.location.replace(url.toString());
+                        }, 700);
+                    }
+
+                    if (result && typeof result.then === 'function') {
+                        result.then(reloadDirectlyToPaymentTab).catch(function () {
+                            // Nếu submitPayment gốc đã xử lý lỗi thì không reload.
+                        });
+                    } else {
+                        reloadDirectlyToPaymentTab();
+                    }
+
+                    return result;
+                };
+            }
+
+            installPaymentTableReloadPatch();
+        })();
+    </script>
+{% endblock %}
 </div>
