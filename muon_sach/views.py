@@ -201,6 +201,10 @@ def api_delete_borrow_slip(request, pk):
             if pm.trang_thai == 'qua_han':
                 messages.error(request, 'Không thể xóa phiếu mượn quá hạn')
                 return JsonResponse({'success': False, 'action': 'reload'})
+
+            # Xóa các khoản phạt liên quan (nếu có) để tránh lỗi ProtectedError do khóa ngoại PROTECT
+            pm.khoan_phat.all().delete()
+
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
                 sach_kho = ct.ma_sach_trong_kho
