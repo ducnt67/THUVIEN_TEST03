@@ -41,6 +41,15 @@ function switchTab(clickedTab, targetId) {
         target.classList.add('active');
         target.style.display = '';  // Xóa inline style để CSS .tab-pane.active quyết định
     }
+
+    sessionStorage.setItem('activeReturnTab', targetId);
+}
+
+function reloadCurrentTab() {
+    const activeTab = sessionStorage.getItem('activeReturnTab') || 'tab-1';
+    const url = new URL(window.location.href);
+    url.searchParams.set('active_tab', activeTab);
+    window.location.replace(url.toString());
 }
 
 function showToast(type, customMessage) {
@@ -471,6 +480,7 @@ function submitReturnConfirm() {
                 showToast('returnSuccess');
                 removeLostReportRow(loanId, bookCode);
                 refreshTab2UserSummary(userId, userName);
+                setTimeout(() => reloadCurrentTab(), 1000);
             } else {
                 showToast('returnError', data.error || 'Xác nhận trả sách thất bại');
             }
@@ -632,11 +642,9 @@ function submitLostBookReport() {
                 showToast('lostSuccess');
                 refreshTab2UserSummary(userId, userName);
 
-                if (method === 'book') {
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                }
+                setTimeout(() => {
+                    setTimeout(() => reloadCurrentTab(), 1000);
+                }, 1000);
             } else {
                 showToast('lostError', data.error || 'Xử lý mất sách thất bại');
             }
@@ -735,12 +743,7 @@ function submitCompensateConfirm() {
     }
 
     const ma_phieu_muon = selectedCompensateRow?.dataset.recordId || '';
-    const ma_sach_trong_kho_moi = document.getElementById('compInspectionNote')?.value.trim() || '';
-
-    if (!ma_sach_trong_kho_moi) {
-        showToast('error', 'Vui lòng nhập mã sách mới vào ô thông tin.');
-        return;
-    }
+    const ghi_chu = document.getElementById('compInspectionNote')?.value.trim() || '';
 
     fetch('/api/xac_nhan_den_sach/', {
         method: 'POST',
@@ -750,8 +753,7 @@ function submitCompensateConfirm() {
         },
         body: new URLSearchParams({
             ma_phieu_muon,
-            ma_sach_trong_kho_moi: ma_sach_trong_kho_moi,
-            thong_tin_sach_moi: ma_sach_trong_kho_moi
+            ghi_chu
         })
     })
         .then(res => res.json())
@@ -766,7 +768,9 @@ function submitCompensateConfirm() {
 
                 closeAllPopups();
                 resetCompensateFormState();
+                removeCompensateRow(ma_phieu_muon, bookCode);
                 showToast('compensateSuccess');
+                setTimeout(() => reloadCurrentTab(), 1000);
             } else {
                 showToast('compensateError', data.error || 'Xác nhận đền sách thất bại');
             }
@@ -1006,6 +1010,7 @@ function submitPayment() {
                 closeAllPopups();
                 showToast('paymentSuccess');
                 refreshTab2UserSummary(selectedPaymentUser, userName);
+                setTimeout(() => reloadCurrentTab(), 1000);
             } else {
                 alert('Thanh toán thất bại: ' + (data.error || 'Lỗi hệ thống'));
             }
@@ -1024,4 +1029,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (errorEl) errorEl.classList.add('hidden');
         });
     });
+
+    // Khôi phục tab đang mở trước khi reload
+    const activeTabId = sessionStorage.getItem('activeReturnTab');
+    if (activeTabId) {
+        const tabBtn = document.querySelector(`.tab[onclick*="'${activeTabId}'"]`);
+        if (tabBtn) {
+            switchTab(tabBtn, activeTabId);
+        }
+    }
 });
