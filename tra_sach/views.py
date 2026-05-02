@@ -422,6 +422,12 @@ def api_thanh_toan_phi_phat(request):
                                 ctpm.ngay_tra = timezone.now().date()
                                 ctpm.save(update_fields=['ngay_tra'])
                             
+                            # Cập nhật trạng thái sách cũ thành đã xử lý
+                            old_sach = kp.ma_sach_trong_kho
+                            if old_sach and old_sach.trang_thai_sach == 'lost':
+                                old_sach.trang_thai_sach = 'processed'
+                                old_sach.save(update_fields=['trang_thai_sach'])
+                            
                             pm.sync_status()
                         except ChiTietPhieuMuon.DoesNotExist:
                             pass
@@ -463,7 +469,7 @@ def api_xu_ly_mat_sach(request):
             ctpm.save()
 
             sach_trong_kho = ctpm.ma_sach_trong_kho
-            sach_trong_kho.trang_thai_sach = 'lost'
+            sach_trong_kho.trang_thai_sach = 'awaiting_replacement' if phuong_an == 'den_sach_moi' else 'lost'
             sach_trong_kho.save()
             
             sach = sach_trong_kho.ma_sach
@@ -503,9 +509,9 @@ def api_xac_nhan_den_sach(request):
     """
     try:
         ma_phieu_muon = request.POST.get('ma_phieu_muon')
-        ma_sach_trong_kho_moi = request.POST.get('ma_sach_trong_kho_moi')
-        if not (ma_phieu_muon and ma_sach_trong_kho_moi):
-            return JsonResponse({'error': 'Thiếu mã sách mới (vui lòng nhập vào ô ghi chú).'}, status=400)
+        ghi_chu = request.POST.get('ghi_chu', '')
+        if not ma_phieu_muon:
+            return JsonResponse({'error': 'Thiếu mã phiếu mượn.'}, status=400)
         
         with transaction.atomic():
             pm = PhieuMuon.objects.select_for_update().get(ma_phieu_muon=ma_phieu_muon)
@@ -526,8 +532,19 @@ def api_xac_nhan_den_sach(request):
             
             sach_goc = ctpm.ma_sach_trong_kho.ma_sach
             
-            if SachTrongKho.objects.filter(pk=ma_sach_trong_kho_moi).exists():
-                return JsonResponse({'error': f"Mã sách '{ma_sach_trong_kho_moi}' đã tồn tại trong kho."}, status=400)
+            # Tự động sinh mã sách kho mới: mã gốc + (tổng số bản sao + 1)
+            prefix = sach_goc.ma_sach
+            total_count = sach_goc.sach_trong_kho.count()
+            
+            ma_sach_trong_kho_moi = None
+            for i in range(total_count + 1, total_count + 100):
+                candidate_code = f"{prefix}-{str(i).zfill(3)}"
+                if not SachTrongKho.objects.filter(pk=candidate_code).exists():
+                    ma_sach_trong_kho_moi = candidate_code
+                    break
+                    
+            if not ma_sach_trong_kho_moi:
+                return JsonResponse({'error': 'Không thể tạo mã sách mới.'}, status=500)
 
             SachTrongKho.objects.create(
                 ma_sach_trong_kho=ma_sach_trong_kho_moi,
@@ -540,8 +557,14 @@ def api_xac_nhan_den_sach(request):
             sach_goc.save(update_fields=['so_luong'])
             
             ctpm.ngay_tra = timezone.now().date()
-            ctpm.tinh_trang_khi_tra = f'Đền sách mới (mã: {ma_sach_trong_kho_moi})'
+            ghi_chu_suffix = f" - {ghi_chu}" if ghi_chu else ""
+            ctpm.tinh_trang_khi_tra = f'Đền sách mới (mã: {ma_sach_trong_kho_moi}){ghi_chu_suffix}'
             ctpm.save(update_fields=['ngay_tra', 'tinh_trang_khi_tra'])
+            
+            # Cập nhật trạng thái sách cũ thành đã xử lý
+            old_sach_trong_kho = ctpm.ma_sach_trong_kho
+            old_sach_trong_kho.trang_thai_sach = 'processed'
+            old_sach_trong_kho.save(update_fields=['trang_thai_sach'])
             
             pm.sync_status()
                 

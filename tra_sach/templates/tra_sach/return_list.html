@@ -276,13 +276,13 @@
         </div>
     </div>
     <div class="tabs-pill-container">
-        <button class="tab {% if request.GET.active_tab != 'payment' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-1')">Xác nhận trả sách</button>
-        <button class="tab {% if request.GET.active_tab == 'payment' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-2')">Thanh toán phí phạt</button>
-        <button class="tab" type="button" onclick="switchTab(this, 'tab-3')">Xử lý mất sách</button>
-        <button class="tab" type="button" onclick="switchTab(this, 'tab-4')">Xác nhận đền sách</button>
+        <button class="tab {% if request.GET.active_tab == 'tab-1' or not request.GET.active_tab or request.GET.active_tab == 'return' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-1')">Xác nhận trả sách</button>
+        <button class="tab {% if request.GET.active_tab == 'tab-2' or request.GET.active_tab == 'payment' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-2')">Thanh toán phí phạt</button>
+        <button class="tab {% if request.GET.active_tab == 'tab-3' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-3')">Xử lý mất sách</button>
+        <button class="tab {% if request.GET.active_tab == 'tab-4' %}active{% endif %}" type="button" onclick="switchTab(this, 'tab-4')">Xác nhận đền sách</button>
     </div>
     <div class="tab-content card data-panel" style="padding: 24px;">
-        <div id="tab-1" class="tab-pane {% if request.GET.active_tab != 'payment' %}active{% else %}hidden{% endif %} tab-pane-fixed">
+        <div id="tab-1" class="tab-pane {% if request.GET.active_tab == 'tab-1' or not request.GET.active_tab or request.GET.active_tab == 'return' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách sách đang mượn</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách sách đang mượn chi tiết</p>
             <div class="data-table-scroll table-wrapper">
@@ -346,7 +346,7 @@
                 </table>
             </div>
         </div>
-        <div id="tab-2" class="tab-pane {% if request.GET.active_tab == 'payment' %}active{% else %}hidden{% endif %} tab-pane-fixed">
+        <div id="tab-2" class="tab-pane {% if request.GET.active_tab == 'tab-2' or request.GET.active_tab == 'payment' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách người dùng có khoản phạt</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách tất cả người dùng có khoản phạt.</p>
             <div class="data-table-scroll table-wrapper">
@@ -394,7 +394,7 @@
                 </table>
             </div>
         </div>
-        <div id="tab-3" class="tab-pane hidden tab-pane-fixed">
+        <div id="tab-3" class="tab-pane {% if request.GET.active_tab == 'tab-3' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách bản ghi mượn cần xử lý mất sách</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách báo mất sách</p>
             <div class="data-table-scroll table-wrapper">
@@ -450,7 +450,7 @@
                 </table>
             </div>
         </div>
-        <div id="tab-4" class="tab-pane hidden tab-pane-fixed">
+        <div id="tab-4" class="tab-pane {% if request.GET.active_tab == 'tab-4' %}active{% else %}hidden{% endif %} tab-pane-fixed">
             <p class="section-label" style="margin-bottom: 5px;">Danh sách hồ sơ chờ xác nhận đền sách</p>
             <p class="section-meta" style="margin-bottom: 15px;">Hiển thị danh sách hồ sơ bồi thường</p>
             <div class="data-table-scroll table-wrapper">
@@ -652,15 +652,13 @@
                 <div class="form-group" style="margin-bottom:22px;">
                     <label
                         style="font-weight:700; font-size:13px; margin-bottom:8px; display:block; color:#111827;">Ngày
-                        khai báo mất <span style="color:#ef4444;">*</span></label>
+                        khai báo mất</label>
                     <div style="position:relative; display:flex; align-items:center;">
-                        <input type="date" id="lostReportDate" class="form-input"
-                            style="width:100%; padding:12px 12px 12px 16px; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-size:14px; box-sizing:border-box;">
+                        <input type="date" id="lostReportDate" class="form-input" readonly
+                            style="width:100%; padding:12px 12px 12px 16px; border:1px solid #e5e7eb; border-radius:8px; outline:none; font-size:14px; box-sizing:border-box; background:#f8f9fa; cursor:default; color:#374151;">
                         <i class='bx bx-calendar'
-                            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:#6b7280; pointer-events:none;"></i>
+                            style="position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:20px; color:#9ca3af; pointer-events:none;"></i>
                     </div>
-                    <p style="font-size:12px; color:#6b7280; margin-top:6px; margin-bottom:0;">Ngày hôm nay sẽ được
-                        auto-fill. Vui lòng chỉnh sửa nếu sách mất từ ngày trước đó.</p>
                     <p id="lostDateError" class="field-error hidden">Vui lòng chọn ngày hợp lệ</p>
                 </div>
                 <div class="form-group" style="margin-bottom:22px;">
@@ -786,9 +784,9 @@
 
                 <div class="form-group">
                     <label for="compInspectionNote"
-                        style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Mã
-                        sách đền bù (Bắt buộc)</label>
-                    <textarea id="compInspectionNote" class="form-input" placeholder="Nhập mã sách đền bù (VD: S001-05)"
+                        style="font-weight:700; font-size:14px; margin-bottom:10px; display:block; color:#111827;">Ghi
+                        chú (Tùy chọn)</label>
+                    <textarea id="compInspectionNote" class="form-input" placeholder="Nhập ghi chú thêm (nếu có)"
                         style="width:100%; padding:14px 18px; border:1px solid #f1f5f9; background:#fcfdfe; border-radius:10px; outline:none; font-family:inherit; resize:none; height:90px; font-size:14px; box-sizing:border-box; transition:all 0.2s;"></textarea>
                 </div>
             </div>

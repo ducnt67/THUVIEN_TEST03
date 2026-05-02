@@ -11,7 +11,6 @@
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_form_edit.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_detail_new.css' %}">
 <link rel="stylesheet" href="{% static 'quan_ly_sach/css/modal_copy.css' %}">
-<link rel="stylesheet" href="{% static 'quan_ly_sach/css/toast_notification.css' %}">
 <link rel="stylesheet" href="{% static 'css/circulation.css' %}">
 {% endblock %}
 
@@ -118,7 +117,7 @@
 
 </div><!-- end data-page -->
 
-<div id="toastContainer"></div>
+
 
 
 <!-- Modal thêm/sửa sách -->
@@ -140,10 +139,7 @@
 
 {% block extra_js %}
 
-<script src="{% static 'js/ui.js' %}"></script>
-<script src="{% static 'js/sidebar.js' %}"></script>
 <script src="{% static 'quan_ly_sach/js/book_list.js' %}"></script>
 <script src="{% static 'quan_ly_sach/js/modal_fix.js' %}"></script>
-<script src="{% static 'quan_ly_sach/js/toast_notification.js' %}"></script>
 <script src="{% static 'quan_ly_sach/js/auto_book_id.js' %}"></script>
 {% endblock %}

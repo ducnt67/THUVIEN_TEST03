@@ -458,14 +458,7 @@
     z-index: 9999;
 }
 
-.toast {
-    background: #e6fffa;
-    color: #00875a;
-    border: 1px solid #b2f5ea;
-    padding: 14px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-}
+/* Toast đã được xử lý bởi style.css (hệ thống chung) */
 
 /* =========================
    HOVER ROW

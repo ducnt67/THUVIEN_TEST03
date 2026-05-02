@@ -37,15 +37,24 @@ function showToast(type, message) {
     }, duration);
 }
 
+// Map Django message tag → toast type
+function djangoTagToToastType(classList) {
+    if (classList.contains('success')) return 'success';
+    if (classList.contains('error') || classList.contains('danger')) return 'error';
+    if (classList.contains('warning')) return 'error';
+    return 'info';
+}
+
 // Global initialization
 document.addEventListener('DOMContentLoaded', function() {
-    // Check for Django messages to convert to toasts if needed
+    // Convert Django messages thành toast đúng màu
     const djangoMessages = document.querySelectorAll('.message-box');
     djangoMessages.forEach(msg => {
         const text = msg.innerText.trim();
         if (text) {
-            showToast('info', text);
-            msg.style.display = 'none'; // Hide the static django message box
+            const type = djangoTagToToastType(msg.classList);
+            showToast(type, text);
+            msg.style.display = 'none';
         }
     });
 });

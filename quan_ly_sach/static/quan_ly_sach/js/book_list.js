@@ -367,40 +367,13 @@ console.log("✅ Functions ready:", {
 
 /* =========================
    TOAST NOTIFICATION SYSTEM
+   Dùng showToast() từ ui.js (đã load trong base.html)
 ========================= */
 
 window.showSuccess = function(message) {
-    // 1. Tạo hoặc lấy container
-    let container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        document.body.appendChild(container);
+    if (typeof showToast === 'function') {
+        showToast('success', message);
     }
-
-    // 2. Tạo element toast
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-
-    // Cấu trúc chuẩn icon check trong vòng tròn
-    toast.innerHTML = `
-        <div class="toast-content">
-            <div class="toast-icon-circle">
-                <i class='bx bx-check'></i>
-            </div>
-            <span class="toast-msg">${message}</span>
-        </div>
-    `;
-
-    container.appendChild(toast);
-
-    // 3. Tự động xóa sau 3 giây
-    setTimeout(() => {
-        toast.classList.add('hide');
-        setTimeout(() => {
-            toast.remove();
-        }, 500);
-    }, 3000);
 };
 
 /* =================================================
