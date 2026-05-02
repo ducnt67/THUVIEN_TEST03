@@ -92,31 +92,31 @@ def book_list_view(request):
 
         if action == "delete":
             book = get_object_or_404(Sach, ma_sach=book_id)
-            available_copies = book.sach_trong_kho.filter(trang_thai_sach='available')
-            not_available_copies = book.sach_trong_kho.exclude(trang_thai_sach='available')
 
-            # Xóa toàn bộ bản 'available' trước
-            deleted_count = available_copies.count()
-            available_copies.delete()
+            # Kiểm tra lịch sử mượn — bao gồm cả sách đang mượn lẫn đã trả
+            # (vì sách đang mượn cũng có ChiTietPhieuMuon tương ứng)
+            has_borrow_history = book.sach_trong_kho.filter(
+                chi_tiet_phieu_muon__isnull=False
+            ).exists()
 
-            if not_available_copies.exists():
-                # Còn bản đang mượn/quá hạn → chuyển sang 'Ngừng sử dụng' thay vì xóa
-                # để giữ lịch sử mượn sách nguyên vẹn
-                not_available_copies.update(trang_thai_sach=SachTrongKho.TrangThai.DISCONTINUED)
-                messages.success(request, 'Xóa thông tin sách thành công.')
-                # Cập nhật so_luong vì sách vẫn còn tồn tại trong DB
-                book.so_luong = book.sach_trong_kho.exclude(
-                    trang_thai_sach__in=['lost', 'discontinued']
-                ).count()
+            if has_borrow_history:
+                # Có lịch sử (đang mượn hoặc đã từng mượn)
+                # → Chuyển toàn bộ bản sao sang 'Ngừng sử dụng' để giữ lịch sử nguyên vẹn
+                book.sach_trong_kho.all().update(
+                    trang_thai_sach=SachTrongKho.TrangThai.DISCONTINUED
+                )
+                book.so_luong = 0
                 book.save()
+                messages.success(
+                    request,
+                    'Sách đã có lịch sử mượn, sách được chuyển sang trạng thái ngừng sử dụng.'
+                )
             else:
-                # Không còn bản nào → xóa hoàn toàn đầu sách
+                # Không có lịch sử mượn → xóa hoàn toàn
                 book.delete()
                 messages.success(request, 'Xóa thông tin sách thành công.')
 
-                # Không gọi book.save() vì book đã bị xóa
-
-            return redirect("book_list")
+            return redirect('book_list')
 
         elif action == "add_copies":
             num_to_add_raw = request.POST.get("num_to_add", "0")
