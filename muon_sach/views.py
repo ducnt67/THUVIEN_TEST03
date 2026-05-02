@@ -247,23 +247,42 @@ def api_extend_borrow_slip(request, pk):
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
 
-            # Validation: New due date cannot be earlier than borrow date
+            # Lấy hạn trả hiện tại (lấy từ chi tiết phiếu chưa trả)
+            chi_tiet = pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).first()
+            if not chi_tiet:
+                return JsonResponse({'success': False, 'message': 'Không tìm thấy sách chưa trả trong phiếu mượn này.'}, status=400)
+
+            current_due_date = chi_tiet.han_tra
+            today = timezone.now().date()
+
+            # Kiểm tra quá hạn: nếu hôm nay > hạn trả hiện tại thì không cho gia hạn
+            if today > current_due_date:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Sách đã quá hạn trả, không thể gia hạn. Vui lòng thực hiện trả sách và thanh toán phí phạt nếu có.'
+                }, status=200)
+
+            # Parse và validate ngày gia hạn mới
             try:
                 new_date_obj = datetime.strptime(new_due_date, '%Y-%m-%d').date()
-                if new_date_obj < pm.ngay_muon:
-                    return JsonResponse({'success': False, 'message': 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn'},
-                                        status=200)
             except ValueError:
                 return JsonResponse({'success': False, 'message': 'Định dạng ngày không hợp lệ'}, status=200)
+
+            # Ngày gia hạn mới phải lớn hơn hạn trả hiện tại
+            if new_date_obj <= current_due_date:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại ({current_due_date.strftime("%d/%m/%Y")}).'
+                }, status=200)
 
             # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
             pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(han_tra=new_due_date)
 
-            # Cập nhật lại trạng thái (có thể từ Quá hạn sang Đang mượn)
+            # Cập nhật lại trạng thái phiếu mượn
             pm.sync_status()
 
-        return JsonResponse({'success': True, 'message': 'Gia hạn thành công'})
+        return JsonResponse({'success': True, 'message': 'Gia hạn hạn trả sách thành công.'})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
