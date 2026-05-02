@@ -589,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Ngày mới phải lớn hơn hạn trả hiện tại
             if (newDate <= currentDue) {
-                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
+                safeToast('error', 'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại.');
                 return;
             }
         }
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Ngày mới phải lớn hơn hạn trả hiện tại
             if (newDate <= currentDue) {
-                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
+                safeToast('error', 'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại.');
                 return;
             }
         }
@@ -699,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Ngày mới phải lớn hơn hạn trả hiện tại
             if (newDate <= currentDue) {
-                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
+                safeToast('error', 'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại.');
                 return;
             }
         }
