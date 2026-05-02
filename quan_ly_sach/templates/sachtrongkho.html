@@ -101,6 +101,8 @@
                             <span class="badge badge-purple-solid" style="background: #a855f7; color: white;">Chờ đền bù</span>
                             {% elif status == 'processed' %}
                             <span class="badge badge-gray-solid" style="background: #64748b; color: white;">Đã xử lý</span>
+                            {% elif status == 'discontinued' %}
+                            <span class="badge badge-gray-solid" style="background: #94a3b8; color: white;">Ngừng sử dụng</span>
                             {% else %}
                             <span class="badge badge-gray-solid" style="background: #94a3b8; color: white;">{{ status|title }}</span>
                             {% endif %}
