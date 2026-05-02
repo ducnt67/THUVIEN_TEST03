@@ -71,16 +71,13 @@ def dashboard_view(request):
     for days_ago in range(6, -1, -1):
         day = today - timedelta(days=days_ago)
         overdue_labels.append(weekday_labels[day.weekday()])
-        
-        # A slip becomes overdue the day after its due date.
-        # So, we check for slips whose due date was yesterday relative to 'day'.
-        due_date_for_overdue = day - timedelta(days=1)
-        
+
+        # Đếm tổng số phủ chi tiết phiếu mượn đang quá hạn tại ngày 'day':
+        # han_tra < day (tức là đã quá hạn) và (chưa trả hoặc trả sau ngày 'day')
         count = ChiTietPhieuMuon.objects.filter(
-            han_tra=due_date_for_overdue
+            han_tra__lt=day
         ).filter(
-            # It must not have been returned on or before the due date to be counted.
-            Q(ngay_tra__isnull=True) | Q(ngay_tra__gt=due_date_for_overdue)
+            Q(ngay_tra__isnull=True) | Q(ngay_tra__gt=day)
         ).values('ma_phieu_muon_id').distinct().count()
         overdue_data.append(count)
 

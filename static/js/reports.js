@@ -89,19 +89,80 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (overdueChart) {
         const overdue = dashboardChartData.overdue || {};
+        const overdueData = overdue.data || [0, 0, 0, 0, 0, 0, 0];
+        const overdueLabels = overdue.labels || ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+        // Tạo gradient fill
+        const ctx = overdueChart.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
+        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.01)');
+
         new Chart(overdueChart, {
             type: 'line',
             data: {
-                labels: overdue.labels || ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                labels: overdueLabels,
                 datasets: [{
                     label: 'Phiếu quá hạn',
-                    data: overdue.data || [0, 0, 0, 0, 0, 0, 0],
-                    fill: false,
+                    data: overdueData,
+                    fill: true,
+                    backgroundColor: gradient,
+                    borderColor: '#ef4444',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#ef4444',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    tension: 0.35,
                 }],
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            font: { size: 12 },
+                            color: '#374151',
+                        },
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const v = context.parsed.y;
+                                return ` ${v} phiếu quá hạn`;
+                            },
+                        },
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0,
+                            color: '#6b7280',
+                            font: { size: 11 },
+                        },
+                        grid: {
+                            color: 'rgba(107, 114, 128, 0.12)',
+                        },
+                    },
+                    x: {
+                        ticks: {
+                            color: '#6b7280',
+                            font: { size: 11 },
+                        },
+                        grid: {
+                            display: false,
+                        },
+                    },
+                },
             },
         });
     }

@@ -759,23 +759,24 @@ function submitCompensateConfirm() {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                const statusCell = selectedCompensateRow.querySelector('.col-status');
-                const actionCell = selectedCompensateRow.querySelector('.col-action');
-
-                selectedCompensateRow.dataset.status = 'da_tra';
-                if (statusCell) statusCell.innerHTML = '<span class="badge badge-green-solid">Đã trả (Đền sách)</span>';
-                if (actionCell) actionCell.innerHTML = '';
-
                 closeAllPopups();
                 resetCompensateFormState();
-                removeCompensateRow(ma_phieu_muon, bookCode);
+
+                // Xóa hàng khỏi danh sách tab-4 ngay lập tức
+                if (selectedCompensateRow) {
+                    selectedCompensateRow.remove();
+                }
+
                 showToast('compensateSuccess');
-                setTimeout(() => reloadCurrentTab(), 1000);
+                setTimeout(() => reloadCurrentTab(), 1500);
             } else {
                 showToast('compensateError', data.error || 'Xác nhận đền sách thất bại');
             }
         })
-        .catch(() => showToast('compensateError'));
+        .catch((err) => {
+            console.error('Lỗi xác nhận đền sách:', err);
+            showToast('compensateError');
+        });
 }
 
 function initCompensateFlow() {
