@@ -19,12 +19,12 @@ def _book_queryset(keyword):
         )
 
     # Các trạng thái sách được coi là vẫn còn trong bộ sưu tập của thư viện
-    # (không tính các sách đã mất, chờ đền hoặc đã xử lý xong)
+    # (không tính sách đã mất, đã xử lý xong, hoặc ngừng sử dụng)
     collection_statuses = [
         SachTrongKho.TrangThai.AVAILABLE,
         SachTrongKho.TrangThai.BORROWED,
         SachTrongKho.TrangThai.OVERDUE,
-        SachTrongKho.TrangThai.DAMAGED, # Hư hỏng nhẹ vẫn được tính vào tổng số
+        SachTrongKho.TrangThai.DAMAGED,  # Hư hỏng nhẹ vẫn được tính vào tổng số
     ]
 
     return books.annotate(
@@ -95,22 +95,26 @@ def book_list_view(request):
             available_copies = book.sach_trong_kho.filter(trang_thai_sach='available')
             not_available_copies = book.sach_trong_kho.exclude(trang_thai_sach='available')
 
+            # Xóa toàn bộ bản 'available' trước
             deleted_count = available_copies.count()
             available_copies.delete()
 
             if not_available_copies.exists():
-                messages.warning(
-                    request,
-                    f"Đã xóa {deleted_count} bản có sẵn. "
-                    f"Còn {not_available_copies.count()} bản đang được mượn / không thể xóa."
-                )
+                # Còn bản đang mượn/quá hạn → chuyển sang 'Ngừng sử dụng' thay vì xóa
+                # để giữ lịch sử mượn sách nguyên vẹn
+                not_available_copies.update(trang_thai_sach=SachTrongKho.TrangThai.DISCONTINUED)
+                messages.success(request, 'Xóa thông tin sách thành công.')
+                # Cập nhật so_luong vì sách vẫn còn tồn tại trong DB
+                book.so_luong = book.sach_trong_kho.exclude(
+                    trang_thai_sach__in=['lost', 'discontinued']
+                ).count()
+                book.save()
             else:
+                # Không còn bản nào → xóa hoàn toàn đầu sách
                 book.delete()
-                messages.success(request, f"Đã xóa hoàn toàn sách '{book.ten_sach}'.")
+                messages.success(request, 'Xóa thông tin sách thành công.')
 
-            # Đồng bộ lại trường so_luong của model Sach sau khi xóa (chỉ tính sách không bị mất)
-            book.so_luong = book.sach_trong_kho.exclude(trang_thai_sach='lost').count()
-            book.save()
+                # Không gọi book.save() vì book đã bị xóa
 
             return redirect("book_list")
 

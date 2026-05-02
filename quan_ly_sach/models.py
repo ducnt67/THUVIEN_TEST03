@@ -76,6 +76,7 @@ class SachTrongKho(models.Model):
         PROCESSED = 'processed', 'Đã xử lý (Đã đền bù)'
         DAMAGED = 'damaged', 'Hư hỏng'
         LOST = 'lost', 'Đã mất'
+        DISCONTINUED = 'discontinued', 'Ngừng sử dụng'
 
     ma_sach_trong_kho = models.CharField(max_length=25, primary_key=True, editable=False)
     ma_sach = models.ForeignKey(Sach, on_delete=models.CASCADE, related_name='sach_trong_kho')
