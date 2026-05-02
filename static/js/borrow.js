@@ -568,16 +568,30 @@ document.addEventListener('DOMContentLoaded', function () {
     ======================== */
     window.saveDetailChanges = async function () {
         const newDate = document.getElementById('detDueDate')?.value || '';
-        const borrowDate = document.getElementById('detBorrowDate')?.value || '';
+        const currentDueIso = document.getElementById('detDueDate')?.dataset.originalDue || '';
 
         if (!newDate) {
             safeToast('error', 'Vui lòng chọn ngày đến hạn mới.');
             return;
         }
 
-        if (borrowDate && newDate < borrowDate) {
-            safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
-            return;
+        // Kiểm tra quá hạn phía frontend (sử dụng dữ liệu từ slip)
+        const slip = slips.find(s => s.id === detailSlipId);
+        if (slip) {
+            const currentDue = toIso(slip.dueDate);
+            const today = new Date().toISOString().split('T')[0];
+
+            // Nếu đã quá hạn: không cho gia hạn
+            if (today > currentDue) {
+                safeToast('error', 'Sách đã quá hạn trả, không thể gia hạn. Vui lòng thực hiện trả sách và thanh toán phí phạt nếu có.');
+                return;
+            }
+
+            // Ngày mới phải lớn hơn hạn trả hiện tại
+            if (newDate <= currentDue) {
+                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
+                return;
+            }
         }
 
         try {
@@ -597,6 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.closePm();
                 fetchSlips();
             } else {
+                // Không đóng popup khi thất bại để người dùng có thể điều chỉnh
                 safeToast('error', data.message);
             }
         } catch (error) {
@@ -618,9 +633,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const slip = slips.find(s => s.id == extSmallSlipId);
         if (slip) {
-            const bDate = toIso(slip.borrowDate);
-            if (bDate && newDate < bDate) {
-                safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+            const currentDue = toIso(slip.dueDate);
+            const today = new Date().toISOString().split('T')[0];
+
+            // Nếu đã quá hạn: không cho gia hạn
+            if (today > currentDue) {
+                safeToast('error', 'Sách đã quá hạn trả, không thể gia hạn. Vui lòng thực hiện trả sách và thanh toán phí phạt nếu có.');
+                return;
+            }
+
+            // Ngày mới phải lớn hơn hạn trả hiện tại
+            if (newDate <= currentDue) {
+                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
                 return;
             }
         }
@@ -642,6 +666,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.closePm();
                 fetchSlips();
             } else {
+                // Không đóng popup khi thất bại
                 safeToast('error', data.message);
             }
         } catch (error) {
@@ -663,9 +688,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const slip = slips.find(s => s.id == extLargeSlipId);
         if (slip) {
-            const bDate = toIso(slip.borrowDate);
-            if (bDate && newDate < bDate) {
-                safeToast('error', 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn');
+            const currentDue = toIso(slip.dueDate);
+            const today = new Date().toISOString().split('T')[0];
+
+            // Nếu đã quá hạn: không cho gia hạn
+            if (today > currentDue) {
+                safeToast('error', 'Sách đã quá hạn trả, không thể gia hạn. Vui lòng thực hiện trả sách và thanh toán phí phạt nếu có.');
+                return;
+            }
+
+            // Ngày mới phải lớn hơn hạn trả hiện tại
+            if (newDate <= currentDue) {
+                safeToast('error', `Ngày gia hạn mới phải lớn hơn hạn trả hiện tại (${slip.dueDate}).`);
                 return;
             }
         }
@@ -687,6 +721,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 window.closePm();
                 fetchSlips();
             } else {
+                // Không đóng popup khi thất bại
                 safeToast('error', data.message);
             }
         } catch (error) {
