@@ -272,7 +272,7 @@ def api_extend_borrow_slip(request, pk):
             if new_date_obj <= current_due_date:
                 return JsonResponse({
                     'success': False,
-                    'message': f'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại ({current_due_date.strftime("%d/%m/%Y")}).'
+                    'message': 'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại.'
                 }, status=200)
 
             # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
