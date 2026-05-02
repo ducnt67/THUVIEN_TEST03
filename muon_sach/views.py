@@ -252,7 +252,7 @@ def api_extend_borrow_slip(request, pk):
             if not chi_tiet:
                 return JsonResponse({'success': False, 'message': 'Không tìm thấy sách chưa trả trong phiếu mượn này.'}, status=400)
 
-            current_due_date = chi_tiet.han_tra
+            current_due_date = chi_tiet.ngay_gia_han if chi_tiet.ngay_gia_han else chi_tiet.han_tra
             today = timezone.now().date()
 
             # Kiểm tra quá hạn: nếu hôm nay > hạn trả hiện tại thì không cho gia hạn
@@ -275,14 +275,14 @@ def api_extend_borrow_slip(request, pk):
                     'message': 'Ngày gia hạn mới phải lớn hơn hạn trả hiện tại.'
                 }, status=200)
 
-            # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
-            pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(han_tra=new_due_date)
+            # Cập nhật ngày gia hạn cho toàn bộ sách chưa trả trong phiếu
+            pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(ngay_gia_han=new_due_date)
 
             # Cập nhật lại trạng thái phiếu mượn
             pm.sync_status()
 
-        return JsonResponse({'success': True, 'message': 'Gia hạn hạn trả sách thành công.'})
+        return JsonResponse({'success': True, 'message': 'Gia hạn thành công'})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=400)
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
