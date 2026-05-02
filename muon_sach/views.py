@@ -20,15 +20,18 @@ def _is_doc_gia_user(user):
 def _can_view_borrow_area(user):
     return user.is_superuser or user.has_perm('muon_sach.view_phieumuon') or _is_doc_gia_user(user)
 
+
 @login_required
 def borrow_list_view(request):
     if not _can_view_borrow_area(request.user):
         return JsonResponse({'success': False, 'message': 'Bạn không có quyền truy cập chức năng này.'}, status=403)
     return render(request, 'muon_sach/borrow_list.html')
 
+
 @login_required
 def borrow_list(request):
     return borrow_list_view(request)
+
 
 @login_required
 @require_GET
@@ -43,7 +46,7 @@ def api_get_borrow_list(request):
 
     data = []
     today = timezone.now().date()
-    
+
     for s in slips:
         status = s.sync_status()
         status_display = s.get_trang_thai_display()
@@ -61,15 +64,18 @@ def api_get_borrow_list(request):
             'userId': s.ma_nguoi_dung.ma_nguoi_dung,
             'userName': s.ma_nguoi_dung.ho_ten,
             'borrowDate': s.ngay_muon.strftime('%d/%m/%Y'),
-            'dueDate': s.chi_tiet_phieu_muon.first().han_tra.strftime('%d/%m/%Y') if s.chi_tiet_phieu_muon.exists() else '',
+            'dueDate': s.chi_tiet_phieu_muon.first().han_tra.strftime(
+                '%d/%m/%Y') if s.chi_tiet_phieu_muon.exists() else '',
             'status': status_display,
             'statusClass': status_class,
             'books': [
-                {'code': ct.ma_sach_trong_kho.ma_sach_trong_kho, 'title': ct.ma_sach_trong_kho.ma_sach.ten_sach, 'qty': 1}
+                {'code': ct.ma_sach_trong_kho.ma_sach_trong_kho, 'title': ct.ma_sach_trong_kho.ma_sach.ten_sach,
+                 'qty': 1}
                 for ct in s.chi_tiet_phieu_muon.all()
             ]
         })
     return JsonResponse(data, safe=False)
+
 
 @login_required
 @require_GET
@@ -87,6 +93,7 @@ def api_get_user_info(request):
     except NguoiDung.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy người dùng'}, status=200)
 
+
 @login_required
 @require_GET
 @permission_required('muon_sach.add_phieumuon', raise_exception=True)
@@ -97,16 +104,17 @@ def api_get_book_info(request):
         # Kiểm tra trạng thái sách - chỉ cho mượn nếu 'available'
         if book.trang_thai_sach != 'available':
             return JsonResponse({
-                'success': False, 
+                'success': False,
                 'message': 'Mã sách đã được mượn'
             }, status=200)
-            
+
         return JsonResponse({
             'success': True,
             'ten_sach': book.ma_sach.ten_sach
         })
     except SachTrongKho.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy sách'}, status=200)
+
 
 @login_required
 @require_GET
@@ -115,13 +123,13 @@ def api_search_books(request):
     query = request.GET.get('q', '').strip()
     if not query:
         return JsonResponse([], safe=False)
-    
+
     # Tìm sách trong kho có trạng thái 'available' và mã chứa query
     books = SachTrongKho.objects.filter(
         ma_sach_trong_kho__icontains=query,
         trang_thai_sach='available'
     ).select_related('ma_sach')[:10]  # Giới hạn 10 kết quả
-    
+
     results = [
         {
             'code': b.ma_sach_trong_kho,
@@ -165,12 +173,13 @@ def api_create_borrow_slip(request):
                     sach_kho = SachTrongKho.objects.get(ma_sach_trong_kho=b['code'])
                 except SachTrongKho.DoesNotExist:
                     raise Exception("Không tìm thấy sách")
-                
+
                 # Backend validation: check status again in case of concurrent requests
                 if sach_kho.trang_thai_sach == 'borrowed':
                     raise Exception("Mã sách đã được mượn")
                 elif sach_kho.trang_thai_sach != 'available':
-                    raise Exception(f"Sách đang ở trạng thái '{sach_kho.get_trang_thai_sach_display()}', không thể mượn.")
+                    raise Exception(
+                        f"Sách đang ở trạng thái '{sach_kho.get_trang_thai_sach_display()}', không thể mượn.")
 
                 ChiTietPhieuMuon.objects.create(
                     ma_phieu_muon=pm,
@@ -179,12 +188,13 @@ def api_create_borrow_slip(request):
                 )
                 sach_kho.trang_thai_sach = 'borrowed'
                 sach_kho.save()
-            
+
             pm.sync_status()
 
         return JsonResponse({'success': True, 'message': 'Thêm thông tin mượn sách thành công'})
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
 
 @login_required
 @require_POST
@@ -193,7 +203,7 @@ def api_delete_borrow_slip(request, pk):
     try:
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
-            
+
             if pm.trang_thai == 'dang_muon':
                 messages.error(request, 'Không thể xóa phiếu mượn đang mượn')
                 return JsonResponse({'success': False, 'action': 'reload'})
@@ -201,18 +211,27 @@ def api_delete_borrow_slip(request, pk):
             if pm.trang_thai == 'qua_han':
                 messages.error(request, 'Không thể xóa phiếu mượn quá hạn')
                 return JsonResponse({'success': False, 'action': 'reload'})
+
+            if pm.trang_thai != 'da_tra':
+                messages.error(request, 'Chỉ có thể xóa phiếu mượn đã trả')
+                return JsonResponse({'success': False, 'action': 'reload'})
+
+            # Xóa các khoản phạt liên quan (nếu có) để tránh lỗi ProtectedError do khóa ngoại PROTECT
+            pm.khoan_phat.all().delete()
+
             chi_tiet = pm.chi_tiet_phieu_muon.all()
             for ct in chi_tiet:
                 sach_kho = ct.ma_sach_trong_kho
                 sach_kho.trang_thai_sach = 'available'
                 sach_kho.save()
-            
+
             pm.delete()
         return JsonResponse({'success': True, 'message': 'Xóa phiếu mượn thành công'})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=400)
+
 
 @login_required
 @require_POST
@@ -221,27 +240,28 @@ def api_extend_borrow_slip(request, pk):
     try:
         data = json.loads(request.body)
         new_due_date = data.get('newDueDate')
-        
+
         if not new_due_date:
             return JsonResponse({'success': False, 'message': 'Thiếu ngày gia hạn mới'}, status=400)
-            
+
         with transaction.atomic():
             pm = PhieuMuon.objects.get(pk=pk)
-            
+
             # Validation: New due date cannot be earlier than borrow date
             try:
                 new_date_obj = datetime.strptime(new_due_date, '%Y-%m-%d').date()
                 if new_date_obj < pm.ngay_muon:
-                    return JsonResponse({'success': False, 'message': 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn'}, status=200)
+                    return JsonResponse({'success': False, 'message': 'Ngày gia hạn mới không thể nhỏ hơn ngày mượn'},
+                                        status=200)
             except ValueError:
                 return JsonResponse({'success': False, 'message': 'Định dạng ngày không hợp lệ'}, status=200)
 
             # Cập nhật hạn trả cho toàn bộ sách chưa trả trong phiếu
             pm.chi_tiet_phieu_muon.filter(ngay_tra__isnull=True).update(han_tra=new_due_date)
-            
+
             # Cập nhật lại trạng thái (có thể từ Quá hạn sang Đang mượn)
             pm.sync_status()
-            
+
         return JsonResponse({'success': True, 'message': 'Gia hạn thành công'})
     except PhieuMuon.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Không tìm thấy phiếu mượn'}, status=404)
