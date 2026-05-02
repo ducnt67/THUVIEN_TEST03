@@ -83,8 +83,10 @@ class PhieuMuon(models.Model):
                     any_pending_replace = True
                 elif ct.phuong_an_boi_thuong == 'den_bu_tien':
                     any_processing_loss = True
-                elif ct.han_tra < today:
-                    any_overdue = True
+                else:
+                    due_date = ct.ngay_gia_han if ct.ngay_gia_han else ct.han_tra
+                    if due_date < today:
+                        any_overdue = True
 
         # Determine the new status based on priority
         if all_returned:
@@ -118,6 +120,7 @@ class ChiTietPhieuMuon(models.Model):
     )
     han_tra = models.DateField()
     ngay_tra = models.DateField(blank=True, null=True)
+    ngay_gia_han = models.DateField(blank=True, null=True, verbose_name="Ngày gia hạn")
     tinh_trang_khi_tra = models.CharField(max_length=100, blank=True, null=True)
     ngay_khai_bao_mat = models.DateField(blank=True, null=True)
     phuong_an_boi_thuong = models.CharField(
